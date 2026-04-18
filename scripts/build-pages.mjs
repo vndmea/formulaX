@@ -39,15 +39,19 @@ const ensureCleanDir = (dir) => {
   mkdirSync(dir, { recursive: true });
 };
 
+const run = (command, cwd = root) => {
+  execSync(command, {
+    cwd,
+    stdio: 'inherit',
+    env: { ...process.env },
+  });
+};
+
 const buildApp = ({ dir, basePath, outputSubdir }) => {
   const appDir = join(root, dir);
   const outDir = join(outputDir, outputSubdir);
   mkdirSync(outDir, { recursive: true });
-  execSync(`corepack pnpm vite build --base ${basePath} --outDir "${outDir}"`, {
-    cwd: appDir,
-    stdio: 'inherit',
-    env: { ...process.env },
-  });
+  run(`corepack pnpm vite build --base ${basePath} --outDir "${outDir}"`, appDir);
 };
 
 const renderIndex = () => `<!doctype html>
@@ -174,6 +178,7 @@ const renderIndex = () => `<!doctype html>
 </html>`;
 
 ensureCleanDir(outputDir);
+run('corepack pnpm build:packages');
 
 for (const app of apps) {
   buildApp(app);
