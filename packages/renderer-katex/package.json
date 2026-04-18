@@ -13,6 +13,7 @@
       "require": "./dist/index.cjs"
     }
   },
+  "unpkg": "./dist/browser/index.global.js",
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",

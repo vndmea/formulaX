@@ -1,14 +1,14 @@
 # FormulaX
 
-FormulaX is a modern monorepo for building a web-based math formula editing platform with a Kity-inspired interaction model and a more maintainable, package-oriented architecture.
+FormulaX is a modern monorepo for building a web-based math formula editing platform with a Kity-inspired interaction model and a package-oriented architecture.
 
-The long-term goal is to publish FormulaX as a set of reusable npm packages for:
+The long-term goal is to publish FormulaX as a family of reusable npm packages for:
 
 - formula document modeling and commands
 - browser editing interactions
 - KaTeX rendering
-- host editor integrations such as Tiptap and TinyMCE
-- reusable UI pieces such as toolbars, formula panels, and dialogs
+- host-editor integrations such as Tiptap and TinyMCE
+- reusable UI building blocks such as toolbars, symbol panels, and dialogs
 
 The current repository focuses on Phase 1: a minimal but usable foundation.
 
@@ -25,24 +25,24 @@ Phase 1 currently includes:
 - unit tests for parser/serializer and adapters
 - DOM tests for the editor
 
-At the moment, browser interaction tests are scaffolded with Playwright, but running them still requires a local Chromium download.
+Browser interaction tests are scaffolded with Playwright, but still require a local Chromium download.
 
 ## Monorepo Layout
 
 ```text
 FormulaX/
-├─ apps/
-│  ├─ playground/
-│  ├─ tiptap-demo/
-│  └─ tinymce-demo/
-├─ packages/
-│  ├─ core/
-│  ├─ editor/
-│  ├─ renderer-katex/
-│  ├─ tiptap/
-│  ├─ tinymce/
-│  └─ ui/
-└─ .changeset/
+|- apps/
+|  |- playground/
+|  |- tiptap-demo/
+|  `- tinymce-demo/
+|- packages/
+|  |- core/
+|  |- editor/
+|  |- renderer-katex/
+|  |- tiptap/
+|  |- tinymce/
+|  `- ui/
+`- .changeset/
 ```
 
 ## Package Overview
@@ -108,7 +108,7 @@ Reusable UI components for formula editing workflows.
 Responsibilities:
 
 - toolbar actions
-- formula panel content
+- symbol panel content
 - modal/dialog shell helpers
 
 ## Getting Started
@@ -144,19 +144,16 @@ corepack pnpm dev:tinymce
 
 ## GitHub Pages
 
-The repository includes a GitHub Actions workflow that publishes a demo hub to GitHub Pages.
+The repository publishes a demo hub to GitHub Pages.
 
-Expected public URL for this repository name:
+Live URLs:
 
 - `https://vndmea.github.io/formulaX/`
-
-Expected demo routes:
-
 - `https://vndmea.github.io/formulaX/playground/`
 - `https://vndmea.github.io/formulaX/tiptap/`
 - `https://vndmea.github.io/formulaX/tinymce/`
 
-The Pages artifact is built from a single aggregated static output and deployed automatically from `main` through [`.github/workflows/deploy-pages.yml`](/e:/Code/formulaX/.github/workflows/deploy-pages.yml:1).
+The deployment is driven by [`.github/workflows/deploy-pages.yml`](/e:/Code/formulaX/.github/workflows/deploy-pages.yml:1).
 
 ## Workspace Scripts
 
@@ -164,7 +161,8 @@ The Pages artifact is built from a single aggregated static output and deployed 
 - `corepack pnpm dev:tiptap`: start the Tiptap demo
 - `corepack pnpm dev:tinymce`: start the TinyMCE demo
 - `corepack pnpm build`: build all packages and demo apps
-- `corepack pnpm build:pages`: build the GitHub Pages demo hub locally into `.pages-dist`
+- `corepack pnpm build:packages`: build workspace packages only
+- `corepack pnpm build:pages`: build the GitHub Pages demo hub into `.pages-dist`
 - `corepack pnpm test`: run Vitest
 - `corepack pnpm test:browser`: run Playwright browser tests
 - `corepack pnpm lint`: run ESLint
@@ -186,13 +184,13 @@ It includes:
 - the FormulaX editor surface
 - a LaTeX output preview
 - a KaTeX HTML preview
-- a small toolbar and helper panel
+- a toolbar and symbol panel
 
 ### Browser SDK (Vanilla JS)
 
-For projects without a bundler, use the IIFE bundles directly:
+For projects without a bundler, use the browser bundles directly.
 
-**Core only (LaTeX parsing/serialization):**
+Core only:
 
 ```html
 <script src="https://unpkg.com/@formulax/core/dist/browser/index.global.js"></script>
@@ -202,18 +200,18 @@ For projects without a bundler, use the IIFE bundles directly:
 </script>
 ```
 
-**Full editor (with DOM interaction):**
+Editor:
 
 ```html
 <script src="https://unpkg.com/@formulax/editor/dist/browser/index.global.js"></script>
 <script>
   const editor = new FormulaX.FormulaEditor({
-    root: document.getElementById('editor')
+    root: document.getElementById('editor'),
   });
 </script>
 ```
 
-**With KaTeX rendering:**
+KaTeX adapter:
 
 ```html
 <script src="https://unpkg.com/@formulax/renderer-katex/dist/browser/index.global.js"></script>
@@ -222,20 +220,18 @@ For projects without a bundler, use the IIFE bundles directly:
 </script>
 ```
 
-### Core Package (npm)
+### Core Package
 
-Example: parse and serialize LaTeX.
+Parse and serialize LaTeX:
 
 ```ts
 import { parseLatex, serializeLatex } from '@formulax/core';
 
 const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
-
-console.log(latex);
 ```
 
-Example: build editor state with commands.
+Build editor state with commands:
 
 ```ts
 import { createEmptyState, insertFraction, insertText } from '@formulax/core';
@@ -246,8 +242,6 @@ state = insertFraction()(state);
 ```
 
 ### Browser Editor Package
-
-Example: mount a FormulaX editor into a DOM container.
 
 ```ts
 import { FormulaEditor } from '@formulax/editor';
@@ -266,7 +260,7 @@ const editor = new FormulaEditor({
 });
 ```
 
-Keyboard shortcuts in the current prototype:
+Current keyboard shortcuts:
 
 - `/`: insert fraction
 - `^`: insert superscript structure
@@ -310,25 +304,11 @@ tinymce.init({
 const markup = createTinyMceFormulaMarkup('\\sqrt{x}');
 ```
 
-## Examples
-
-### `apps/playground`
-
-Standalone FormulaX editing playground for local development.
-
-### `apps/tiptap-demo`
-
-Minimal host integration example showing how FormulaX can be embedded as a Tiptap node.
-
-### `apps/tinymce-demo`
-
-Minimal host integration example showing how FormulaX markup can be inserted into TinyMCE content.
-
 ## Deployment
 
-GitHub Pages deployment is driven by the workflow in [`.github/workflows/deploy-pages.yml`](/e:/Code/formulaX/.github/workflows/deploy-pages.yml:1).
+GitHub Pages deployment is driven by [`.github/workflows/deploy-pages.yml`](/e:/Code/formulaX/.github/workflows/deploy-pages.yml:1).
 
-Local preview of the Pages artifact:
+Build the Pages artifact locally:
 
 ```bash
 corepack pnpm build:pages
@@ -376,7 +356,7 @@ Expected publishing targets:
 - `@formulax/tinymce`
 - `@formulax/ui`
 
-Before publishing, the following areas will need to be tightened further:
+Before publishing, the following areas still need tightening:
 
 - stable public APIs
 - package-level changelogs and release notes
@@ -392,12 +372,12 @@ Before publishing, the following areas will need to be tightened further:
 - Keep host integrations thin
 - Keep UI reusable and replaceable
 
-This separation is important so the formula model remains portable across editors, renderers, and products.
+This separation keeps the formula model portable across editors, renderers, and products.
 
 ## TODO
 
 - Add MathML import/export support
-- Expand the AST with matrices, summations, integrals, and symbol palettes
+- Expand the AST with matrices, summations, integrals, and richer symbol palettes
 - Improve cursor movement and nested selection behavior
 - Add IME-friendly text editing behavior
 - Add richer command APIs for structural editing

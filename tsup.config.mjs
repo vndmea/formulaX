@@ -15,7 +15,6 @@ export default defineConfig([
     sourcemap: true,
     clean: false,
     outDir: 'dist/browser',
-    outFile: 'formulax.iife.js',
     globalName: 'FormulaX',
     minify: true,
   },
