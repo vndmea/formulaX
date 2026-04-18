@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/renderer-katex" },
+    { "path": "./packages/editor" },
+    { "path": "./packages/tiptap" },
+    { "path": "./packages/tinymce" },
+    { "path": "./packages/ui" }
+  ]
+}

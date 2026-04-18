@@ -1,0 +1,17 @@
+{
+  "name": "@formulax/tiptap-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@formulax/core": "workspace:*",
+    "@formulax/tiptap": "workspace:*",
+    "@tiptap/core": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5"
+  }
+}

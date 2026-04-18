@@ -1,0 +1,15 @@
+node_modules
+dist
+.pages-dist
+.turbo
+.vitest
+coverage
+playwright-report
+test-results
+*.tsbuildinfo
+packages/**/src/*.js.map
+packages/**/src/*.d.ts.map
+packages/**/test/**/*.js
+packages/**/test/**/*.js.map
+packages/**/test/**/*.d.ts
+packages/**/test/**/*.d.ts.map

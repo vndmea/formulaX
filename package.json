@@ -1,0 +1,40 @@
+{
+  "name": "formulax",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FormulaX monorepo for a modern web formula editing platform.",
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "build": "corepack pnpm -r --filter ./packages/* --filter ./apps/* build",
+    "build:pages": "node scripts/build-pages.mjs",
+    "clean": "corepack pnpm -r clean",
+    "dev": "corepack pnpm --filter @formulax/playground dev",
+    "dev:tiptap": "corepack pnpm --filter @formulax/tiptap-demo dev",
+    "dev:tinymce": "corepack pnpm --filter @formulax/tinymce-demo dev",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:browser": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.2",
+    "@eslint/js": "^9.25.1",
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.15.3",
+    "@typescript-eslint/eslint-plugin": "^8.30.1",
+    "@typescript-eslint/parser": "^8.30.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.2",
+    "jsdom": "^26.1.0",
+    "playwright": "^1.52.0",
+    "prettier": "^3.5.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3",
+    "vitest": "^3.1.2"
+  }
+}

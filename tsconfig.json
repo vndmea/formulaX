@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@formulax/core": ["packages/core/src/index.ts"],
+      "@formulax/editor": ["packages/editor/src/index.ts"],
+      "@formulax/renderer-katex": ["packages/renderer-katex/src/index.ts"],
+      "@formulax/tiptap": ["packages/tiptap/src/index.ts"],
+      "@formulax/tinymce": ["packages/tinymce/src/index.ts"],
+      "@formulax/ui": ["packages/ui/src/index.ts"]
+    }
+  },
+  "include": ["packages", "apps"]
+}
