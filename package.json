@@ -5,8 +5,8 @@
   "description": "FormulaX monorepo for a modern web formula editing platform.",
   "packageManager": "pnpm@9.12.3",
   "scripts": {
-    "build": "corepack pnpm -r --filter ./packages/* --filter ./apps/* build",
-    "build:packages": "corepack pnpm -r --filter ./packages/* build",
+    "build": "corepack pnpm -r --filter \"./packages/*\" --filter \"./apps/*\" build",
+    "build:packages": "corepack pnpm -r --filter \"./packages/*\" build",
     "build:pages": "node scripts/build-pages.mjs",
     "clean": "corepack pnpm -r clean",
     "dev": "corepack pnpm --filter @formulax/playground dev",
