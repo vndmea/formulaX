@@ -11,9 +11,9 @@ if (!app) {
 app.innerHTML = `
   <main style="max-width: 900px; margin: 0 auto; padding: 32px; font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;">
     <h1>Tiptap + FormulaX</h1>
-    <p>最小宿主接入示例，公式节点通过扩展挂接。</p>
-    <div id="editor" style="border:1px solid #cbd5e1; border-radius:16px; padding:16px; min-height:160px;"></div>
-    <button id="insert-formula" type="button" style="margin-top:16px;">插入公式节点</button>
+    <p>Minimal host integration demo showing FormulaX as a Tiptap node extension.</p>
+    <div id="editor"></div>
+    <button id="insert-formula" type="button" style="margin-top:16px;">Insert Formula Node</button>
   </main>
 `;
 
@@ -27,7 +27,7 @@ if (!host || !button) {
 const editor = new Editor({
   element: host,
   extensions: [StarterKit, FormulaXNode],
-  content: '<p>宿主编辑器中可嵌入 FormulaX 原子节点。</p>',
+  content: '<p>FormulaX atomic nodes can be embedded in the host editor.</p>',
 });
 
 button.addEventListener('click', () => {

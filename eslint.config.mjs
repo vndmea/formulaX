@@ -5,7 +5,7 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['**/dist/**', '**/coverage/**', '**/playwright-report/**', '**/test-results/**'],
+    ignores: ['**/dist/**', '**/coverage/**', '**/playwright-report/**', '**/test-results/**', '**/.pages-dist/**'],
   },
   js.configs.recommended,
   {

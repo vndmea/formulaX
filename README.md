@@ -188,7 +188,41 @@ It includes:
 - a KaTeX HTML preview
 - a small toolbar and helper panel
 
-### Core Package
+### Browser SDK (Vanilla JS)
+
+For projects without a bundler, use the IIFE bundles directly:
+
+**Core only (LaTeX parsing/serialization):**
+
+```html
+<script src="https://unpkg.com/@formulax/core/dist/browser/index.global.js"></script>
+<script>
+  const doc = FormulaX.parseLatex('\\frac{a}{b}');
+  const latex = FormulaX.serializeLatex(doc);
+</script>
+```
+
+**Full editor (with DOM interaction):**
+
+```html
+<script src="https://unpkg.com/@formulax/editor/dist/browser/index.global.js"></script>
+<script>
+  const editor = new FormulaX.FormulaEditor({
+    root: document.getElementById('editor')
+  });
+</script>
+```
+
+**With KaTeX rendering:**
+
+```html
+<script src="https://unpkg.com/@formulax/renderer-katex/dist/browser/index.global.js"></script>
+<script>
+  const html = FormulaX.renderKatex(doc);
+</script>
+```
+
+### Core Package (npm)
 
 Example: parse and serialize LaTeX.
 

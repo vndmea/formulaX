@@ -10,8 +10,8 @@ if (!app) {
 app.innerHTML = `
   <main style="max-width: 900px; margin: 0 auto; padding: 32px; font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;">
     <h1>TinyMCE + FormulaX</h1>
-    <textarea id="tiny-host"><p>这里展示 TinyMCE 的最小接入方式。</p></textarea>
-    <button id="insert-formula" type="button" style="margin-top:16px;">插入公式占位</button>
+    <textarea id="tiny-host"><p>Minimal TinyMCE integration demo for FormulaX.</p></textarea>
+    <button id="insert-formula" type="button" style="margin-top:16px;">Insert Formula</button>
   </main>
 `;
 

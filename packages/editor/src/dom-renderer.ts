@@ -11,8 +11,10 @@ export const renderInteractiveHtml = (doc: FormulaDoc, activePath: FormulaPath):
 const renderChildren = (nodes: FormulaNode[], basePath: FormulaPath, activePath: FormulaPath): string => {
   const html: string[] = [];
   for (let index = 0; index <= nodes.length; index += 1) {
+    const path = joinPath([...basePath, index]);
+    const isActive = path === joinPath(activePath);
     html.push(
-      `<button class="fx-slot${joinPath([...basePath, index]) === joinPath(activePath) ? ' is-active' : ''}" data-path="${joinPath([...basePath, index])}" type="button"></button>`,
+      `<button class="fx-slot${isActive ? ' is-active' : ''}" data-path="${path}" type="button" title="${path}"></button>`,
     );
     if (index < nodes.length) {
       html.push(renderNode(nodes[index], [...basePath, index], activePath));
@@ -23,6 +25,8 @@ const renderChildren = (nodes: FormulaNode[], basePath: FormulaPath, activePath:
 
 const renderNode = (node: FormulaNode, path: FormulaPath, activePath: FormulaPath): string => {
   const pathValue = joinPath(path);
+  const isActive = (p: FormulaPath) => joinPath(p) === joinPath(activePath);
+
   switch (node.type) {
     case 'text':
       return `<span class="fx-node fx-text" data-node-path="${pathValue}">${node.value}</span>`;
@@ -30,27 +34,27 @@ const renderNode = (node: FormulaNode, path: FormulaPath, activePath: FormulaPat
       return `<span class="fx-node fx-group" data-node-path="${pathValue}">${renderChildren(node.body, [...path, 0], activePath)}</span>`;
     case 'frac':
       return `<span class="fx-node fx-frac" data-node-path="${pathValue}">
-        <span class="fx-frac-num">${renderChildren(node.numerator, [...path, 0], activePath)}</span>
+        <span class="fx-frac-num${isActive([...path, 0]) ? ' is-active' : ''}" data-path="${joinPath([...path, 0])}">${renderChildren(node.numerator, [...path, 0], activePath)}</span>
         <span class="fx-frac-line"></span>
-        <span class="fx-frac-den">${renderChildren(node.denominator, [...path, 1], activePath)}</span>
+        <span class="fx-frac-den${isActive([...path, 1]) ? ' is-active' : ''}" data-path="${joinPath([...path, 1])}">${renderChildren(node.denominator, [...path, 1], activePath)}</span>
       </span>`;
     case 'supsub':
       return `<span class="fx-node fx-supsub" data-node-path="${pathValue}">
         <span class="fx-supsub-base">${renderChildren(node.base, [...path, 0], activePath)}</span>
         <span class="fx-supsub-stack">
-          <span class="fx-sup">${renderChildren(node.sup ?? [], [...path, 1], activePath)}</span>
-          <span class="fx-sub">${renderChildren(node.sub ?? [], [...path, 2], activePath)}</span>
+          <span class="fx-sup${isActive([...path, 1]) ? ' is-active' : ''}" data-path="${joinPath([...path, 1])}">${renderChildren(node.sup ?? [], [...path, 1], activePath)}</span>
+          <span class="fx-sub${isActive([...path, 2]) ? ' is-active' : ''}" data-path="${joinPath([...path, 2])}">${renderChildren(node.sub ?? [], [...path, 2], activePath)}</span>
         </span>
       </span>`;
     case 'sqrt':
       return `<span class="fx-node fx-sqrt" data-node-path="${pathValue}">
-        <span class="fx-sqrt-symbol">&radic;</span>
-        <span class="fx-sqrt-body">${renderChildren(node.value, [...path, 0], activePath)}</span>
+        <span class="fx-sqrt-symbol">√</span>
+        <span class="fx-sqrt-body${isActive([...path, 0]) ? ' is-active' : ''}" data-path="${joinPath([...path, 0])}">${renderChildren(node.value, [...path, 0], activePath)}</span>
       </span>`;
     case 'fenced':
       return `<span class="fx-node fx-fenced" data-node-path="${pathValue}">
         <span class="fx-fence">${node.left}</span>
-        <span class="fx-fenced-body">${renderChildren(node.body, [...path, 0], activePath)}</span>
+        <span class="fx-fenced-body${isActive([...path, 0]) ? ' is-active' : ''}" data-path="${joinPath([...path, 0])}">${renderChildren(node.body, [...path, 0], activePath)}</span>
         <span class="fx-fence">${node.right}</span>
       </span>`;
     case 'doc':

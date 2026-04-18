@@ -64,7 +64,8 @@ export class FormulaEditor {
       const target = event.target as HTMLElement;
       const pathValue = target.dataset.path;
       if (pathValue === undefined) return;
-      this.moveSelection(pathValue === '' ? [] : pathValue.split('.').map(Number));
+      const path = pathValue === '' ? [] : pathValue.split('.').map(Number);
+      this.moveSelection(path);
     });
 
     this.root.addEventListener('keydown', (event) => {
