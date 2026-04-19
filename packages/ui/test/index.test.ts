@@ -1,6 +1,6 @@
 import { createEmptyState, text } from '@formulax/core';
 import { describe, expect, it } from 'vitest';
-import { createSymbolCommand, createToolbarActions, renderFormulaPanel, renderModal, renderToolbar } from '../src';
+import { createSymbolCommand, createToolbarActions, renderModal, renderToolbar } from '../src';
 
 describe('ui package', () => {
   it('creates a fixed toolbar command set', () => {
@@ -15,9 +15,8 @@ describe('ui package', () => {
 
   it('renders helper UI fragments', () => {
     expect(renderToolbar()).toContain('data-command="fraction"');
-    expect(renderFormulaPanel()).toContain('Symbol Panel');
-    expect(renderFormulaPanel()).toContain('Greek Letters');
-    expect(renderFormulaPanel()).toContain('fx-symbol-btn');
+    expect(renderToolbar()).toContain('fx-ribbon');
+    expect(renderToolbar()).toContain('Greek');
     expect(renderModal('Title', 'Content')).toContain('role="dialog"');
   });
 

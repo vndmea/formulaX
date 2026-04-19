@@ -15,14 +15,17 @@ export interface ToolbarAction {
   command: FormulaCommand;
 }
 
-export interface SymbolDefinition {
-  latex: string;
-  display: string;
+export interface RibbonTemplate {
+  label: string;
+  preview: string;
+  command?: string;
+  latex?: string;
 }
 
-export interface SymbolCategory {
-  name: string;
-  symbols: SymbolDefinition[];
+export interface RibbonGroup {
+  title: string;
+  accent?: 'teal' | 'gold' | 'green' | 'red' | 'blue';
+  items: RibbonTemplate[];
 }
 
 export const createToolbarActions = (): ToolbarAction[] => [
@@ -33,50 +36,64 @@ export const createToolbarActions = (): ToolbarAction[] => [
   { id: 'fence', label: 'Parentheses', command: insertFenced() },
 ];
 
-export const SYMBOL_CATEGORIES: SymbolCategory[] = [
+export const RIBBON_GROUPS: RibbonGroup[] = [
   {
-    name: 'Greek Letters',
-    symbols: [
-      { latex: '\\alpha', display: '\u03b1' },
-      { latex: '\\beta', display: '\u03b2' },
-      { latex: '\\gamma', display: '\u03b3' },
-      { latex: '\\delta', display: '\u03b4' },
-      { latex: '\\pi', display: '\u03c0' },
-      { latex: '\\sigma', display: '\u03c3' },
-      { latex: '\\omega', display: '\u03c9' },
-      { latex: '\\theta', display: '\u03b8' },
+    title: 'Insert',
+    accent: 'teal',
+    items: [
+      { label: 'Fraction', preview: 'a/b', command: 'fraction' },
+      { label: 'Superscript', preview: 'x^2', command: 'sup' },
+      { label: 'Subscript', preview: 'x_i', command: 'sub' },
+      { label: 'Radical', preview: 'sqrt', command: 'sqrt' },
+      { label: 'Brackets', preview: '( )', command: 'fence' },
     ],
   },
   {
-    name: 'Operators',
-    symbols: [
-      { latex: '\\cdot', display: '\u00b7' },
-      { latex: '\\times', display: '\u00d7' },
-      { latex: '\\div', display: '\u00f7' },
-      { latex: '\\pm', display: '\u00b1' },
-      { latex: '\\cup', display: '\u222a' },
-      { latex: '\\cap', display: '\u2229' },
+    title: 'Greek',
+    accent: 'gold',
+    items: [
+      { label: 'alpha', preview: 'alpha', latex: '\\alpha' },
+      { label: 'beta', preview: 'beta', latex: '\\beta' },
+      { label: 'gamma', preview: 'gamma', latex: '\\gamma' },
+      { label: 'theta', preview: 'theta', latex: '\\theta' },
+      { label: 'pi', preview: 'pi', latex: '\\pi' },
+      { label: 'sigma', preview: 'sigma', latex: '\\sigma' },
     ],
   },
   {
-    name: 'Functions',
-    symbols: [
-      { latex: '\\sin', display: 'sin' },
-      { latex: '\\cos', display: 'cos' },
-      { latex: '\\tan', display: 'tan' },
-      { latex: '\\log', display: 'log' },
-      { latex: '\\lim', display: 'lim' },
-      { latex: '\\exp', display: 'exp' },
+    title: 'Operators',
+    accent: 'green',
+    items: [
+      { label: 'Plus Minus', preview: 'plus/minus', latex: '\\pm' },
+      { label: 'Multiply', preview: 'times', latex: '\\times' },
+      { label: 'Divide', preview: 'divide', latex: '\\div' },
+      { label: 'Dot', preview: 'dot', latex: '\\cdot' },
+      { label: 'Union', preview: 'union', latex: '\\cup' },
+      { label: 'Intersection', preview: 'intersect', latex: '\\cap' },
     ],
   },
   {
-    name: 'Relations',
-    symbols: [
-      { latex: '\\leq', display: '\u2264' },
-      { latex: '\\geq', display: '\u2265' },
-      { latex: '\\neq', display: '\u2260' },
-      { latex: '\\approx', display: '\u2248' },
-      { latex: '\\infty', display: '\u221e' },
+    title: 'Relations',
+    accent: 'red',
+    items: [
+      { label: 'Less or Equal', preview: '<=', latex: '\\leq' },
+      { label: 'Greater or Equal', preview: '>=', latex: '\\geq' },
+      { label: 'Not Equal', preview: '!=', latex: '\\neq' },
+      { label: 'Approximate', preview: 'approx', latex: '\\approx' },
+      { label: 'Infinity', preview: 'inf', latex: '\\infty' },
+      { label: 'Arrow', preview: '->', latex: '\\to' },
+    ],
+  },
+  {
+    title: 'Templates',
+    accent: 'blue',
+    items: [
+      { label: 'Limit', preview: 'lim', latex: '\\lim' },
+      { label: 'Sine', preview: 'sin', latex: '\\sin' },
+      { label: 'Logarithm', preview: 'log', latex: '\\log' },
+      { label: 'Matrix', preview: 'matrix' },
+      { label: 'Summation', preview: 'sum' },
+      { label: 'Integral', preview: 'int' },
     ],
   },
 ];
@@ -89,33 +106,45 @@ export const createSymbolCommand = (latex: string): FormulaCommand => {
 
 export const renderToolbar = (): string =>
   `
-  <div class="fx-toolbar">
-    ${createToolbarActions()
-      .map((action) => `<button type="button" data-command="${action.id}">${action.label}</button>`)
-      .join('')}
-  </div>
-`;
-
-export const renderFormulaPanel = (): string =>
-  `
-  <section class="fx-panel">
-    <h3>Symbol Panel</h3>
-    ${SYMBOL_CATEGORIES.map(
-      (category) => `
-      <div style="margin-bottom:12px;">
-        <strong style="font-size:11px;color:#64748b;">${category.name}</strong>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">
-          ${category.symbols
-            .map(
-              (symbol) =>
-                `<button type="button" class="fx-symbol-btn" data-latex="${symbol.latex}" title="${symbol.latex}">${symbol.display}</button>`,
-            )
-            .join('')}
-        </div>
+  <div class="fx-ribbon" data-role="formula-ribbon">
+    <div class="fx-ribbon-topbar">
+      <div class="fx-ribbon-badge">Equation</div>
+      <div class="fx-ribbon-tabs">
+        <button type="button" class="fx-ribbon-tab is-active">Structures</button>
+        <button type="button" class="fx-ribbon-tab">Symbols</button>
+        <button type="button" class="fx-ribbon-tab">Matrices</button>
+        <button type="button" class="fx-ribbon-tab">Templates</button>
       </div>
-    `,
-    ).join('')}
-  </section>
+      <div class="fx-ribbon-note">WPS-inspired ribbon layout. Some tiles are placeholders for future SDK features.</div>
+    </div>
+    <div class="fx-toolbar fx-ribbon-groups">
+      ${RIBBON_GROUPS.map(
+        (group) => `
+        <section class="fx-ribbon-group fx-ribbon-group--${group.accent ?? 'teal'}">
+          <div class="fx-ribbon-grid">
+            ${group.items
+              .map((item) => {
+                const attributes = item.command
+                  ? `data-command="${item.command}"`
+                  : item.latex
+                    ? `data-latex="${item.latex}"`
+                    : 'data-disabled="true"';
+
+                return `
+                <button type="button" class="fx-ribbon-tile" ${attributes}>
+                  <span class="fx-ribbon-preview">${item.preview}</span>
+                  <span class="fx-ribbon-label">${item.label}</span>
+                </button>
+              `;
+              })
+              .join('')}
+          </div>
+          <div class="fx-ribbon-group-title">${group.title}</div>
+        </section>
+      `,
+      ).join('')}
+    </div>
+  </div>
 `;
 
 export const renderModal = (title: string, content: string): string =>
