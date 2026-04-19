@@ -94,4 +94,11 @@ describe('FormulaEditor', () => {
     expect(firstEditor.getState().doc.body).toEqual([]);
     expect(secondEditor.getState().doc.body).toEqual([]);
   });
+
+  it('stores the configured locale during initialization', () => {
+    const root = document.createElement('div');
+    const editor = new FormulaEditor({ root, locale: 'zh' });
+
+    expect(editor.getLocale()).toBe('zh');
+  });
 });

@@ -3,6 +3,7 @@ import { FormulaEditor } from '@formulax/editor';
 import { createSymbolCommand, createToolbarActions, renderToolbar } from '@formulax/ui';
 
 const app = document.querySelector<HTMLDivElement>('#app');
+const locale = 'zh' as const;
 
 if (!app) {
   throw new Error('App root not found');
@@ -402,7 +403,7 @@ app.innerHTML = `
         </p>
       </div>
     </header>
-    <section id="toolbar">${renderToolbar()}</section>
+    <section id="toolbar">${renderToolbar(locale)}</section>
     <section class="fx-workbench">
       <div class="fx-stage">
         <div class="fx-stage-header">
@@ -440,13 +441,14 @@ if (!editorHost || !latexOutput || !toolbar) {
 
 const editor = new FormulaEditor({
   root: editorHost,
+  locale,
   onChange: (state) => {
     const latex = serializeLatex(state.doc);
     latexOutput.textContent = latex;
   },
 });
 
-const actions = createToolbarActions();
+const actions = createToolbarActions(locale);
 toolbar.addEventListener('click', (event) => {
   const target = event.target as HTMLElement;
   const tile = target.closest<HTMLElement>('[data-command], [data-latex]');

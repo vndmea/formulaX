@@ -13,8 +13,9 @@ import {
 } from '@formulax/core';
 import { renderInteractiveHtml } from './dom-renderer';
 import { editorStyles } from './styles';
+import { type Locale, type LocaleConfig } from './i18n';
 
-export interface FormulaEditorOptions {
+export interface FormulaEditorOptions extends LocaleConfig {
   root: HTMLElement;
   initialState?: FormulaState;
   onChange?: (state: FormulaState) => void;
@@ -24,11 +25,13 @@ export class FormulaEditor {
   private state: FormulaState;
   private readonly root: HTMLElement;
   private readonly onChange?: (state: FormulaState) => void;
+  private readonly locale: Locale;
 
   constructor(options: FormulaEditorOptions) {
     this.root = options.root;
     this.state = options.initialState ?? createEmptyState();
     this.onChange = options.onChange;
+    this.locale = options.locale ?? 'en';
     this.root.classList.add('fx-editor');
     this.root.tabIndex = 0;
     this.ensureStyles();
@@ -38,6 +41,10 @@ export class FormulaEditor {
 
   getState(): FormulaState {
     return structuredClone(this.state);
+  }
+
+  getLocale(): Locale {
+    return this.locale;
   }
 
   setState(state: FormulaState): void {

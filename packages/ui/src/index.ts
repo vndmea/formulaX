@@ -8,6 +8,82 @@ import {
   latexCommandToSymbol,
   type FormulaCommand,
 } from '@formulax/core';
+export type Locale = 'en' | 'zh';
+
+const translations = {
+  en: {
+    equation: 'Equation',
+    structures: 'Structures',
+    symbols: 'Symbols',
+    matrices: 'Matrices',
+    templates: 'Templates',
+    insert: 'Insert',
+    greek: 'Greek',
+    operators: 'Operators',
+    relations: 'Relations',
+    fraction: 'Fraction',
+    superscript: 'Superscript',
+    subscript: 'Subscript',
+    squareRoot: 'Square Root',
+    parentheses: 'Parentheses',
+    plusMinus: 'Plus Minus',
+    multiply: 'Multiply',
+    divide: 'Divide',
+    dot: 'Dot',
+    union: 'Union',
+    intersect: 'Intersection',
+    lessOrEqual: 'Less or Equal',
+    greaterOrEqual: 'Greater or Equal',
+    notEqual: 'Not Equal',
+    approximate: 'Approximate',
+    infinity: 'Infinity',
+    arrow: 'Arrow',
+    limit: 'Limit',
+    sine: 'Sine',
+    logarithm: 'Logarithm',
+    matrix: 'Matrix',
+    summation: 'Summation',
+    integral: 'Integral',
+    placeholder: 'WPS-inspired ribbon layout. Some tiles are placeholders for future SDK features.',
+  },
+  zh: {
+    equation: '公式',
+    structures: '结构',
+    symbols: '符号',
+    matrices: '矩阵',
+    templates: '模板',
+    insert: '插入',
+    greek: '希腊字母',
+    operators: '运算符',
+    relations: '关系',
+    fraction: '分数',
+    superscript: '上标',
+    subscript: '下标',
+    squareRoot: '平方根',
+    parentheses: '括号',
+    plusMinus: '加减',
+    multiply: '乘',
+    divide: '除',
+    dot: '点乘',
+    union: '并集',
+    intersect: '交集',
+    lessOrEqual: '小于等于',
+    greaterOrEqual: '大于等于',
+    notEqual: '不等于',
+    approximate: '约等于',
+    infinity: '无穷',
+    arrow: '箭头',
+    limit: '极限',
+    sine: '正弦',
+    logarithm: '对数',
+    matrix: '矩阵',
+    summation: '求和',
+    integral: '积分',
+    placeholder: 'WPS 风格的工具栏布局。部分按钮仍是未来 SDK 功能的占位项。',
+  },
+} as const;
+
+type TranslationKey = keyof (typeof translations)['en'];
 
 export interface ToolbarAction {
   id: string;
@@ -28,28 +104,30 @@ export interface RibbonGroup {
   items: RibbonTemplate[];
 }
 
-export const createToolbarActions = (): ToolbarAction[] => [
-  { id: 'fraction', label: 'Fraction', command: insertFraction() },
-  { id: 'sup', label: 'Superscript', command: insertSuperscript() },
-  { id: 'sub', label: 'Subscript', command: insertSubscript() },
-  { id: 'sqrt', label: 'Square Root', command: insertSqrt() },
-  { id: 'fence', label: 'Parentheses', command: insertFenced() },
+const t = (locale: Locale, key: TranslationKey): string => translations[locale][key] ?? translations.en[key];
+
+export const createToolbarActions = (locale: Locale = 'en'): ToolbarAction[] => [
+  { id: 'fraction', label: t(locale, 'fraction'), command: insertFraction() },
+  { id: 'sup', label: t(locale, 'superscript'), command: insertSuperscript() },
+  { id: 'sub', label: t(locale, 'subscript'), command: insertSubscript() },
+  { id: 'sqrt', label: t(locale, 'squareRoot'), command: insertSqrt() },
+  { id: 'fence', label: t(locale, 'parentheses'), command: insertFenced() },
 ];
 
-export const RIBBON_GROUPS: RibbonGroup[] = [
+export const RIBBON_GROUPS = (locale: Locale = 'en'): RibbonGroup[] => [
   {
-    title: 'Insert',
+    title: t(locale, 'insert'),
     accent: 'teal',
     items: [
-      { label: 'Fraction', preview: 'a/b', command: 'fraction' },
-      { label: 'Superscript', preview: 'x^2', command: 'sup' },
-      { label: 'Subscript', preview: 'x_i', command: 'sub' },
-      { label: 'Radical', preview: 'sqrt', command: 'sqrt' },
-      { label: 'Brackets', preview: '( )', command: 'fence' },
+      { label: t(locale, 'fraction'), preview: 'a/b', command: 'fraction' },
+      { label: t(locale, 'superscript'), preview: 'x^2', command: 'sup' },
+      { label: t(locale, 'subscript'), preview: 'x_i', command: 'sub' },
+      { label: t(locale, 'squareRoot'), preview: 'sqrt', command: 'sqrt' },
+      { label: t(locale, 'parentheses'), preview: '( )', command: 'fence' },
     ],
   },
   {
-    title: 'Greek',
+    title: t(locale, 'greek'),
     accent: 'gold',
     items: [
       { label: 'alpha', preview: 'alpha', latex: '\\alpha' },
@@ -61,39 +139,39 @@ export const RIBBON_GROUPS: RibbonGroup[] = [
     ],
   },
   {
-    title: 'Operators',
+    title: t(locale, 'operators'),
     accent: 'green',
     items: [
-      { label: 'Plus Minus', preview: 'plus/minus', latex: '\\pm' },
-      { label: 'Multiply', preview: 'times', latex: '\\times' },
-      { label: 'Divide', preview: 'divide', latex: '\\div' },
-      { label: 'Dot', preview: 'dot', latex: '\\cdot' },
-      { label: 'Union', preview: 'union', latex: '\\cup' },
-      { label: 'Intersection', preview: 'intersect', latex: '\\cap' },
+      { label: t(locale, 'plusMinus'), preview: 'plus/minus', latex: '\\pm' },
+      { label: t(locale, 'multiply'), preview: 'times', latex: '\\times' },
+      { label: t(locale, 'divide'), preview: 'divide', latex: '\\div' },
+      { label: t(locale, 'dot'), preview: 'dot', latex: '\\cdot' },
+      { label: t(locale, 'union'), preview: 'union', latex: '\\cup' },
+      { label: t(locale, 'intersect'), preview: 'intersect', latex: '\\cap' },
     ],
   },
   {
-    title: 'Relations',
+    title: t(locale, 'relations'),
     accent: 'red',
     items: [
-      { label: 'Less or Equal', preview: '<=', latex: '\\leq' },
-      { label: 'Greater or Equal', preview: '>=', latex: '\\geq' },
-      { label: 'Not Equal', preview: '!=', latex: '\\neq' },
-      { label: 'Approximate', preview: 'approx', latex: '\\approx' },
-      { label: 'Infinity', preview: 'inf', latex: '\\infty' },
-      { label: 'Arrow', preview: '->', latex: '\\to' },
+      { label: t(locale, 'lessOrEqual'), preview: '<=', latex: '\\leq' },
+      { label: t(locale, 'greaterOrEqual'), preview: '>=', latex: '\\geq' },
+      { label: t(locale, 'notEqual'), preview: '!=', latex: '\\neq' },
+      { label: t(locale, 'approximate'), preview: 'approx', latex: '\\approx' },
+      { label: t(locale, 'infinity'), preview: 'inf', latex: '\\infty' },
+      { label: t(locale, 'arrow'), preview: '->', latex: '\\to' },
     ],
   },
   {
-    title: 'Templates',
+    title: t(locale, 'templates'),
     accent: 'blue',
     items: [
-      { label: 'Limit', preview: 'lim', latex: '\\lim' },
-      { label: 'Sine', preview: 'sin', latex: '\\sin' },
-      { label: 'Logarithm', preview: 'log', latex: '\\log' },
-      { label: 'Matrix', preview: 'matrix' },
-      { label: 'Summation', preview: 'sum' },
-      { label: 'Integral', preview: 'int' },
+      { label: t(locale, 'limit'), preview: 'lim', latex: '\\lim' },
+      { label: t(locale, 'sine'), preview: 'sin', latex: '\\sin' },
+      { label: t(locale, 'logarithm'), preview: 'log', latex: '\\log' },
+      { label: t(locale, 'matrix'), preview: 'matrix' },
+      { label: t(locale, 'summation'), preview: 'sum' },
+      { label: t(locale, 'integral'), preview: 'int' },
     ],
   },
 ];
@@ -104,21 +182,22 @@ export const createSymbolCommand = (latex: string): FormulaCommand => {
   return insertText(symbol ?? latex);
 };
 
-export const renderToolbar = (): string =>
-  `
+export const renderToolbar = (locale: Locale = 'en'): string => {
+  const groups = RIBBON_GROUPS(locale);
+  return `
   <div class="fx-ribbon" data-role="formula-ribbon">
     <div class="fx-ribbon-topbar">
-      <div class="fx-ribbon-badge">Equation</div>
+      <div class="fx-ribbon-badge">${t(locale, 'equation')}</div>
       <div class="fx-ribbon-tabs">
-        <button type="button" class="fx-ribbon-tab is-active">Structures</button>
-        <button type="button" class="fx-ribbon-tab">Symbols</button>
-        <button type="button" class="fx-ribbon-tab">Matrices</button>
-        <button type="button" class="fx-ribbon-tab">Templates</button>
+        <button type="button" class="fx-ribbon-tab is-active">${t(locale, 'structures')}</button>
+        <button type="button" class="fx-ribbon-tab">${t(locale, 'symbols')}</button>
+        <button type="button" class="fx-ribbon-tab">${t(locale, 'matrices')}</button>
+        <button type="button" class="fx-ribbon-tab">${t(locale, 'templates')}</button>
       </div>
-      <div class="fx-ribbon-note">WPS-inspired ribbon layout. Some tiles are placeholders for future SDK features.</div>
+      <div class="fx-ribbon-note">${t(locale, 'placeholder')}</div>
     </div>
     <div class="fx-toolbar fx-ribbon-groups">
-      ${RIBBON_GROUPS.map(
+      ${groups.map(
         (group) => `
         <section class="fx-ribbon-group fx-ribbon-group--${group.accent ?? 'teal'}">
           <div class="fx-ribbon-grid">
@@ -146,6 +225,7 @@ export const renderToolbar = (): string =>
     </div>
   </div>
 `;
+};
 
 export const renderModal = (title: string, content: string): string =>
   `

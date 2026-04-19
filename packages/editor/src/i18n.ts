@@ -1,0 +1,83 @@
+export const translations = {
+  en: {
+    equation: 'Equation',
+    structures: 'Structures',
+    symbols: 'Symbols',
+    matrices: 'Matrices',
+    templates: 'Templates',
+    insert: 'Insert',
+    greek: 'Greek',
+    operators: 'Operators',
+    relations: 'Relations',
+    fraction: 'Fraction',
+    superscript: 'Superscript',
+    subscript: 'Subscript',
+    squareRoot: 'Square Root',
+    parentheses: 'Parentheses',
+    plusMinus: 'Plus Minus',
+    multiply: 'Multiply',
+    divide: 'Divide',
+    dot: 'Dot',
+    union: 'Union',
+    intersect: 'Intersection',
+    lessOrEqual: 'Less or Equal',
+    greaterOrEqual: 'Greater or Equal',
+    notEqual: 'Not Equal',
+    approximate: 'Approximate',
+    infinity: 'Infinity',
+    arrow: 'Arrow',
+    limit: 'Limit',
+    sine: 'Sine',
+    logarithm: 'Logarithm',
+    matrix: 'Matrix',
+    summation: 'Summation',
+    integral: 'Integral',
+    placeholder: 'WPS-inspired ribbon layout. Some tiles are placeholders for future SDK features.',
+  },
+  zh: {
+    equation: '公式',
+    structures: '结构',
+    symbols: '符号',
+    matrices: '矩阵',
+    templates: '模板',
+    insert: '插入',
+    greek: '希腊字母',
+    operators: '运算符',
+    relations: '关系',
+    fraction: '分数',
+    superscript: '上标',
+    subscript: '下标',
+    squareRoot: '平方根',
+    parentheses: '括号',
+    plusMinus: '加减',
+    multiply: '乘',
+    divide: '除',
+    dot: '点乘',
+    union: '并集',
+    intersect: '交集',
+    lessOrEqual: '小于等于',
+    greaterOrEqual: '大于等于',
+    notEqual: '不等于',
+    approximate: '约等于',
+    infinity: '无穷',
+    arrow: '箭头',
+    limit: '极限',
+    sine: '正弦',
+    logarithm: '对数',
+    matrix: '矩阵',
+    summation: '求和',
+    integral: '积分',
+    placeholder: 'WPS 风格的工具栏布局。部分按钮仍是未来 SDK 功能的占位项。',
+  },
+} as const;
+
+export type Locale = keyof typeof translations;
+export type TranslationKey = keyof (typeof translations)['en'];
+
+export interface LocaleConfig {
+  locale?: Locale;
+}
+
+export function t(locale: Locale, key: TranslationKey): string {
+  return translations[locale][key] ?? translations.en[key];
+}
