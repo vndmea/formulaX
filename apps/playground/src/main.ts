@@ -142,8 +142,9 @@ app.innerHTML = `
       background: transparent;
       color: #536073;
       font-size: 13px;
-      cursor: default;
+      cursor: pointer;
       white-space: nowrap;
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
     }
 
     .fx-ribbon-tab.is-active {
@@ -168,6 +169,10 @@ app.innerHTML = `
       overflow-y: hidden;
       overscroll-behavior-x: contain;
       scrollbar-width: thin;
+    }
+
+    .fx-toolbar.fx-ribbon-groups[hidden] {
+      display: none;
     }
 
     .fx-ribbon-group {
@@ -449,8 +454,39 @@ const editor = new FormulaEditor({
 });
 
 const actions = createToolbarActions(locale);
+const ribbon = toolbar.querySelector<HTMLElement>('[data-role="formula-ribbon"]');
+const ribbonTabs = Array.from(toolbar.querySelectorAll<HTMLElement>('.fx-ribbon-tab[data-panel-target]'));
+const ribbonPanels = Array.from(toolbar.querySelectorAll<HTMLElement>('.fx-ribbon-groups[data-panel-id]'));
+
+const setActivePanel = (panelId: string) => {
+  ribbonTabs.forEach((tab) => {
+    const isActive = tab.dataset.panelTarget === panelId;
+    tab.classList.toggle('is-active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
+  });
+
+  ribbonPanels.forEach((panel) => {
+    const isActive = panel.dataset.panelId === panelId;
+    panel.classList.toggle('is-active', isActive);
+    panel.hidden = !isActive;
+  });
+};
+
+if (ribbonTabs.length > 0 && ribbonPanels.length > 0) {
+  setActivePanel(ribbonTabs[0].dataset.panelTarget ?? ribbonPanels[0].dataset.panelId ?? 'structures');
+}
+
 toolbar.addEventListener('click', (event) => {
   const target = event.target as HTMLElement;
+  const tab = target.closest<HTMLElement>('.fx-ribbon-tab[data-panel-target]');
+  if (tab && ribbon?.contains(tab)) {
+    const panelId = tab.dataset.panelTarget;
+    if (panelId) {
+      setActivePanel(panelId);
+    }
+    return;
+  }
+
   const tile = target.closest<HTMLElement>('[data-command], [data-latex]');
   if (!tile) return;
 

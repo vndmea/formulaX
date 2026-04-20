@@ -104,6 +104,12 @@ export interface RibbonGroup {
   items: RibbonTemplate[];
 }
 
+export interface RibbonPanel {
+  id: string;
+  label: string;
+  groups: RibbonGroup[];
+}
+
 const t = (locale: Locale, key: TranslationKey): string => translations[locale][key] ?? translations.en[key];
 
 export const createToolbarActions = (locale: Locale = 'en'): ToolbarAction[] => [
@@ -176,6 +182,45 @@ export const RIBBON_GROUPS = (locale: Locale = 'en'): RibbonGroup[] => [
   },
 ];
 
+export const RIBBON_PANELS = (locale: Locale = 'en'): RibbonPanel[] => {
+  const groups = RIBBON_GROUPS(locale);
+  const [insertGroup, greekGroup, operatorsGroup, relationsGroup, templatesGroup] = groups;
+
+  return [
+    {
+      id: 'structures',
+      label: t(locale, 'structures'),
+      groups: [insertGroup],
+    },
+    {
+      id: 'symbols',
+      label: t(locale, 'symbols'),
+      groups: [greekGroup, operatorsGroup, relationsGroup],
+    },
+    {
+      id: 'matrices',
+      label: t(locale, 'matrices'),
+      groups: [
+        {
+          title: t(locale, 'matrices'),
+          accent: 'blue',
+          items: [
+            { label: t(locale, 'matrix'), preview: '2x2' },
+            { label: '3x3', preview: '3x3' },
+            { label: 'det', preview: '|A|' },
+            { label: 'cases', preview: '{ }' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'templates',
+      label: t(locale, 'templates'),
+      groups: [templatesGroup],
+    },
+  ];
+};
+
 export const createSymbolCommand = (latex: string): FormulaCommand => {
   const command = latex.startsWith('\\') ? latex.slice(1) : latex;
   const symbol = latexCommandToSymbol(command);
@@ -183,46 +228,68 @@ export const createSymbolCommand = (latex: string): FormulaCommand => {
 };
 
 export const renderToolbar = (locale: Locale = 'en'): string => {
-  const groups = RIBBON_GROUPS(locale);
+  const panels = RIBBON_PANELS(locale);
   return `
   <div class="fx-ribbon" data-role="formula-ribbon">
     <div class="fx-ribbon-topbar">
       <div class="fx-ribbon-badge">${t(locale, 'equation')}</div>
       <div class="fx-ribbon-tabs">
-        <button type="button" class="fx-ribbon-tab is-active">${t(locale, 'structures')}</button>
-        <button type="button" class="fx-ribbon-tab">${t(locale, 'symbols')}</button>
-        <button type="button" class="fx-ribbon-tab">${t(locale, 'matrices')}</button>
-        <button type="button" class="fx-ribbon-tab">${t(locale, 'templates')}</button>
+        ${panels
+          .map(
+            (panel, index) => `
+          <button
+            type="button"
+            class="fx-ribbon-tab${index === 0 ? ' is-active' : ''}"
+            data-panel-target="${panel.id}"
+            aria-selected="${index === 0 ? 'true' : 'false'}"
+          >
+            ${panel.label}
+          </button>
+        `,
+          )
+          .join('')}
       </div>
       <div class="fx-ribbon-note">${t(locale, 'placeholder')}</div>
     </div>
-    <div class="fx-toolbar fx-ribbon-groups">
-      ${groups.map(
-        (group) => `
-        <section class="fx-ribbon-group fx-ribbon-group--${group.accent ?? 'teal'}">
-          <div class="fx-ribbon-grid">
-            ${group.items
-              .map((item) => {
-                const attributes = item.command
-                  ? `data-command="${item.command}"`
-                  : item.latex
-                    ? `data-latex="${item.latex}"`
-                    : 'data-disabled="true"';
+    ${panels
+      .map(
+        (panel, panelIndex) => `
+      <div
+        class="fx-toolbar fx-ribbon-groups${panelIndex === 0 ? ' is-active' : ''}"
+        data-panel-id="${panel.id}"
+        ${panelIndex === 0 ? '' : 'hidden'}
+      >
+        ${panel.groups
+          .map(
+            (group) => `
+          <section class="fx-ribbon-group fx-ribbon-group--${group.accent ?? 'teal'}">
+            <div class="fx-ribbon-grid">
+              ${group.items
+                .map((item) => {
+                  const attributes = item.command
+                    ? `data-command="${item.command}"`
+                    : item.latex
+                      ? `data-latex="${item.latex}"`
+                      : 'data-disabled="true"';
 
-                return `
-                <button type="button" class="fx-ribbon-tile" ${attributes}>
-                  <span class="fx-ribbon-preview">${item.preview}</span>
-                  <span class="fx-ribbon-label">${item.label}</span>
-                </button>
-              `;
-              })
-              .join('')}
-          </div>
-          <div class="fx-ribbon-group-title">${group.title}</div>
-        </section>
-      `,
-      ).join('')}
-    </div>
+                  return `
+                  <button type="button" class="fx-ribbon-tile" ${attributes}>
+                    <span class="fx-ribbon-preview">${item.preview}</span>
+                    <span class="fx-ribbon-label">${item.label}</span>
+                  </button>
+                `;
+                })
+                .join('')}
+            </div>
+            <div class="fx-ribbon-group-title">${group.title}</div>
+          </section>
+        `,
+          )
+          .join('')}
+      </div>
+    `,
+      )
+      .join('')}
   </div>
 `;
 };
