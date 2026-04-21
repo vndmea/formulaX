@@ -3,7 +3,7 @@ import { FormulaEditor } from '@formulax/editor';
 import { createSymbolCommand, createToolbarActions, renderToolbar } from '@formulax/ui';
 
 const app = document.querySelector<HTMLDivElement>('#app');
-const locale = 'zh' as const;
+const locale = 'en' as const;
 
 if (!app) {
   throw new Error('App root not found');
@@ -115,16 +115,6 @@ app.innerHTML = `
       padding: 8px 12px;
       border-bottom: 1px solid #e6e9ef;
       background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
-    }
-
-    .fx-ribbon-badge {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: var(--fx-accent-soft);
-      color: #0c6d71;
-      font-size: 12px;
-      font-weight: 700;
-      white-space: nowrap;
     }
 
     .fx-ribbon-tabs {

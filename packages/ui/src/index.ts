@@ -232,7 +232,6 @@ export const renderToolbar = (locale: Locale = 'en'): string => {
   return `
   <div class="fx-ribbon" data-role="formula-ribbon">
     <div class="fx-ribbon-topbar">
-      <div class="fx-ribbon-badge">${t(locale, 'equation')}</div>
       <div class="fx-ribbon-tabs">
         ${panels
           .map(
