@@ -94,6 +94,7 @@ export interface ToolbarAction {
 export interface RibbonTemplate {
   label: string;
   preview: string;
+  icon?: string;
   command?: string;
   latex?: string;
 }
@@ -112,6 +113,14 @@ export interface RibbonPanel {
 
 const t = (locale: Locale, key: TranslationKey): string => translations[locale][key] ?? translations.en[key];
 
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+
 export const createToolbarActions = (locale: Locale = 'en'): ToolbarAction[] => [
   { id: 'fraction', label: t(locale, 'fraction'), command: insertFraction() },
   { id: 'sup', label: t(locale, 'superscript'), command: insertSuperscript() },
@@ -125,59 +134,59 @@ export const RIBBON_GROUPS = (locale: Locale = 'en'): RibbonGroup[] => [
     title: t(locale, 'insert'),
     accent: 'teal',
     items: [
-      { label: t(locale, 'fraction'), preview: 'a/b', command: 'fraction' },
-      { label: t(locale, 'superscript'), preview: 'x^2', command: 'sup' },
-      { label: t(locale, 'subscript'), preview: 'x_i', command: 'sub' },
-      { label: t(locale, 'squareRoot'), preview: 'sqrt', command: 'sqrt' },
-      { label: t(locale, 'parentheses'), preview: '( )', command: 'fence' },
+      { label: t(locale, 'fraction'), preview: 'a/b', icon: 'a⁄b', command: 'fraction' },
+      { label: t(locale, 'superscript'), preview: 'x^2', icon: 'x²', command: 'sup' },
+      { label: t(locale, 'subscript'), preview: 'x_i', icon: 'xᵢ', command: 'sub' },
+      { label: t(locale, 'squareRoot'), preview: 'sqrt', icon: '√x', command: 'sqrt' },
+      { label: t(locale, 'parentheses'), preview: '( )', icon: '( )', command: 'fence' },
     ],
   },
   {
     title: t(locale, 'greek'),
     accent: 'gold',
     items: [
-      { label: 'alpha', preview: 'alpha', latex: '\\alpha' },
-      { label: 'beta', preview: 'beta', latex: '\\beta' },
-      { label: 'gamma', preview: 'gamma', latex: '\\gamma' },
-      { label: 'theta', preview: 'theta', latex: '\\theta' },
-      { label: 'pi', preview: 'pi', latex: '\\pi' },
-      { label: 'sigma', preview: 'sigma', latex: '\\sigma' },
+      { label: 'alpha', preview: 'alpha', icon: 'α', latex: '\\alpha' },
+      { label: 'beta', preview: 'beta', icon: 'β', latex: '\\beta' },
+      { label: 'gamma', preview: 'gamma', icon: 'γ', latex: '\\gamma' },
+      { label: 'theta', preview: 'theta', icon: 'θ', latex: '\\theta' },
+      { label: 'pi', preview: 'pi', icon: 'π', latex: '\\pi' },
+      { label: 'sigma', preview: 'sigma', icon: 'σ', latex: '\\sigma' },
     ],
   },
   {
     title: t(locale, 'operators'),
     accent: 'green',
     items: [
-      { label: t(locale, 'plusMinus'), preview: 'plus/minus', latex: '\\pm' },
-      { label: t(locale, 'multiply'), preview: 'times', latex: '\\times' },
-      { label: t(locale, 'divide'), preview: 'divide', latex: '\\div' },
-      { label: t(locale, 'dot'), preview: 'dot', latex: '\\cdot' },
-      { label: t(locale, 'union'), preview: 'union', latex: '\\cup' },
-      { label: t(locale, 'intersect'), preview: 'intersect', latex: '\\cap' },
+      { label: t(locale, 'plusMinus'), preview: 'plus/minus', icon: '±', latex: '\\pm' },
+      { label: t(locale, 'multiply'), preview: 'times', icon: '×', latex: '\\times' },
+      { label: t(locale, 'divide'), preview: 'divide', icon: '÷', latex: '\\div' },
+      { label: t(locale, 'dot'), preview: 'dot', icon: '⋅', latex: '\\cdot' },
+      { label: t(locale, 'union'), preview: 'union', icon: '∪', latex: '\\cup' },
+      { label: t(locale, 'intersect'), preview: 'intersect', icon: '∩', latex: '\\cap' },
     ],
   },
   {
     title: t(locale, 'relations'),
     accent: 'red',
     items: [
-      { label: t(locale, 'lessOrEqual'), preview: '<=', latex: '\\leq' },
-      { label: t(locale, 'greaterOrEqual'), preview: '>=', latex: '\\geq' },
-      { label: t(locale, 'notEqual'), preview: '!=', latex: '\\neq' },
-      { label: t(locale, 'approximate'), preview: 'approx', latex: '\\approx' },
-      { label: t(locale, 'infinity'), preview: 'inf', latex: '\\infty' },
-      { label: t(locale, 'arrow'), preview: '->', latex: '\\to' },
+      { label: t(locale, 'lessOrEqual'), preview: '<=', icon: '≤', latex: '\\leq' },
+      { label: t(locale, 'greaterOrEqual'), preview: '>=', icon: '≥', latex: '\\geq' },
+      { label: t(locale, 'notEqual'), preview: '!=', icon: '≠', latex: '\\neq' },
+      { label: t(locale, 'approximate'), preview: 'approx', icon: '≈', latex: '\\approx' },
+      { label: t(locale, 'infinity'), preview: 'inf', icon: '∞', latex: '\\infty' },
+      { label: t(locale, 'arrow'), preview: '->', icon: '→', latex: '\\to' },
     ],
   },
   {
     title: t(locale, 'templates'),
     accent: 'blue',
     items: [
-      { label: t(locale, 'limit'), preview: 'lim', latex: '\\lim' },
-      { label: t(locale, 'sine'), preview: 'sin', latex: '\\sin' },
-      { label: t(locale, 'logarithm'), preview: 'log', latex: '\\log' },
-      { label: t(locale, 'matrix'), preview: 'matrix' },
-      { label: t(locale, 'summation'), preview: 'sum' },
-      { label: t(locale, 'integral'), preview: 'int' },
+      { label: t(locale, 'limit'), preview: 'lim', icon: 'lim', latex: '\\lim' },
+      { label: t(locale, 'sine'), preview: 'sin', icon: 'sin', latex: '\\sin' },
+      { label: t(locale, 'logarithm'), preview: 'log', icon: 'log', latex: '\\log' },
+      { label: t(locale, 'matrix'), preview: 'matrix', icon: '▦' },
+      { label: t(locale, 'summation'), preview: 'sum', icon: '∑' },
+      { label: t(locale, 'integral'), preview: 'int', icon: '∫' },
     ],
   },
 ];
@@ -205,10 +214,10 @@ export const RIBBON_PANELS = (locale: Locale = 'en'): RibbonPanel[] => {
           title: t(locale, 'matrices'),
           accent: 'blue',
           items: [
-            { label: t(locale, 'matrix'), preview: '2x2' },
-            { label: '3x3', preview: '3x3' },
-            { label: 'det', preview: '|A|' },
-            { label: 'cases', preview: '{ }' },
+            { label: t(locale, 'matrix'), preview: '2x2', icon: '▦' },
+            { label: '3x3', preview: '3x3', icon: '▦' },
+            { label: 'det', preview: '|A|', icon: '|A|' },
+            { label: 'cases', preview: '{ }', icon: '{ }' },
           ],
         },
       ],
@@ -270,11 +279,13 @@ export const renderToolbar = (locale: Locale = 'en'): string => {
                     : item.latex
                       ? `data-latex="${item.latex}"`
                       : 'data-disabled="true"';
+                  const label = escapeHtml(item.label);
+                  const icon = escapeHtml(item.icon ?? item.preview);
 
                   return `
-                  <button type="button" class="fx-ribbon-tile" ${attributes}>
-                    <span class="fx-ribbon-preview">${item.preview}</span>
-                    <span class="fx-ribbon-label">${item.label}</span>
+                  <button type="button" class="fx-ribbon-tile" ${attributes} aria-label="${label}" title="${label}" data-tooltip="${label}">
+                    <span class="fx-ribbon-preview" aria-hidden="true">${icon}</span>
+                    <span class="fx-ribbon-label">${label}</span>
                   </button>
                 `;
                 })

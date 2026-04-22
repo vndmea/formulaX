@@ -181,29 +181,64 @@ app.innerHTML = `
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
-      min-height: 108px;
+      min-height: 94px;
     }
 
     .fx-ribbon-tile {
+      position: relative;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      min-height: 56px;
+      width: 100%;
+      aspect-ratio: 1.24;
+      min-height: 44px;
       min-width: 0;
       border: 1px solid #dde3eb;
-      border-radius: 12px;
+      border-radius: 8px;
       background: white;
-      padding: 6px 5px;
+      padding: 6px;
       cursor: pointer;
       transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
     }
 
-    .fx-ribbon-tile:hover {
+    .fx-ribbon-tile:hover,
+    .fx-ribbon-tile:focus-visible {
       transform: translateY(-1px);
       border-color: #9dd6d5;
       box-shadow: 0 10px 18px rgba(20, 151, 155, 0.1);
+    }
+
+    .fx-ribbon-tile:focus-visible {
+      outline: 2px solid rgba(20, 151, 155, 0.34);
+      outline-offset: 2px;
+    }
+
+    .fx-ribbon-tile::after {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      z-index: 5;
+      max-width: 160px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: #172033;
+      color: white;
+      content: attr(data-tooltip);
+      font-size: 11px;
+      line-height: 1.25;
+      text-align: center;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 3px);
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+
+    .fx-ribbon-tile:hover::after,
+    .fx-ribbon-tile:focus-visible::after {
+      opacity: 1;
+      transform: translate(-50%, 0);
     }
 
     .fx-ribbon-tile[data-disabled='true'] {
@@ -214,17 +249,23 @@ app.innerHTML = `
 
     .fx-ribbon-preview {
       font-family: Cambria, 'Times New Roman', serif;
-      font-size: 21px;
+      font-size: 25px;
       line-height: 1;
       color: #10223b;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .fx-ribbon-label {
-      font-size: 10px;
-      color: #576273;
-      text-align: center;
-      line-height: 1.2;
-      word-break: break-word;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     .fx-ribbon-group-title {
