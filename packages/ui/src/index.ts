@@ -283,7 +283,7 @@ export const renderToolbar = (locale: Locale = 'en'): string => {
                   const icon = escapeHtml(item.icon ?? item.preview);
 
                   return `
-                  <button type="button" class="fx-ribbon-tile" ${attributes} aria-label="${label}" title="${label}" data-tooltip="${label}">
+                  <button type="button" class="fx-ribbon-tile" ${attributes} aria-label="${label}" title="${label}">
                     <span class="fx-ribbon-preview" aria-hidden="true">${icon}</span>
                     <span class="fx-ribbon-label">${label}</span>
                   </button>

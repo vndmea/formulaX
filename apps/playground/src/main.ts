@@ -213,34 +213,6 @@ app.innerHTML = `
       outline-offset: 2px;
     }
 
-    .fx-ribbon-tile::after {
-      position: absolute;
-      left: 50%;
-      bottom: calc(100% + 8px);
-      z-index: 5;
-      max-width: 160px;
-      padding: 5px 8px;
-      border-radius: 6px;
-      background: #172033;
-      color: white;
-      content: attr(data-tooltip);
-      font-size: 11px;
-      line-height: 1.25;
-      text-align: center;
-      white-space: nowrap;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-50%, 3px);
-      transition: opacity 0.12s ease, transform 0.12s ease;
-    }
-
-    .fx-ribbon-tile:hover::after,
-    .fx-ribbon-tile:focus-visible::after {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-
     .fx-ribbon-tile[data-disabled='true'] {
       cursor: default;
       opacity: 0.72;
