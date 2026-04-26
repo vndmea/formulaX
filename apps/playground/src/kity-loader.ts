@@ -58,6 +58,15 @@ type ModuleRecord = {
   factory: ((require: (id: string) => unknown, exports: Record<string, unknown>, module: ModuleRecord) => unknown) | null;
 };
 
+type MiniJQueryInstance = {
+  on: (type: string, fn: EventListener) => void;
+  delegate: (selector: string, type: string, fn: EventListener) => void;
+};
+
+type MiniJQueryFunction = ((target: EventTarget | null) => MiniJQueryInstance) & {
+  get?: (url: string, callback: (data: string, state: string) => void) => void;
+};
+
 type KityWindow = Window &
   typeof globalThis & {
     __kityCurrentModuleId__?: string;
@@ -70,7 +79,8 @@ type KityWindow = Window &
       record: (_key: string) => void;
       remove: (_node: Node) => void;
     };
-    jQuery?: (handler: () => void) => void;
+    jQuery?: MiniJQueryFunction;
+    $?: MiniJQueryFunction;
     kf?: {
       EditorFactory?: {
         create: (
@@ -89,12 +99,7 @@ type KityWindow = Window &
 let runtimePromise: Promise<void> | null = null;
 
 function installMiniJQuery() {
-  const runtimeWindow = window as KityWindow & {
-    jQuery?: ((target: EventTarget | null) => { on: (type: string, fn: EventListener) => void; delegate: (selector: string, type: string, fn: EventListener) => void }) & {
-      get?: (url: string, callback: (data: string, state: string) => void) => void;
-    };
-    $?: KityWindow['jQuery'];
-  };
+  const runtimeWindow = window as KityWindow;
 
   if (runtimeWindow.jQuery) {
     return;
@@ -117,7 +122,7 @@ function installMiniJQuery() {
         }
       });
     },
-  })) as NonNullable<typeof runtimeWindow.jQuery>;
+  })) as MiniJQueryFunction;
 
   miniJQuery.get = (url: string, callback: (data: string, state: string) => void) => {
     fetch(url)
