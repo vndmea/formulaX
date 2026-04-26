@@ -8,10 +8,5 @@
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
     "dev": "vite"
   },
-  "dependencies": {
-    "@formulax/core": "workspace:*",
-    "@formulax/editor": "workspace:*",
-    "@formulax/renderer-katex": "workspace:*",
-    "@formulax/ui": "workspace:*"
-  }
+  "dependencies": {}
 }

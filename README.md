@@ -41,9 +41,38 @@ FormulaX/
 |  |- renderer-katex/
 |  |- tiptap/
 |  |- tinymce/
-|  `- ui/
+|  |- ui/
+|  |- kity-vendor-editor/    # Kity editor vendor source
+|  |- kity-vendor-parser/    # Kity parser vendor source
+|  |- kity-vendor-render/    # Kity render vendor source
+|  |- kity-adapter/          # Modern adapter for kity packages
+|  `- kity-toolbar/          # Kity-based toolbar implementation
+|- tests/
+|  `- e2e/kity/              # E2E tests for kity toolbar
 `- .changeset/
 ```
+
+## Kity Migration
+
+FormulaX is migrating toward the real `kityformula` source model to build a toolbar, layout, and interaction model that closely matches Kity and the equation ribbon in Word/WPS.
+
+### Migration Packages
+
+| Package | Purpose |
+|---------|---------|
+| `@formulax/kity-vendor-editor` | Imported kf-editor source |
+| `@formulax/kity-vendor-parser` | Imported kf-parser source |
+| `@formulax/kity-vendor-render` | Imported kf-render source |
+| `@formulax/kity-adapter` | Modern wrapper around vendor packages |
+| `@formulax/kity-toolbar` | Kity-based toolbar with Word-style layout |
+
+### Migration Status
+
+- Vendor packages: Created with placeholder structure
+- Adapter package: Implemented with basic exports
+- Toolbar package: Implemented with symbols and structures
+- Playground: Rewired to use new kity-toolbar
+- Old UI path: Marked as deprecated
 
 ## Package Overview
 

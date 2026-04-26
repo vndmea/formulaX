@@ -1,0 +1,155 @@
+.kity-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  user-select: none;
+}
+
+.kity-toolbar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.kity-toolbar-section-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kity-toolbar-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+}
+
+.kity-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
+  transition: background-color 0.15s;
+}
+
+.kity-toolbar-btn:hover {
+  background: #e0e0e0;
+}
+
+.kity-toolbar-btn:active {
+  background: #d0d0d0;
+}
+
+.kity-toolbar-btn.active {
+  background: #0078d4;
+  color: white;
+}
+
+.kity-toolbar-symbol-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.kity-toolbar-symbol-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #333;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.kity-toolbar-symbol-tab:hover {
+  background: #e0e0e0;
+}
+
+.kity-toolbar-symbol-tab.active {
+  background: #0078d4;
+  color: white;
+}
+
+.kity-toolbar-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.kity-toolbar-popup {
+  position: absolute;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  max-width: 320px;
+}
+
+.kity-toolbar-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.kity-toolbar-popup-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #333;
+}
+
+.kity-toolbar-popup-item:hover {
+  background: #e0e0e0;
+}
+
+.kity-toolbar-equation-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.kity-toolbar-equation-btn:hover {
+  background: #e0e0e0;
+}

@@ -36,6 +36,12 @@ jobs:
       - name: Install dependencies
         run: corepack pnpm install --frozen-lockfile
 
+      - name: Typecheck
+        run: corepack pnpm typecheck
+
+      - name: Test
+        run: corepack pnpm test
+
       - name: Build Pages site
         env:
           PAGES_REPO: ${{ github.event.repository.name }}

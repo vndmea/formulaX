@@ -8,6 +8,11 @@ export default defineConfig({
       '@formulax/editor': path.resolve(__dirname, '../../packages/editor/src/index.ts'),
       '@formulax/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
       '@formulax/renderer-katex': path.resolve(__dirname, '../../packages/renderer-katex/src/index.ts'),
+      '@formulax/kity-adapter': path.resolve(__dirname, '../../packages/kity-adapter/src/index.ts'),
+      '@formulax/kity-toolbar': path.resolve(__dirname, '../../packages/kity-toolbar/src/index.ts'),
+      '@formulax/kity-vendor-editor': path.resolve(__dirname, '../../packages/kity-vendor-editor/src/index.ts'),
+      '@formulax/kity-vendor-parser': path.resolve(__dirname, '../../packages/kity-vendor-parser/src/index.ts'),
+      '@formulax/kity-vendor-render': path.resolve(__dirname, '../../packages/kity-vendor-render/src/index.ts'),
     },
   },
 });

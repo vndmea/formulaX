@@ -8,7 +8,12 @@
       "@formulax/renderer-katex": ["packages/renderer-katex/src/index.ts"],
       "@formulax/tiptap": ["packages/tiptap/src/index.ts"],
       "@formulax/tinymce": ["packages/tinymce/src/index.ts"],
-      "@formulax/ui": ["packages/ui/src/index.ts"]
+      "@formulax/ui": ["packages/ui/src/index.ts"],
+      "@formulax/kity-adapter": ["packages/kity-adapter/src/index.ts"],
+      "@formulax/kity-toolbar": ["packages/kity-toolbar/src/index.ts"],
+      "@formulax/kity-vendor-editor": ["packages/kity-vendor-editor/src/index.ts"],
+      "@formulax/kity-vendor-parser": ["packages/kity-vendor-parser/src/index.ts"],
+      "@formulax/kity-vendor-render": ["packages/kity-vendor-render/src/index.ts"]
     }
   },
   "include": ["packages", "apps"]

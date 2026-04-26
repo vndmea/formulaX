@@ -1,3 +1,9 @@
+/**
+ * @deprecated This package is transitional and no longer the final toolbar source.
+ * The final toolbar implementation is now in @formulax/kity-toolbar.
+ * This package will be removed after the migration is complete.
+ */
+
 import {
   insertFenced,
   insertFraction,
