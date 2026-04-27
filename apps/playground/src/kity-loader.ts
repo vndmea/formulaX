@@ -1,3 +1,8 @@
+import { legacyCharPosition } from '../../../packages/kity-runtime/src/vendor/char-position';
+import { legacyOtherPosition } from '../../../packages/kity-runtime/src/vendor/other-position';
+import { legacySysconf } from '../../../packages/kity-runtime/src/vendor/legacy-sysconf';
+import { createLegacyUiUtils } from '../../../packages/kity-runtime/src/vendor/legacy-ui-utils';
+
 const KITY_BASE = 'kity';
 
 type JQueryShim = {
@@ -10,6 +15,12 @@ type KityWindow = Window &
     jQuery?: JQueryShim;
     $?: JQueryShim;
     __kityFormulaRequire__?: (id: string) => unknown;
+    __FORMULAX_KITY_RUNTIME__?: {
+      sysconf: typeof legacySysconf;
+      charPosition: typeof legacyCharPosition;
+      otherPosition: typeof legacyOtherPosition;
+      uiUtils: ReturnType<typeof createLegacyUiUtils>;
+    };
     kf?: Record<string, unknown> & {
       EditorFactory?: {
         create: (
@@ -157,6 +168,15 @@ function hydrateLegacyKf(runtimeWindow: KityWindow) {
   };
 }
 
+function installLegacyRuntime(runtimeWindow: KityWindow) {
+  runtimeWindow.__FORMULAX_KITY_RUNTIME__ = {
+    sysconf: legacySysconf,
+    charPosition: legacyCharPosition,
+    otherPosition: legacyOtherPosition,
+    uiUtils: createLegacyUiUtils(),
+  };
+}
+
 async function ensureRuntime() {
   if (runtimePromise) {
     return runtimePromise;
@@ -172,6 +192,7 @@ async function ensureRuntime() {
 
     runtimeWindow.kf = runtimeWindow.kf ?? {};
     installMiniJQuery(runtimeWindow);
+    installLegacyRuntime(runtimeWindow);
 
     await loadScript(`${KITY_BASE}/dev-lib/kitygraph.all.js`);
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula.all.js`);
