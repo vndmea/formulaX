@@ -1,11 +1,14 @@
-import { installLegacyKityData } from '../../../packages/kity-runtime/src/index';
+import {
+  createLegacyUiUtils,
+  installLegacyKityData,
+  legacyCharPosition,
+  legacyOtherPosition,
+  legacySysconf,
+} from '../../../packages/kity-runtime/src/index';
 
 const KITY_BASE = 'kity';
 
 const SOURCE_MODULES = [
-  'kf',
-  'kity',
-  'sysconf',
   'base/common',
   'base/component',
   'base/utils',
@@ -32,9 +35,7 @@ const SOURCE_MODULES = [
   'syntax/delete',
   'syntax/move',
   'syntax/syntax',
-  'ui/char-position.data',
   'ui/def',
-  'ui/other-position.data',
   'ui/toolbar-ele-list',
   'ui/ui',
   'ui/control/zoom',
@@ -45,7 +46,6 @@ const SOURCE_MODULES = [
   'ui/ui-impl/delimiter',
   'ui/ui-impl/drapdown-box',
   'ui/ui-impl/list',
-  'ui/ui-impl/ui-utils',
   'ui/ui-impl/ui',
   'ui/ui-impl/def/box-type',
   'ui/ui-impl/def/ele-type',
@@ -75,10 +75,12 @@ type KityWindow = Window &
       record: (_key: string) => void;
       remove: (_node: Node) => void;
     };
+    kity?: unknown;
     jQuery?: JQueryShim;
     $?: JQueryShim;
     __kityFormulaRequire__?: (id: string) => unknown;
     __kityFormulaUse__?: (id: string) => unknown;
+    __kityRegisterModule__?: (id: string, value: unknown) => void;
     kf?: Record<string, unknown> & {
       EditorFactory?: {
         create: (
@@ -244,6 +246,13 @@ function installRuntime() {
   runtimeWindow.__kityModules__ = modules;
   runtimeWindow.define = define;
   runtimeWindow.use = requireModule;
+  runtimeWindow.__kityRegisterModule__ = (id: string, value: unknown) => {
+    modules[id] = {
+      exports: {},
+      value,
+      factory: null,
+    };
+  };
   runtimeWindow.inc = {
     use: requireModule,
     config: () => {},
@@ -281,6 +290,21 @@ function hydrateLegacyKf(runtimeWindow: KityWindow) {
   };
 }
 
+function installEsmBackedModules(runtimeWindow: KityWindow) {
+  const registerModule = runtimeWindow.__kityRegisterModule__;
+
+  if (!registerModule || !runtimeWindow.kf || !runtimeWindow.kity) {
+    return;
+  }
+
+  registerModule('kf', runtimeWindow.kf);
+  registerModule('kity', runtimeWindow.kity);
+  registerModule('sysconf', legacySysconf);
+  registerModule('ui/char-position.data', legacyCharPosition);
+  registerModule('ui/other-position.data', legacyOtherPosition);
+  registerModule('ui/ui-impl/ui-utils', createLegacyUiUtils());
+}
+
 async function ensureRuntime() {
   if (runtimePromise) {
     return runtimePromise;
@@ -303,6 +327,7 @@ async function ensureRuntime() {
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula-parser.all.min.js`);
 
     installRuntime();
+    installEsmBackedModules(runtimeWindow);
 
     for (const moduleId of SOURCE_MODULES) {
       await loadScript(`${KITY_BASE}/src/${moduleId}.js`, moduleId);

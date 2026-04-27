@@ -45,11 +45,42 @@ function getWheelDelta(event: MouseEvent | WheelEvent) {
 }
 
 export function normalizeMouseEvent(event: MouseEvent | WheelEvent): NormalizedMouseEvent {
-  return Object.assign(Object.create(event), event, {
-    originalEvent: event,
-    wheelDelta: getWheelDelta(event),
-    which: getMouseButtonCode(event),
+  const wrappedEvent = Object.create(event) as NormalizedMouseEvent;
+
+  Object.defineProperties(wrappedEvent, {
+    originalEvent: {
+      value: event,
+      enumerable: false,
+      configurable: true,
+    },
+    wheelDelta: {
+      value: getWheelDelta(event),
+      enumerable: false,
+      configurable: true,
+    },
+    which: {
+      value: getMouseButtonCode(event),
+      enumerable: false,
+      configurable: true,
+    },
+    preventDefault: {
+      value: event.preventDefault.bind(event),
+      enumerable: false,
+      configurable: true,
+    },
+    stopPropagation: {
+      value: event.stopPropagation.bind(event),
+      enumerable: false,
+      configurable: true,
+    },
+    stopImmediatePropagation: {
+      value: event.stopImmediatePropagation.bind(event),
+      enumerable: false,
+      configurable: true,
+    },
   });
+
+  return wrappedEvent;
 }
 
 export function createElement(doc: Document, name: 'text', options: string): Text;
