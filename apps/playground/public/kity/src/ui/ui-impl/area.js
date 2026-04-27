@@ -2,9 +2,24 @@
  * 特殊字符区域
  */
 
-define( function ( require ) {
+import __dep_0 from '../../kity.js';
+import __dep_1 from './ui-utils.js';
+import __dep_2 from './box.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/ui-impl/ui-utils':
+      return __dep_1;
+    case 'ui/ui-impl/box':
+      return __dep_2;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         PREFIX = "kf-editor-ui-",
 
@@ -382,6 +397,4 @@ define( function ( require ) {
 
         } );
 
-    return Area;
-
-} );
+export default Area;

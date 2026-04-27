@@ -3,14 +3,21 @@
  * @abstract
  */
 
-define( function ( require ) {
+import __dep_0 from '../kity.js';
 
-    var kity = require( "kity" );
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
 
-    return kity.createClass( 'Component', {
+var kity = require( "kity" );
+
+export default kity.createClass( 'Component', {
 
         constructor: function () {}
 
     } );
-
-} );

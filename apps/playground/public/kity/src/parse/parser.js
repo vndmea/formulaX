@@ -2,10 +2,38 @@
  * 数学公式解析器
  */
 
-define( function ( require ) {
+import __dep_0 from '../kf.js';
+import __dep_1 from '../kity.js';
+import __dep_2 from '../sysconf.js';
+import __dep_3 from './vgroup-def.js';
+import __dep_4 from '../def/group-type.js';
+import __dep_5 from '../kf-ext/extension.js';
+import __dep_6 from '../base/component.js';
 
-    var KFParser = require( "kf" ).Parser,
+function require(id) {
+  switch (id) {
+    case 'kf':
+      return __dep_0;
+    case 'kity':
+      return __dep_1;
+    case 'sysconf':
+      return __dep_2;
+    case 'parse/vgroup-def':
+      return __dep_3;
+    case 'def/group-type':
+      return __dep_4;
+    case 'kf-ext/extension':
+      return __dep_5;
+    case 'base/component':
+      return __dep_6;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var KFParser = require( "kf" ).Parser,
         kity = require( "kity" ),
+        BaseComponent = require( "base/component" ),
         CURSOR_CHAR = require( "sysconf" ).cursorCharacter,
         VGROUP_LIST = require( "parse/vgroup-def" ),
         ROOT_P_TEXT = require( "sysconf" ).rootPlaceholder.content,
@@ -16,11 +44,14 @@ define( function ( require ) {
 
     var Parser = kity.createClass( "Parser", {
 
+        base: require( "base/component" ),
+
         constructor: function ( kfEditor ) {
 
             this.kfEditor = kfEditor;
 
-            this.callBase();
+            /* this.callBase(); */
+            BaseComponent.call( this );
             // kityformula 解析器
             this.kfParser = KFParser.use( "latex" );
 
@@ -270,7 +301,4 @@ define( function ( require ) {
 
     }
 
-    return Parser;
-
-} );
-
+export default Parser;

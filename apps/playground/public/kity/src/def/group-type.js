@@ -2,13 +2,11 @@
  * 组类型
  */
 
-define( function () {
 
-    return {
+
+export default {
 
         "GROUP": "kf-editor-group",
         "VIRTUAL": "kf-editor-virtual-group"
 
     };
-
-} );

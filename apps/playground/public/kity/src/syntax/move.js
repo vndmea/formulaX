@@ -2,53 +2,24 @@
  * 光标移动控制
  */
 
-define( function ( require, exports, module ) {
+import __dep_0 from '../kity.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
         DIRECTION = {
             LEFT: 'left',
             RIGHT: 'right'
         };
 
-    return kity.createClass( "MoveComponent", {
-
-        constructor: function ( parentComponent, kfEditor ) {
-
-            this.parentComponent = parentComponent;
-            this.kfEditor = kfEditor;
-
-        },
-
-        leftMove: function () {
-
-            var cursorInfo = this.parentComponent.getCursorRecord();
-
-            cursorInfo = updateCursorGoLeft.call( this, cursorInfo );
-
-            // cursorInfo 为null则不用处理
-            if ( cursorInfo ) {
-                this.parentComponent.updateCursor( cursorInfo );
-            }
-
-        },
-
-        rightMove: function () {
-
-            var cursorInfo = this.parentComponent.getCursorRecord();
-
-            cursorInfo = updateCursorGoRight.call( this, cursorInfo );
-
-            // cursorInfo 为null则不用处理
-            if ( cursorInfo ) {
-                this.parentComponent.updateCursor( cursorInfo );
-            }
-
-        }
-
-    } );
-
-
-    function updateCursorGoLeft ( cursorInfo ) {
+function updateCursorGoLeft ( cursorInfo ) {
 
         var prevGroupNode = null,
             syntaxComponent = this.parentComponent,
@@ -517,4 +488,39 @@ define( function ( require, exports, module ) {
         return node.getAttribute( "data-flag" ) === "Empty";
     }
 
-} );
+export default kity.createClass( "MoveComponent", {
+
+        constructor: function ( parentComponent, kfEditor ) {
+
+            this.parentComponent = parentComponent;
+            this.kfEditor = kfEditor;
+
+        },
+
+        leftMove: function () {
+
+            var cursorInfo = this.parentComponent.getCursorRecord();
+
+            cursorInfo = updateCursorGoLeft.call( this, cursorInfo );
+
+            // cursorInfo 为null则不用处理
+            if ( cursorInfo ) {
+                this.parentComponent.updateCursor( cursorInfo );
+            }
+
+        },
+
+        rightMove: function () {
+
+            var cursorInfo = this.parentComponent.getCursorRecord();
+
+            cursorInfo = updateCursorGoRight.call( this, cursorInfo );
+
+            // cursorInfo 为null则不用处理
+            if ( cursorInfo ) {
+                this.parentComponent.updateCursor( cursorInfo );
+            }
+
+        }
+
+    } );

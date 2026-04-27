@@ -1,63 +1,4 @@
-import {
-  createLegacyUiUtils,
-  installLegacyKityData,
-  legacyCharPosition,
-  legacyOtherPosition,
-  legacySysconf,
-} from '../../../packages/kity-runtime/src/index';
-
 const KITY_BASE = 'kity';
-
-const SOURCE_MODULES = [
-  'base/common',
-  'base/component',
-  'base/utils',
-  'base/event/event',
-  'base/event/kfevent',
-  'control/controller',
-  'control/input-filter',
-  'control/input',
-  'control/listener',
-  'control/location',
-  'control/selection',
-  'def/group-type',
-  'editor/editor',
-  'editor/factory',
-  'kf-ext/def',
-  'kf-ext/extension',
-  'kf-ext/expression/placeholder',
-  'kf-ext/operator/placeholder',
-  'parse/parser',
-  'parse/vgroup-def',
-  'position/position',
-  'print/printer',
-  'render/render',
-  'syntax/delete',
-  'syntax/move',
-  'syntax/syntax',
-  'ui/def',
-  'ui/toolbar-ele-list',
-  'ui/ui',
-  'ui/control/zoom',
-  'ui/toolbar/toolbar',
-  'ui/ui-impl/area',
-  'ui/ui-impl/box',
-  'ui/ui-impl/button',
-  'ui/ui-impl/delimiter',
-  'ui/ui-impl/drapdown-box',
-  'ui/ui-impl/list',
-  'ui/ui-impl/ui',
-  'ui/ui-impl/def/box-type',
-  'ui/ui-impl/def/ele-type',
-  'ui/ui-impl/def/item-type',
-  'ui/ui-impl/scrollbar/scrollbar',
-] as const;
-
-type ModuleRecord = {
-  exports: unknown;
-  value: unknown;
-  factory: ((require: (id: string) => unknown, exports: Record<string, unknown>, module: ModuleRecord) => unknown) | null;
-};
 
 type JQueryShim = {
   get: (url: string, callback: (data: string, state: 'success' | 'error') => void) => void;
@@ -65,22 +6,10 @@ type JQueryShim = {
 
 type KityWindow = Window &
   typeof globalThis & {
-    __kityCurrentModuleId__?: string;
-    __kityRuntimeReady__?: boolean;
-    define?: (...args: unknown[]) => void;
-    use?: (id: string) => unknown;
-    inc?: {
-      use: (id: string) => unknown;
-      config: (_options: unknown) => void;
-      record: (_key: string) => void;
-      remove: (_node: Node) => void;
-    };
     kity?: unknown;
     jQuery?: JQueryShim;
     $?: JQueryShim;
     __kityFormulaRequire__?: (id: string) => unknown;
-    __kityFormulaUse__?: (id: string) => unknown;
-    __kityRegisterModule__?: (id: string, value: unknown) => void;
     kf?: Record<string, unknown> & {
       EditorFactory?: {
         create: (
@@ -138,10 +67,9 @@ function ensureStyle(href: string) {
   document.head.appendChild(link);
 }
 
-function loadScript(src: string, moduleId?: string) {
+function loadScript(src: string) {
   return new Promise<void>((resolve, reject) => {
-    const selector = moduleId ? `script[data-kity-module="${moduleId}"]` : `script[data-kity-src="${src}"]`;
-    const existing = document.querySelector<HTMLScriptElement>(selector);
+    const existing = document.querySelector<HTMLScriptElement>(`script[data-kity-src="${src}"]`);
     if (existing) {
       if (existing.dataset.loaded === 'true') {
         resolve();
@@ -153,113 +81,52 @@ function loadScript(src: string, moduleId?: string) {
       return;
     }
 
-    const runtimeWindow = window as KityWindow;
-    runtimeWindow.__kityCurrentModuleId__ = moduleId;
-
     const script = document.createElement('script');
     script.src = src;
     script.async = false;
     script.dataset.kitySrc = src;
-    if (moduleId) {
-      script.dataset.kityModule = moduleId;
-    }
     script.addEventListener(
       'load',
       () => {
         script.dataset.loaded = 'true';
-        runtimeWindow.__kityCurrentModuleId__ = undefined;
         resolve();
       },
       { once: true },
     );
-    script.addEventListener(
-      'error',
-      () => {
-        runtimeWindow.__kityCurrentModuleId__ = undefined;
-        reject(new Error(`Failed to load ${src}`));
-      },
-      { once: true },
-    );
+    script.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
     document.head.appendChild(script);
   });
 }
 
-function installRuntime() {
-  const runtimeWindow = window as KityWindow & {
-    __kityModules__?: Record<string, ModuleRecord>;
-  };
+function loadModuleScript(src: string) {
+  return new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[data-kity-module-src="${src}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === 'true') {
+        resolve();
+        return;
+      }
 
-  if (runtimeWindow.__kityRuntimeReady__) {
-    return;
-  }
-
-  const modules: Record<string, ModuleRecord> = {};
-
-  function define(idOrFactory: unknown, depsOrFactory?: unknown, maybeFactory?: unknown) {
-    let id: string | undefined;
-    let factory: unknown;
-
-    if (typeof idOrFactory === 'string') {
-      id = idOrFactory;
-      factory = maybeFactory ?? depsOrFactory;
-    } else {
-      id = runtimeWindow.__kityCurrentModuleId__;
-      factory = depsOrFactory ?? idOrFactory;
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error(`Failed to load module ${src}`)), { once: true });
+      return;
     }
 
-    if (!id) {
-      throw new Error('Missing module id for kity source module');
-    }
-
-    modules[id] = {
-      exports: {},
-      value: null,
-      factory: typeof factory === 'function' ? (factory as ModuleRecord['factory']) : null,
-    };
-
-    if (typeof factory !== 'function') {
-      modules[id].value = factory;
-    }
-  }
-
-  function requireModule(id: string): unknown {
-    const module = modules[id];
-
-    if (!module) {
-      throw new Error(`Missing kity module: ${id}`);
-    }
-
-    if (module.value !== null) {
-      return module.value;
-    }
-
-    if (!module.factory) {
-      return module.exports;
-    }
-
-    const exports = module.factory(requireModule, module.exports as Record<string, unknown>, module);
-    module.value = exports ?? module.exports;
-    module.factory = null;
-    return module.value;
-  }
-
-  runtimeWindow.__kityModules__ = modules;
-  runtimeWindow.define = define;
-  runtimeWindow.use = requireModule;
-  runtimeWindow.__kityRegisterModule__ = (id: string, value: unknown) => {
-    modules[id] = {
-      exports: {},
-      value,
-      factory: null,
-    };
-  };
-  runtimeWindow.inc = {
-    use: requireModule,
-    config: () => {},
-    record: () => {},
-    remove: () => {},
-  };
-  runtimeWindow.__kityRuntimeReady__ = true;
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = src;
+    script.dataset.kityModuleSrc = src;
+    script.addEventListener(
+      'load',
+      () => {
+        script.dataset.loaded = 'true';
+        resolve();
+      },
+      { once: true },
+    );
+    script.addEventListener('error', () => reject(new Error(`Failed to load module ${src}`)), { once: true });
+    document.head.appendChild(script);
+  });
 }
 
 function hydrateLegacyKf(runtimeWindow: KityWindow) {
@@ -290,21 +157,6 @@ function hydrateLegacyKf(runtimeWindow: KityWindow) {
   };
 }
 
-function installEsmBackedModules(runtimeWindow: KityWindow) {
-  const registerModule = runtimeWindow.__kityRegisterModule__;
-
-  if (!registerModule || !runtimeWindow.kf || !runtimeWindow.kity) {
-    return;
-  }
-
-  registerModule('kf', runtimeWindow.kf);
-  registerModule('kity', runtimeWindow.kity);
-  registerModule('sysconf', legacySysconf);
-  registerModule('ui/char-position.data', legacyCharPosition);
-  registerModule('ui/other-position.data', legacyOtherPosition);
-  registerModule('ui/ui-impl/ui-utils', createLegacyUiUtils());
-}
-
 async function ensureRuntime() {
   if (runtimePromise) {
     return runtimePromise;
@@ -320,22 +172,13 @@ async function ensureRuntime() {
 
     runtimeWindow.kf = runtimeWindow.kf ?? {};
     installMiniJQuery(runtimeWindow);
-    installLegacyKityData(window);
+
     await loadScript(`${KITY_BASE}/dev-lib/kitygraph.all.js`);
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula.all.js`);
     hydrateLegacyKf(runtimeWindow);
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula-parser.all.min.js`);
 
-    installRuntime();
-    installEsmBackedModules(runtimeWindow);
-
-    for (const moduleId of SOURCE_MODULES) {
-      await loadScript(`${KITY_BASE}/src/${moduleId}.js`, moduleId);
-    }
-
-    await loadScript(`${KITY_BASE}/dev-lib/start.js`, 'kf.start');
-
-    runtimeWindow.use?.('kf.start');
+    await loadModuleScript(`${KITY_BASE}/src/start.js`);
   })();
 
   return runtimePromise;

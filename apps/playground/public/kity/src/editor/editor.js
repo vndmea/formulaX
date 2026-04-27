@@ -2,9 +2,24 @@
  * 编辑器主体结构
  */
 
-define( function ( require ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from '../base/utils.js';
+import __dep_2 from '../kf.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'base/utils':
+      return __dep_1;
+    case 'kf':
+      return __dep_2;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
         Utils = require( "base/utils" ),
         defaultOpt = {
             formula: {
@@ -197,6 +212,4 @@ define( function ( require ) {
 
     } );
 
-    return KFEditor;
-
-} );
+export default KFEditor;

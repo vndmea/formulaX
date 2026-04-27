@@ -2,9 +2,9 @@
  * Created by hn on 14-3-17.
  */
 
-define( function ( require ) {
 
-    return {
+
+export default {
 
         createEvent: function ( type, e ) {
 
@@ -17,5 +17,3 @@ define( function ( require ) {
         }
 
     };
-
-} );

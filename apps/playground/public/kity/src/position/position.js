@@ -2,10 +2,21 @@
  * 定位模块
  */
 
+import __dep_0 from '../kity.js';
+import __dep_1 from '../base/utils.js';
 
-define( function ( require ) {
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'base/utils':
+      return __dep_1;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
 
-    var kity = require( "kity" ),
+var kity = require( "kity" ),
 
         kfUtils = require( "base/utils" ),
 
@@ -245,6 +256,4 @@ define( function ( require ) {
 
     }
 
-    return PositionComponenet;
-
-} );
+export default PositionComponenet;

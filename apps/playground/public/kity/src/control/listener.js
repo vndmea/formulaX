@@ -2,9 +2,27 @@
  * Created by hn on 14-4-11.
  */
 
-define( function ( require, exports, module ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from './location.js';
+import __dep_2 from './input.js';
+import __dep_3 from './selection.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'control/location':
+      return __dep_1;
+    case 'control/input':
+      return __dep_2;
+    case 'control/selection':
+      return __dep_3;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         // 光标定位
         LocationComponent = require( "control/location" ),
@@ -15,7 +33,7 @@ define( function ( require, exports, module ) {
         // 选区
         SelectionComponent = require( "control/selection" );
 
-    return kity.createClass( "MoveComponent", {
+export default kity.createClass( "MoveComponent", {
 
         constructor: function ( parentComponent, kfEditor ) {
 
@@ -37,5 +55,3 @@ define( function ( require, exports, module ) {
         }
 
     } );
-
-} );

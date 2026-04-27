@@ -2,9 +2,30 @@
  * toolbar元素列表定义
  */
 
-define( function ( require ) {
+import __dep_0 from './ui-impl/def/ele-type.js';
+import __dep_1 from './ui-impl/def/box-type.js';
+import __dep_2 from './char-position.data.js';
+import __dep_3 from './other-position.data.js';
+import __dep_4 from '../kity.js';
 
-    var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
+function require(id) {
+  switch (id) {
+    case 'ui/ui-impl/def/ele-type':
+      return __dep_0;
+    case 'ui/ui-impl/def/box-type':
+      return __dep_1;
+    case 'ui/char-position.data':
+      return __dep_2;
+    case 'ui/other-position.data':
+      return __dep_3;
+    case 'kity':
+      return __dep_4;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
         BOX_TYPE = require( "ui/ui-impl/def/box-type" ),
         CHAR_POSITION = require( "ui/char-position.data" ),
         OTHER_POSITION = require( "ui/other-position.data" ),
@@ -703,6 +724,4 @@ define( function ( require ) {
 
     }
 
-    return config;
-
-} );
+export default config;

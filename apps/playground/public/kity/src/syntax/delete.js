@@ -2,11 +2,20 @@
  * 删除控制
  */
 
-define( function ( require, exports, module ) {
+import __dep_0 from '../kity.js';
 
-    var kity = require( "kity" );
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
 
-    return kity.createClass( "DeleteComponent", {
+var kity = require( "kity" );
+
+export default kity.createClass( "DeleteComponent", {
 
         constructor: function ( parentComponent, kfEditor ) {
 
@@ -189,6 +198,3 @@ define( function ( require, exports, module ) {
         }
 
     } );
-
-
-} );

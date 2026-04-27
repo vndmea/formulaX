@@ -2,11 +2,9 @@
  * 组元素类型定义
  */
 
-define( function ( require ) {
 
-    return {
+
+export default {
         "BIG": 1,
         "SMALL": 2
     };
-
-} );

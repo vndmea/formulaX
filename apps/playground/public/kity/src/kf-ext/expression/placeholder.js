@@ -2,22 +2,38 @@
  * 占位符表达式， 扩展KF自有的Empty表达式
  */
 
+import __dep_0 from '../../kity.js';
+import __dep_1 from '../../kf.js';
+import __dep_2 from '../operator/placeholder.js';
 
-define( function ( require, exports, module ) {
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'kf':
+      return __dep_1;
+    case 'kf-ext/operator/placeholder':
+      return __dep_2;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
 
-    var kity = require( "kity" ) ,
+var kity = require( "kity" ) ,
 
         kf = require( "kf" ),
+        BaseCompoundExpression = kf.CompoundExpression,
 
         PlaceholderOperator = require( "kf-ext/operator/placeholder" );
 
-    return kity.createClass( 'PlaceholderExpression', {
+export default kity.createClass( 'PlaceholderExpression', {
 
         base: kf.CompoundExpression,
 
         constructor: function () {
 
-            this.callBase();
+            /* this.callBase(); */
+            BaseCompoundExpression.call( this );
 
             this.setFlag( "Placeholder" );
 
@@ -49,7 +65,7 @@ define( function ( require, exports, module ) {
                     delete key.label;
                 }
                 // 继续设置其他属性
-                this.callBase( key, val );
+                BaseCompoundExpression.prototype.setAttr.call( this, key, val );
 
             }
 
@@ -72,5 +88,3 @@ define( function ( require, exports, module ) {
         }
 
     } );
-
-} );

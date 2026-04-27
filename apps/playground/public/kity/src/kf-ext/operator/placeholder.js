@@ -2,53 +2,33 @@
  * 占位符操作符
  */
 
-define( function ( require, exports, modules ) {
+import __dep_0 from '../../kity.js';
+import __dep_1 from '../../sysconf.js';
+import __dep_2 from '../def.js';
+import __dep_3 from '../../kf.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'sysconf':
+      return __dep_1;
+    case 'kf-ext/def':
+      return __dep_2;
+    case 'kf':
+      return __dep_3;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
+        BaseOperator = require( "kf" ).Operator,
         FILL_COLOR = require( "sysconf" ).rootPlaceholder.color,
         SELECT_COLOR = require( "kf-ext/def" ).selectColor,
         ALL_SELECT_COLOR = require( "kf-ext/def" ).allSelectColor;
 
-    return kity.createClass( 'PlaceholderOperator', {
-
-        base: require( "kf" ).Operator,
-
-        constructor: function () {
-
-            this.opShape = null;
-            this.callBase( "Placeholder" );
-
-        },
-
-        applyOperand: function () {
-
-            this.opShape = generateOpShape( this, this.parentExpression.getLabel() );
-            this.parentExpression.expand( 20, 20 );
-            this.parentExpression.translateElement( 10, 10 );
-
-        },
-
-        select: function () {
-
-            this.opShape.fill( SELECT_COLOR );
-
-        },
-
-        selectAll: function () {
-
-            this.opShape.fill( ALL_SELECT_COLOR );
-
-        },
-
-        unselect: function () {
-
-            this.opShape.fill( "transparent" );
-
-        }
-
-    } );
-
-    function generateOpShape ( operator, label ) {
+function generateOpShape ( operator, label ) {
 
         if ( label !== null ) {
             return createRootPlaceholder( operator, label );
@@ -110,4 +90,42 @@ define( function ( require, exports, modules ) {
 
     }
 
-} );
+export default kity.createClass( 'PlaceholderOperator', {
+
+        base: BaseOperator,
+
+        constructor: function () {
+
+            this.opShape = null;
+            /* this.callBase( "Placeholder" ); */
+            BaseOperator.call( this, "Placeholder" );
+
+        },
+
+        applyOperand: function () {
+
+            this.opShape = generateOpShape( this, this.parentExpression.getLabel() );
+            this.parentExpression.expand( 20, 20 );
+            this.parentExpression.translateElement( 10, 10 );
+
+        },
+
+        select: function () {
+
+            this.opShape.fill( SELECT_COLOR );
+
+        },
+
+        selectAll: function () {
+
+            this.opShape.fill( ALL_SELECT_COLOR );
+
+        },
+
+        unselect: function () {
+
+            this.opShape.fill( "transparent" );
+
+        }
+
+    } );

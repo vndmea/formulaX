@@ -2,9 +2,9 @@
  * 虚拟组列表
  */
 
-define( function () {
 
-    return {
+
+export default {
 
         "radical": true,
         "fraction": true,
@@ -18,5 +18,3 @@ define( function () {
         "function": true
 
     };
-
-} );

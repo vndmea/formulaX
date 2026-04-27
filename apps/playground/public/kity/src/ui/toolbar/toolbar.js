@@ -2,9 +2,27 @@
  * 工具条组件
  */
 
-define( function ( require ) {
+import __dep_0 from '../../kity.js';
+import __dep_1 from '../ui-impl/ui.js';
+import __dep_2 from '../ui-impl/ui-utils.js';
+import __dep_3 from '../ui-impl/def/ele-type.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/ui-impl/ui':
+      return __dep_1;
+    case 'ui/ui-impl/ui-utils':
+      return __dep_2;
+    case 'ui/ui-impl/def/ele-type':
+      return __dep_3;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         UiImpl = require( "ui/ui-impl/ui" ),
 
@@ -189,6 +207,4 @@ define( function ( require ) {
         return new UiImpl.Area( doc, options );
     }
 
-    return Tollbar;
-
-} );
+export default Tollbar;

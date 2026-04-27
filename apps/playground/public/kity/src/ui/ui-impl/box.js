@@ -2,9 +2,33 @@
  * Created by hn on 14-3-31.
  */
 
-define( function ( require ) {
+import __dep_0 from '../../kity.js';
+import __dep_1 from './ui-utils.js';
+import __dep_2 from './def/box-type.js';
+import __dep_3 from './def/item-type.js';
+import __dep_4 from './button.js';
+import __dep_5 from './list.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/ui-impl/ui-utils':
+      return __dep_1;
+    case 'ui/ui-impl/def/box-type':
+      return __dep_2;
+    case 'ui/ui-impl/def/item-type':
+      return __dep_3;
+    case 'ui/ui-impl/button':
+      return __dep_4;
+    case 'ui/ui-impl/list':
+      return __dep_5;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         PREFIX = "kf-editor-ui-",
 
@@ -604,6 +628,4 @@ define( function ( require ) {
 
     }
 
-    return Box;
-
-} );
+export default Box;

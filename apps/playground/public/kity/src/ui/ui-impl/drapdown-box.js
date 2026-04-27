@@ -2,9 +2,27 @@
  * Created by hn on 14-3-31.
  */
 
-define( function ( require ) {
+import __dep_0 from '../../kity.js';
+import __dep_1 from './ui-utils.js';
+import __dep_2 from './button.js';
+import __dep_3 from './box.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/ui-impl/ui-utils':
+      return __dep_1;
+    case 'ui/ui-impl/button':
+      return __dep_2;
+    case 'ui/ui-impl/box':
+      return __dep_3;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         // UiUitls
         $$ = require( "ui/ui-impl/ui-utils" ),
@@ -100,6 +118,4 @@ define( function ( require ) {
 
         });
 
-    return DrapdownBox;
-
-} );
+export default DrapdownBox;

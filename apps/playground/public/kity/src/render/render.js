@@ -2,9 +2,26 @@
  * Created by hn on 14-3-17.
  */
 
-define( function ( require ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from '../kf.js';
+import __dep_2 from '../base/component.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'kf':
+      return __dep_1;
+    case 'base/component':
+      return __dep_2;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
+
+        BaseComponent = require( "base/component" ),
 
         Assembly = require( "kf" ).Assembly,
 
@@ -21,7 +38,8 @@ define( function ( require ) {
 
             constructor: function ( kfEditor, options ) {
 
-                this.callBase();
+                /* this.callBase(); */
+                BaseComponent.call( this );
 
                 this.options = kity.Utils.extend( {}, DEFAULT_OPTIONS, options );
 
@@ -455,6 +473,4 @@ define( function ( require ) {
 
         } );
 
-    return RenderComponenet;
-
-} );
+export default RenderComponenet;

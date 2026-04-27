@@ -4,9 +4,21 @@
 
 /* jshint camelcase: false */
 
-define( function ( require, exports, modules ) {
+import __dep_0 from './kfevent.js';
+import __dep_1 from '../common.js';
 
-    var EVENT_LISTENER = {},
+function require(id) {
+  switch (id) {
+    case 'base/event/kfevent':
+      return __dep_0;
+    case 'base/common':
+      return __dep_1;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var EVENT_LISTENER = {},
         eid = 0,
         BEFORE_RESULT = true,
         KFEvent = require( "base/event/kfevent" ),
@@ -97,6 +109,4 @@ define( function ( require, exports, modules ) {
 
     }
 
-    return EventListener;
-
-} );
+export default EventListener;

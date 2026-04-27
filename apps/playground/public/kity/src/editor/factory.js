@@ -3,9 +3,21 @@
  * 用于创建编辑器
  */
 
-define( function ( require ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from './editor.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'editor/editor':
+      return __dep_1;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
         KFEditor = require( "editor/editor" );
 
     /* ------------------------------- 编辑器装饰对象 */
@@ -42,12 +54,10 @@ define( function ( require ) {
 
     };
 
-    return {
+export default {
         create: function ( container, options ) {
 
             return new EditorWrapper( container, options );
 
         }
     };
-
-} );

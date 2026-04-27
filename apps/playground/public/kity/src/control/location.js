@@ -2,11 +2,24 @@
  * 光标定位组件
  */
 
-define( function ( require, exports, module ) {
+import __dep_0 from '../kity.js';
 
-    var kity = require( "kity" );
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
 
-    return kity.createClass( "LocationComponent", {
+var kity = require( "kity" );
+
+function getRect ( node ) {
+        return node.getBoundingClientRect();
+    }
+
+export default kity.createClass( "LocationComponent", {
 
         constructor: function ( parentComponent, kfEditor ) {
 
@@ -227,9 +240,3 @@ define( function ( require, exports, module ) {
         }
 
     } );
-
-    function getRect ( node ) {
-        return node.getBoundingClientRect();
-    }
-
-} );

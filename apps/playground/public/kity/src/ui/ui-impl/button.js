@@ -2,9 +2,21 @@
  * Created by hn on 14-3-31.
  */
 
-define( function ( require ) {
+import __dep_0 from '../../kity.js';
+import __dep_1 from './ui-utils.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/ui-impl/ui-utils':
+      return __dep_1;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         PREFIX = "kf-editor-ui-",
 
@@ -272,6 +284,4 @@ define( function ( require ) {
 
     }
 
-    return Button;
-
-} );
+export default Button;

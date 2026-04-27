@@ -2,9 +2,30 @@
  * 语法控制单元
  */
 
-define( function ( require ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from './move.js';
+import __dep_2 from './delete.js';
+import __dep_3 from '../sysconf.js';
+import __dep_4 from '../def/group-type.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'syntax/move':
+      return __dep_1;
+    case 'syntax/delete':
+      return __dep_2;
+    case 'sysconf':
+      return __dep_3;
+    case 'def/group-type':
+      return __dep_4;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
 
         MoveComponent = require( "syntax/move" ),
         DeleteComponent = require( "syntax/delete" ),
@@ -495,6 +516,4 @@ define( function ( require ) {
 
         });
 
-    return SyntaxComponenet;
-
-} );
+export default SyntaxComponenet;

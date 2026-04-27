@@ -2,9 +2,39 @@
  * Created by hn on 14-3-17.
  */
 
-define( function ( require ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from './ui-impl/ui-utils.js';
+import __dep_2 from '../base/utils.js';
+import __dep_3 from './def.js';
+import __dep_4 from './ui-impl/scrollbar/scrollbar.js';
+import __dep_5 from './toolbar/toolbar.js';
+import __dep_6 from './control/zoom.js';
+import __dep_7 from './toolbar-ele-list.js';
 
-    var kity = require( "kity"),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/ui-impl/ui-utils':
+      return __dep_1;
+    case 'base/utils':
+      return __dep_2;
+    case 'ui/def':
+      return __dep_3;
+    case 'ui/ui-impl/scrollbar/scrollbar':
+      return __dep_4;
+    case 'ui/toolbar/toolbar':
+      return __dep_5;
+    case 'ui/control/zoom':
+      return __dep_6;
+    case 'ui/toolbar-ele-list':
+      return __dep_7;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity"),
 
         // UiUitls
         $$ = require( "ui/ui-impl/ui-utils" ),
@@ -240,6 +270,4 @@ define( function ( require ) {
         return container;
     }
 
-    return UIComponent;
-
-} );
+export default UIComponent;

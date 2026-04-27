@@ -2,15 +2,258 @@
  * 滚动条组件
  */
 
-define( function ( require ) {
+import __dep_0 from '../../../kity.js';
+import __dep_1 from '../../def.js';
+import __dep_2 from '../../../sysconf.js';
+import __dep_3 from '../../../base/utils.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'ui/def':
+      return __dep_1;
+    case 'sysconf':
+      return __dep_2;
+    case 'base/utils':
+      return __dep_3;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
         SCROLLBAR_DEF = require( "ui/def" ).scrollbar,
         SCROLLBAR_CONF = require( "sysconf" ).scrollbar,
         Utils = require( "base/utils" ),
         CLASS_PREFIX = "kf-editor-ui-";
 
-    return kity.createClass( "Scrollbar", {
+function createElement ( doc, eleName, className ) {
+
+        var node = doc.createElement( eleName ),
+            str = '<div class="$1"></div><div class="$2"></div>';
+
+        node.className = CLASS_PREFIX + className;
+
+        if ( className === "thumb" ) {
+            className = CLASS_PREFIX + className;
+            node.innerHTML = str.replace( '$1', className+'-left' )
+                .replace( '$2', className+'-right' );
+        }
+
+        return node;
+
+    }
+
+    function getRect ( node ) {
+        return node.getBoundingClientRect();
+    }
+
+    // 阻止浏览器在scrollbar上的默认行为
+    function preventDefault ( comp ) {
+
+        Utils.addEvent( comp.container, "mousedown", function ( e ) {
+            e.preventDefault();
+        } );
+
+    }
+
+    // 轨道点击
+    function trackClick ( comp ) {
+
+        Utils.addEvent( comp.widgets.track, "mousedown", function ( e ) {
+            trackClickHandler( this, comp, e );
+        } );
+
+    }
+
+    // 两端按钮点击
+    function btnClick ( comp ) {
+
+        // left
+        Utils.addEvent( comp.widgets.leftButton, "mousedown", function () {
+
+            setThumbOffsetByStep( comp, -SCROLLBAR_CONF.step );
+
+        } );
+
+        Utils.addEvent( comp.widgets.rightButton, "mousedown", function () {
+
+            setThumbOffsetByStep( comp, SCROLLBAR_CONF.step );
+
+        } );
+
+    }
+
+    // 滑块处理
+    function thumbHandler ( comp ) {
+
+        var isMoving = false,
+            startPoint = 0,
+            startOffset = 0,
+            trackWidth = comp.values.trackWidth;
+
+        Utils.addEvent( comp.widgets.thumb, "mousedown", function ( e ) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            isMoving = true;
+            startPoint = e.clientX;
+            startOffset = comp.thumbLocationX;
+
+        } );
+
+        Utils.addEvent( comp.container.ownerDocument, "mouseup", function () {
+
+            isMoving = false;
+            startPoint = 0;
+            startOffset = 0;
+
+        } );
+
+        Utils.addEvent( comp.container.ownerDocument, "mousemove", function ( e ) {
+
+            if ( !isMoving ) {
+                return;
+            }
+
+            var distance = e.clientX - startPoint,
+                offset = startOffset + distance,
+                thumbWidth = comp.values.thumbWidth;
+
+            if ( offset < 0 ) {
+                offset = 0;
+            } else if ( offset + thumbWidth > trackWidth ) {
+                offset = trackWidth - thumbWidth;
+            }
+
+            setThumbLocation( comp, offset );
+
+        } );
+
+    }
+
+    // 轨道点击处理器
+    function trackClickHandler ( track, comp, evt ) {
+
+        var trackRect = getRect( track ),
+            values = comp.values,
+            // 单位偏移值， 一个viewWidth所对应到轨道上后的offset值
+            unitOffset = values.viewWidth / ( values.contentWidth - values.viewWidth ) * values.trackWidth,
+            // 点击位置在轨道中的偏移
+            clickOffset = evt.clientX - trackRect.left;
+
+        // right click
+        if ( clickOffset > values.offset ) {
+
+            // 剩余距离已经不足以支撑滚动， 则直接偏移置最大
+            if ( values.offset + unitOffset > values.trackWidth ) {
+                setThumbOffset( comp, values.trackWidth );
+            } else {
+                setThumbOffset( comp, values.offset + unitOffset );
+            }
+
+        // left click
+        } else {
+
+            // 剩余距离已经不足以支撑滚动， 则直接把偏移置零
+            if ( values.offset - unitOffset < 0 ) {
+                setThumbOffset( comp, 0 );
+            } else {
+                setThumbOffset( comp, values.offset - unitOffset );
+            }
+
+        }
+
+    }
+
+    function setThumbLocation ( comp, locationX ) {
+
+        // 滑块偏移值
+        var values = comp.values,
+            trackPieceWidth = values.trackWidth - values.thumbWidth,
+            offset = Math.floor( ( locationX / trackPieceWidth ) * values.trackWidth );
+
+        comp.updateOffset( offset );
+
+        // 更新滑块物理偏移: 定位
+        comp.thumbLocationX = locationX;
+        comp.widgets.thumb.style.left = locationX + "px";
+
+    }
+
+    // 根据指定的内容视图上移动的步长来改变滚动条的offset值
+    function setThumbOffsetByStep ( comp, step ) {
+
+        var leftOverflow = comp.leftOverflow + step;
+
+        // 修正越界
+        if ( leftOverflow < 0 ) {
+            leftOverflow = 0;
+        } else if ( leftOverflow > comp.values.scrollWidth ) {
+            leftOverflow = comp.values.scrollWidth;
+        }
+
+        setThumbByLeftOverflow( comp, leftOverflow );
+
+    }
+
+    // 设置偏移值, 会同时更新滑块在显示上的定位
+    function setThumbOffset ( comp, offset ) {
+
+        var values = comp.values,
+            offsetProportion = offset / values.trackWidth,
+            trackPieceWidth = values.trackWidth - values.thumbWidth,
+            thumbLocationX = 0;
+
+        thumbLocationX = Math.floor( offsetProportion * trackPieceWidth );
+
+        if ( offset < 0 ) {
+            offset = 0;
+            thumbLocationX = 0;
+        }
+
+        comp.updateOffset( offset );
+
+        // 更新滑块定位
+        comp.widgets.thumb.style.left = thumbLocationX + "px";
+        comp.thumbLocationX = thumbLocationX;
+
+    }
+
+    /**
+     * 根据内容视图上的偏移值设置滑块位置
+     */
+    function setThumbOffsetByViewOffset ( comp, viewOffset ) {
+
+        var values = comp.values,
+            offsetProportion = 0,
+            offset = 0;
+
+        // 轨道偏移比例
+        offsetProportion = viewOffset / ( values.contentWidth - values.viewWidth );
+
+        // 轨道偏移值
+        offset = Math.floor( offsetProportion * values.trackWidth );
+
+        setThumbOffset( comp, offset );
+
+    }
+
+    /**
+     * 根据左溢出值设置滑块定位
+     */
+    function setThumbByLeftOverflow ( comp, leftViewOverflow ) {
+
+        var values = comp.values,
+            overflowProportion = leftViewOverflow / ( values.contentWidth - values.viewWidth );
+
+        setThumbOffset( comp, overflowProportion * values.trackWidth );
+
+    }
+
+export default kity.createClass( "Scrollbar", {
 
         constructor: function ( uiComponent, kfEditor ) {
 
@@ -229,238 +472,3 @@ define( function ( require ) {
         }
 
     } );
-
-    function createElement ( doc, eleName, className ) {
-
-        var node = doc.createElement( eleName ),
-            str = '<div class="$1"></div><div class="$2"></div>';
-
-        node.className = CLASS_PREFIX + className;
-
-        if ( className === "thumb" ) {
-            className = CLASS_PREFIX + className;
-            node.innerHTML = str.replace( '$1', className+'-left' )
-                .replace( '$2', className+'-right' );
-        }
-
-        return node;
-
-    }
-
-    function getRect ( node ) {
-        return node.getBoundingClientRect();
-    }
-
-    // 阻止浏览器在scrollbar上的默认行为
-    function preventDefault ( container ) {
-
-        Utils.addEvent( container, "mousedown", function ( e ) {
-            e.preventDefault();
-        } );
-
-    }
-
-    function preventDefault ( comp ) {
-
-        Utils.addEvent( comp.container, "mousedown", function ( e ) {
-            e.preventDefault();
-        } );
-
-    }
-
-    // 轨道点击
-    function trackClick ( comp ) {
-
-        Utils.addEvent( comp.widgets.track, "mousedown", function ( e ) {
-            trackClickHandler( this, comp, e );
-        } );
-
-    }
-
-    // 两端按钮点击
-    function btnClick ( comp ) {
-
-        // left
-        Utils.addEvent( comp.widgets.leftButton, "mousedown", function () {
-
-            setThumbOffsetByStep( comp, -SCROLLBAR_CONF.step );
-
-        } );
-
-        Utils.addEvent( comp.widgets.rightButton, "mousedown", function () {
-
-            setThumbOffsetByStep( comp, SCROLLBAR_CONF.step );
-
-        } );
-
-    }
-
-    // 滑块处理
-    function thumbHandler ( comp ) {
-
-        var isMoving = false,
-            startPoint = 0,
-            startOffset = 0,
-            trackWidth = comp.values.trackWidth;
-
-        Utils.addEvent( comp.widgets.thumb, "mousedown", function ( e ) {
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            isMoving = true;
-            startPoint = e.clientX;
-            startOffset = comp.thumbLocationX;
-
-        } );
-
-        Utils.addEvent( comp.container.ownerDocument, "mouseup", function () {
-
-            isMoving = false;
-            startPoint = 0;
-            startOffset = 0;
-
-        } );
-
-        Utils.addEvent( comp.container.ownerDocument, "mousemove", function ( e ) {
-
-            if ( !isMoving ) {
-                return;
-            }
-
-            var distance = e.clientX - startPoint,
-                offset = startOffset + distance,
-                thumbWidth = comp.values.thumbWidth;
-
-            if ( offset < 0 ) {
-                offset = 0;
-            } else if ( offset + thumbWidth > trackWidth ) {
-                offset = trackWidth - thumbWidth;
-            }
-
-            setThumbLocation( comp, offset );
-
-        } );
-
-    }
-
-    // 轨道点击处理器
-    function trackClickHandler ( track, comp, evt ) {
-
-        var trackRect = getRect( track ),
-            values = comp.values,
-            // 单位偏移值， 一个viewWidth所对应到轨道上后的offset值
-            unitOffset = values.viewWidth / ( values.contentWidth - values.viewWidth ) * values.trackWidth,
-            // 点击位置在轨道中的偏移
-            clickOffset = evt.clientX - trackRect.left;
-
-        // right click
-        if ( clickOffset > values.offset ) {
-
-            // 剩余距离已经不足以支撑滚动， 则直接偏移置最大
-            if ( values.offset + unitOffset > values.trackWidth ) {
-                setThumbOffset( comp, values.trackWidth );
-            } else {
-                setThumbOffset( comp, values.offset + unitOffset );
-            }
-
-        // left click
-        } else {
-
-            // 剩余距离已经不足以支撑滚动， 则直接把偏移置零
-            if ( values.offset - unitOffset < 0 ) {
-                setThumbOffset( comp, 0 );
-            } else {
-                setThumbOffset( comp, values.offset - unitOffset );
-            }
-
-        }
-
-    }
-
-    function setThumbLocation ( comp, locationX ) {
-
-        // 滑块偏移值
-        var values = comp.values,
-            trackPieceWidth = values.trackWidth - values.thumbWidth,
-            offset = Math.floor( ( locationX / trackPieceWidth ) * values.trackWidth );
-
-        comp.updateOffset( offset );
-
-        // 更新滑块物理偏移: 定位
-        comp.thumbLocationX = locationX;
-        comp.widgets.thumb.style.left = locationX + "px";
-
-    }
-
-    // 根据指定的内容视图上移动的步长来改变滚动条的offset值
-    function setThumbOffsetByStep ( comp, step ) {
-
-        var leftOverflow = comp.leftOverflow + step;
-
-        // 修正越界
-        if ( leftOverflow < 0 ) {
-            leftOverflow = 0;
-        } else if ( leftOverflow > comp.values.scrollWidth ) {
-            leftOverflow = comp.values.scrollWidth;
-        }
-
-        setThumbByLeftOverflow( comp, leftOverflow );
-
-    }
-
-    // 设置偏移值, 会同时更新滑块在显示上的定位
-    function setThumbOffset ( comp, offset ) {
-
-        var values = comp.values,
-            offsetProportion = offset / values.trackWidth,
-            trackPieceWidth = values.trackWidth - values.thumbWidth,
-            thumbLocationX = 0;
-
-        thumbLocationX = Math.floor( offsetProportion * trackPieceWidth );
-
-        if ( offset < 0 ) {
-            offset = 0;
-            thumbLocationX = 0;
-        }
-
-        comp.updateOffset( offset );
-
-        // 更新滑块定位
-        comp.widgets.thumb.style.left = thumbLocationX + "px";
-        comp.thumbLocationX = thumbLocationX;
-
-    }
-
-    /**
-     * 根据内容视图上的偏移值设置滑块位置
-     */
-    function setThumbOffsetByViewOffset ( comp, viewOffset ) {
-
-        var values = comp.values,
-            offsetProportion = 0,
-            offset = 0;
-
-        // 轨道偏移比例
-        offsetProportion = viewOffset / ( values.contentWidth - values.viewWidth );
-
-        // 轨道偏移值
-        offset = Math.floor( offsetProportion * values.trackWidth );
-
-        setThumbOffset( comp, offset );
-
-    }
-
-    /**
-     * 根据左溢出值设置滑块定位
-     */
-    function setThumbByLeftOverflow ( comp, leftViewOverflow ) {
-
-        var values = comp.values,
-            overflowProportion = leftViewOverflow / ( values.contentWidth - values.viewWidth );
-
-        setThumbOffset( comp, overflowProportion * values.trackWidth );
-
-    }
-
-} );

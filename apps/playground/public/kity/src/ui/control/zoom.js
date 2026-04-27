@@ -2,9 +2,21 @@
  * 滚动缩放控制器
  */
 
-define( function ( require ) {
+import __dep_0 from '../../base/utils.js';
+import __dep_1 from '../../kity.js';
 
-    var Utils = require( "base/utils" ),
+function require(id) {
+  switch (id) {
+    case 'base/utils':
+      return __dep_0;
+    case 'kity':
+      return __dep_1;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var Utils = require( "base/utils" ),
         kity = require( "kity"),
 
         DEFAULT_OPTIONS = {
@@ -59,8 +71,4 @@ define( function ( require ) {
 
         } );
 
-
-    return ScrollZoomController;
-
-} );
-
+export default ScrollZoomController;

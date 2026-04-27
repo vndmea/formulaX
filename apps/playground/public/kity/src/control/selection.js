@@ -2,15 +2,27 @@
  * 光标选区组件
  */
 
-define( function ( require, exports, module ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from '../base/utils.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'base/utils':
+      return __dep_1;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
         kfUtils = require( "base/utils" ),
 
         // 鼠标移动临界距离
         MAX_DISTANCE = 10;
 
-    return kity.createClass( "SelectionComponent", {
+export default kity.createClass( "SelectionComponent", {
 
         constructor: function ( parentComponent, kfEditor ) {
 
@@ -398,5 +410,3 @@ define( function ( require, exports, module ) {
         }
 
     } );
-
-} );

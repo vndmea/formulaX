@@ -2,9 +2,24 @@
  * 公式扩展接口
  */
 
-define( function ( require ) {
+import __dep_0 from '../kf.js';
+import __dep_1 from './def.js';
+import __dep_2 from './expression/placeholder.js';
 
-    var kf = require( "kf" ),
+function require(id) {
+  switch (id) {
+    case 'kf':
+      return __dep_0;
+    case 'kf-ext/def':
+      return __dep_1;
+    case 'kf-ext/expression/placeholder':
+      return __dep_2;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kf = require( "kf" ),
         SELECT_COLOR = require( "kf-ext/def" ).selectColor,
         ALL_SELECT_COLOR = require( "kf-ext/def" ).allSelectColor;
 
@@ -60,8 +75,6 @@ define( function ( require ) {
 
     }
 
-    return {
+export default {
         ext: ext
     };
-
-} );

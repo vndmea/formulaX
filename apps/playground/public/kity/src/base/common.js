@@ -2,9 +2,7 @@
  * Created by hn on 14-3-17.
  */
 
-define( function ( require ) {
-
-    // copy保护
+// copy保护
     var MAX_COPY_DEEP = 10,
 
         commonUtils = {
@@ -137,6 +135,4 @@ define( function ( require ) {
 
     }
 
-    return commonUtils;
-
-} );
+export default commonUtils;

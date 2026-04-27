@@ -2,9 +2,24 @@
  * 输入控制组件
  */
 
-define( function ( require, exports, module ) {
+import __dep_0 from '../kity.js';
+import __dep_1 from '../base/utils.js';
+import __dep_2 from './input-filter.js';
 
-    var kity = require( "kity" ),
+function require(id) {
+  switch (id) {
+    case 'kity':
+      return __dep_0;
+    case 'base/utils':
+      return __dep_1;
+    case 'control/input-filter':
+      return __dep_2;
+    default:
+      throw new Error('Unknown legacy dependency: ' + id);
+  }
+}
+
+var kity = require( "kity" ),
         kfUtils = require( "base/utils" ),
         InputFilter = require( "control/input-filter" ),
         KEY_CODE = {
@@ -15,7 +30,7 @@ define( function ( require, exports, module ) {
             INPUT: 229
         };
 
-    return kity.createClass( "InputComponent", {
+export default kity.createClass( "InputComponent", {
 
         constructor: function ( parentComponent, kfEditor ) {
 
@@ -325,5 +340,3 @@ define( function ( require, exports, module ) {
         }
 
     } );
-
-} );
