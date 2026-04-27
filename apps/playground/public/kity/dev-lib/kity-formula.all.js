@@ -85,6 +85,10 @@ function use ( id ) {
     return require( id );
 
 }
+
+window.__kityFormulaRequire__ = require;
+window.__kityFormulaUse__ = use;
+
 define("base/canvg", [], function(require) {
     function RGBColor(color_string) {
         this.ok = false;

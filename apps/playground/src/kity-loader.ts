@@ -1,7 +1,8 @@
+import { installLegacyKityData } from '../../../packages/kity-runtime/src/index';
+
 const KITY_BASE = 'kity';
 
 const SOURCE_MODULES = [
-  'jquery',
   'kf',
   'kity',
   'sysconf',
@@ -58,13 +59,8 @@ type ModuleRecord = {
   factory: ((require: (id: string) => unknown, exports: Record<string, unknown>, module: ModuleRecord) => unknown) | null;
 };
 
-type MiniJQueryInstance = {
-  on: (type: string, fn: EventListener) => void;
-  delegate: (selector: string, type: string, fn: EventListener) => void;
-};
-
-type MiniJQueryFunction = ((target: EventTarget | null) => MiniJQueryInstance) & {
-  get?: (url: string, callback: (data: string, state: string) => void) => void;
+type JQueryShim = {
+  get: (url: string, callback: (data: string, state: 'success' | 'error') => void) => void;
 };
 
 type KityWindow = Window &
@@ -79,9 +75,11 @@ type KityWindow = Window &
       record: (_key: string) => void;
       remove: (_node: Node) => void;
     };
-    jQuery?: MiniJQueryFunction;
-    $?: MiniJQueryFunction;
-    kf?: {
+    jQuery?: JQueryShim;
+    $?: JQueryShim;
+    __kityFormulaRequire__?: (id: string) => unknown;
+    __kityFormulaUse__?: (id: string) => unknown;
+    kf?: Record<string, unknown> & {
       EditorFactory?: {
         create: (
           container: HTMLElement,
@@ -93,51 +91,36 @@ type KityWindow = Window &
           ready: (callback: (this: { execCommand: (name: string, value?: string) => void }) => void) => void;
         };
       };
+      ResourceManager?: {
+        ready: (callback: (formula: unknown) => void, options?: { path?: string }) => void;
+      };
     };
   };
 
 let runtimePromise: Promise<void> | null = null;
 
-function installMiniJQuery() {
-  const runtimeWindow = window as KityWindow;
-
-  if (runtimeWindow.jQuery) {
+function installMiniJQuery(runtimeWindow: KityWindow) {
+  if (runtimeWindow.jQuery?.get) {
     return;
   }
 
-  const miniJQuery = ((target: EventTarget | null) => ({
-    on(type: string, fn: EventListener) {
-      target?.addEventListener(type, fn as EventListener);
-    },
-    delegate(selector: string, type: string, fn: EventListener) {
-      target?.addEventListener(type, (event) => {
-        let current = event.target as Element | null;
-
-        while (current && current !== target) {
-          if (current.matches(selector)) {
-            fn.call(current, event);
-            return;
+  const shim: JQueryShim = {
+    get(url, callback) {
+      fetch(url)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch ${url}`);
           }
-          current = current.parentElement;
-        }
-      });
-    },
-  })) as MiniJQueryFunction;
 
-  miniJQuery.get = (url: string, callback: (data: string, state: string) => void) => {
-    fetch(url)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${url}`);
-        }
-        return response.arrayBuffer();
-      })
-      .then(() => callback('', 'success'))
-      .catch(() => callback('', 'error'));
+          return response.arrayBuffer();
+        })
+        .then(() => callback('', 'success'))
+        .catch(() => callback('', 'error'));
+    },
   };
 
-  runtimeWindow.jQuery = miniJQuery;
-  runtimeWindow.$ = miniJQuery;
+  runtimeWindow.jQuery = shim;
+  runtimeWindow.$ = shim;
 }
 
 function ensureStyle(href: string) {
@@ -270,20 +253,53 @@ function installRuntime() {
   runtimeWindow.__kityRuntimeReady__ = true;
 }
 
+function hydrateLegacyKf(runtimeWindow: KityWindow) {
+  const requireFormula = runtimeWindow.__kityFormulaRequire__;
+
+  if (!requireFormula) {
+    return;
+  }
+
+  runtimeWindow.kf = {
+    ...(runtimeWindow.kf ?? {}),
+    ResourceManager: requireFormula('resource-manager') as NonNullable<KityWindow['kf']>['ResourceManager'],
+    Operator: requireFormula('operator/operator'),
+    Expression: requireFormula('expression/expression'),
+    CompoundExpression: requireFormula('expression/compound'),
+    TextExpression: requireFormula('expression/text'),
+    EmptyExpression: requireFormula('expression/empty'),
+    CombinationExpression: requireFormula('expression/compound-exp/combination'),
+    FunctionExpression: requireFormula('expression/compound-exp/func'),
+    FractionExpression: requireFormula('expression/compound-exp/fraction'),
+    IntegrationExpression: requireFormula('expression/compound-exp/integration'),
+    RadicalExpression: requireFormula('expression/compound-exp/radical'),
+    ScriptExpression: requireFormula('expression/compound-exp/script'),
+    SuperscriptExpression: requireFormula('expression/compound-exp/binary-exp/superscript'),
+    SubscriptExpression: requireFormula('expression/compound-exp/binary-exp/subscript'),
+    SummationExpression: requireFormula('expression/compound-exp/summation'),
+    BracketsExpression: requireFormula('expression/compound-exp/brackets'),
+  };
+}
+
 async function ensureRuntime() {
   if (runtimePromise) {
     return runtimePromise;
   }
 
   runtimePromise = (async () => {
+    const runtimeWindow = window as KityWindow;
+
     ensureStyle(`${KITY_BASE}/assets/styles/page.css`);
     ensureStyle(`${KITY_BASE}/assets/styles/base.css`);
     ensureStyle(`${KITY_BASE}/assets/styles/ui.css`);
     ensureStyle(`${KITY_BASE}/assets/styles/scrollbar.css`);
 
-    installMiniJQuery();
+    runtimeWindow.kf = runtimeWindow.kf ?? {};
+    installMiniJQuery(runtimeWindow);
+    installLegacyKityData(window);
     await loadScript(`${KITY_BASE}/dev-lib/kitygraph.all.js`);
-    await loadScript(`${KITY_BASE}/dev-lib/kity-formula-render.all.js`);
+    await loadScript(`${KITY_BASE}/dev-lib/kity-formula.all.js`);
+    hydrateLegacyKf(runtimeWindow);
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula-parser.all.min.js`);
 
     installRuntime();
@@ -294,7 +310,6 @@ async function ensureRuntime() {
 
     await loadScript(`${KITY_BASE}/dev-lib/start.js`, 'kf.start');
 
-    const runtimeWindow = window as KityWindow;
     runtimeWindow.use?.('kf.start');
   })();
 

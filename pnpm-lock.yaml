@@ -60,7 +60,11 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(jsdom@26.1.0)
 
-  apps/playground: {}
+  apps/playground:
+    dependencies:
+      '@formulax/kity-runtime':
+        specifier: workspace:*
+        version: link:../../packages/kity-runtime
 
   apps/tinymce-demo:
     dependencies:
@@ -105,6 +109,8 @@ importers:
       '@formulax/kity-vendor-render':
         specifier: workspace:*
         version: link:../kity-vendor-render
+
+  packages/kity-runtime: {}
 
   packages/kity-toolbar:
     dependencies:

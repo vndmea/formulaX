@@ -4,9 +4,40 @@
 
 define( function ( require ) {
 
-    var $ = require( "jquery" ),
-        kity = require( "kity" ),
+    var kity = require( "kity" ),
         TOPIC_POOL = {};
+
+    function normalizeEvent ( event ) {
+
+        var wrappedEvent = Object.create( event ),
+            button = typeof event.which === "number" && event.which > 0 ? event.which : 0,
+            wheelDelta = typeof event.wheelDelta === "number" ? event.wheelDelta : 0;
+
+        if ( !button ) {
+            switch ( event.button ) {
+                case 0:
+                    button = 1;
+                    break;
+                case 1:
+                    button = 2;
+                    break;
+                case 2:
+                    button = 3;
+                    break;
+            }
+        }
+
+        if ( !wheelDelta && typeof event.deltaY === "number" ) {
+            wheelDelta = -event.deltaY * 40;
+        }
+
+        wrappedEvent.originalEvent = event;
+        wrappedEvent.which = button;
+        wrappedEvent.wheelDelta = wheelDelta;
+
+        return wrappedEvent;
+
+    }
 
     var Utils = {
 
@@ -32,13 +63,25 @@ define( function ( require ) {
         },
 
         on: function ( target, type, fn ) {
-            $( target ).on( type, fn );
+            target && target.addEventListener( type, function ( event ) {
+                fn.call( target, normalizeEvent( event ) );
+            } );
             return this;
         },
 
         delegate: function ( target, selector, type, fn ) {
 
-            $( target ).delegate( selector, type, fn );
+            target && target.addEventListener( type, function ( event ) {
+                var current = event.target;
+
+                while ( current && current !== target ) {
+                    if ( current.matches && current.matches( selector ) ) {
+                        fn.call( current, normalizeEvent( event ) );
+                        return;
+                    }
+                    current = current.parentElement;
+                }
+            } );
             return this;
 
         },
