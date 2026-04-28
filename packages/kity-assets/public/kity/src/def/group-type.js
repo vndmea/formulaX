@@ -1,12 +1,7 @@
-/*!
- * 组类型
- */
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
+if (!runtime?.groupType) {
+  throw new Error('Missing FormulaX legacy group type runtime');
+}
 
-
-export default {
-
-        "GROUP": "kf-editor-group",
-        "VIRTUAL": "kf-editor-virtual-group"
-
-    };
+export default runtime.groupType;

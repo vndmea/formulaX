@@ -1,11 +1,7 @@
-/*!
- * toolbar元素类型定义
- */
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
+if (!runtime?.eleType) {
+  throw new Error('Missing FormulaX legacy element type runtime');
+}
 
-
-export default {
-        "DRAPDOWN_BOX": 1,
-        "AREA": 2,
-        "DELIMITER": 3
-    };
+export default runtime.eleType;

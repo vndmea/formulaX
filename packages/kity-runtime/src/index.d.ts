@@ -1,4 +1,27 @@
-export * from './create-editor';
+export type KityEditorOptions = {
+  assetBase?: string;
+  initialLatex?: string;
+  autofocus?: boolean;
+  render?: {
+    fontsize?: number;
+  };
+  resource?: {
+    path?: string;
+  };
+};
+
+export type KityEditorHandle = {
+  ready: (callback: (this: { execCommand: (name: string, value?: string) => void }) => void) => void;
+  execCommand: (name: string, value?: string) => void;
+  focus: () => void;
+  destroy: () => void;
+  raw: unknown;
+};
+
+export function ensureKityRuntime(options?: Pick<KityEditorOptions, 'assetBase'>): Promise<void>;
+export function createKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
+export function mountKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
+
 export * from './dom-utils';
 export * from './toolbar-assets';
 export * from './vendor/char-position';

@@ -1,10 +1,7 @@
-/**
- * Created by hn on 14-3-18.
- */
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
+if (!runtime?.kfExtDef) {
+  throw new Error('Missing FormulaX legacy kf ext def runtime');
+}
 
-
-export default {
-        selectColor: 'rgba(42, 106, 189, 0.2)',
-        allSelectColor: 'rgba(42, 106, 189, 0.6)'
-    };
+export default runtime.kfExtDef;

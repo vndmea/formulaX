@@ -1,12 +1,7 @@
-/*!
- * box类型定义
- */
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
+if (!runtime?.boxType) {
+  throw new Error('Missing FormulaX legacy box type runtime');
+}
 
-
-export default {
-        // 分离式
-        "DETACHED": 1,
-        // 重叠式
-        "OVERLAP": 2
-    };
+export default runtime.boxType;

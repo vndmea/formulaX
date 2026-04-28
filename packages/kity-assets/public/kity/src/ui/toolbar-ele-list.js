@@ -40,7 +40,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
                 label: '预设<br/>',
                 className: 'yushe-btn',
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 0,
                     y: 0
@@ -113,7 +112,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "分数<br/>",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 45,
                     y: 0
@@ -163,7 +161,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "上下标<br/>",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 82,
                     y: 0
@@ -217,7 +214,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "根式<br/>",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 119,
                     y: 0
@@ -267,7 +263,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "积分<br/>",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 156,
                     y: 0
@@ -314,7 +309,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "大型<br/>运算符",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 193,
                     y: 0
@@ -349,7 +343,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "括号<br/>",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 230,
                     y: 0
@@ -388,7 +381,6 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
             button: {
                 label: "函数<br/>",
                 icon: {
-                    src: "assets/images/toolbar/btn.png",
                     src: ASSET_BASE + "btn.png",
                     x: 267,
                     y: 0
