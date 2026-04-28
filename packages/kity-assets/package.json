@@ -1,0 +1,12 @@
+{
+  "name": "@formulax/kity-assets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "public"
+  ],
+  "scripts": {
+    "clean": "echo kity-assets has no build output"
+  }
+}
