@@ -1,19 +1,7 @@
-/**
- * Created by hn on 14-3-17.
- */
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
+if (!runtime?.kfEvent) {
+  throw new Error('Missing FormulaX legacy kf event runtime');
+}
 
-
-export default {
-
-        createEvent: function ( type, e ) {
-
-            var evt = document.createEvent( 'Event' );
-
-            evt.initEvent( type, true, true );
-
-            return evt;
-
-        }
-
-    };
+export default runtime.kfEvent;

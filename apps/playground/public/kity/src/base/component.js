@@ -1,23 +1,7 @@
-/*!
- * 组件抽象类，所有的组件都是该类的子类
- * @abstract
- */
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
-import __dep_0 from '../kity.js';
-
-function require(id) {
-  switch (id) {
-    case 'kity':
-      return __dep_0;
-    default:
-      throw new Error('Unknown legacy dependency: ' + id);
-  }
+if (!runtime?.baseComponent) {
+  throw new Error('Missing FormulaX legacy base component runtime');
 }
 
-var kity = require( "kity" );
-
-export default kity.createClass( 'Component', {
-
-        constructor: function () {}
-
-    } );
+export default runtime.baseComponent;

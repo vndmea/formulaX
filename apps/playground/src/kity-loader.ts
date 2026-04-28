@@ -1,7 +1,12 @@
 import { legacyCharPosition } from '../../../packages/kity-runtime/src/vendor/char-position';
 import { legacyOtherPosition } from '../../../packages/kity-runtime/src/vendor/other-position';
+import { legacyCommonUtils } from '../../../packages/kity-runtime/src/vendor/legacy-common';
+import { createLegacyBaseComponent } from '../../../packages/kity-runtime/src/vendor/legacy-component';
+import { legacyEventListener } from '../../../packages/kity-runtime/src/vendor/legacy-event';
+import { legacyKfEvent } from '../../../packages/kity-runtime/src/vendor/legacy-kfevent';
 import { legacySysconf } from '../../../packages/kity-runtime/src/vendor/legacy-sysconf';
 import { createLegacyUiUtils } from '../../../packages/kity-runtime/src/vendor/legacy-ui-utils';
+import { legacyBaseUtils } from '../../../packages/kity-runtime/src/vendor/legacy-utils';
 
 const KITY_BASE = 'kity';
 
@@ -16,8 +21,15 @@ type KityWindow = Window &
     $?: JQueryShim;
     __kityFormulaRequire__?: (id: string) => unknown;
     __FORMULAX_KITY_RUNTIME__?: {
+      baseComponent?: unknown;
+      baseUtils?: typeof legacyBaseUtils;
       sysconf: typeof legacySysconf;
       charPosition: typeof legacyCharPosition;
+      commonUtils?: typeof legacyCommonUtils;
+      eventListener?: typeof legacyEventListener;
+      kf?: unknown;
+      kfEvent?: typeof legacyKfEvent;
+      kity?: unknown;
       otherPosition: typeof legacyOtherPosition;
       uiUtils: ReturnType<typeof createLegacyUiUtils>;
     };
@@ -109,37 +121,6 @@ function loadScript(src: string) {
   });
 }
 
-function loadModuleScript(src: string) {
-  return new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(`script[data-kity-module-src="${src}"]`);
-    if (existing) {
-      if (existing.dataset.loaded === 'true') {
-        resolve();
-        return;
-      }
-
-      existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error(`Failed to load module ${src}`)), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = src;
-    script.dataset.kityModuleSrc = src;
-    script.addEventListener(
-      'load',
-      () => {
-        script.dataset.loaded = 'true';
-        resolve();
-      },
-      { once: true },
-    );
-    script.addEventListener('error', () => reject(new Error(`Failed to load module ${src}`)), { once: true });
-    document.head.appendChild(script);
-  });
-}
-
 function hydrateLegacyKf(runtimeWindow: KityWindow) {
   const requireFormula = runtimeWindow.__kityFormulaRequire__;
 
@@ -170,8 +151,15 @@ function hydrateLegacyKf(runtimeWindow: KityWindow) {
 
 function installLegacyRuntime(runtimeWindow: KityWindow) {
   runtimeWindow.__FORMULAX_KITY_RUNTIME__ = {
+    baseComponent: runtimeWindow.kity ? createLegacyBaseComponent(runtimeWindow.kity as { createClass: (name: string, definition: object) => unknown }) : undefined,
+    baseUtils: legacyBaseUtils,
     sysconf: legacySysconf,
     charPosition: legacyCharPosition,
+    commonUtils: legacyCommonUtils,
+    eventListener: legacyEventListener,
+    kf: runtimeWindow.kf,
+    kfEvent: legacyKfEvent,
+    kity: runtimeWindow.kity,
     otherPosition: legacyOtherPosition,
     uiUtils: createLegacyUiUtils(),
   };
@@ -192,14 +180,15 @@ async function ensureRuntime() {
 
     runtimeWindow.kf = runtimeWindow.kf ?? {};
     installMiniJQuery(runtimeWindow);
-    installLegacyRuntime(runtimeWindow);
 
     await loadScript(`${KITY_BASE}/dev-lib/kitygraph.all.js`);
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula.all.js`);
     hydrateLegacyKf(runtimeWindow);
     await loadScript(`${KITY_BASE}/dev-lib/kity-formula-parser.all.min.js`);
+    installLegacyRuntime(runtimeWindow);
 
-    await loadModuleScript(`${KITY_BASE}/src/start.js`);
+    const { installKityEditorStart } = await import('../../../packages/kity-runtime/src/boot/start');
+    installKityEditorStart(runtimeWindow);
   })();
 
   return runtimePromise;

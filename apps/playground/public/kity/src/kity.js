@@ -1,7 +1,7 @@
-const kity = window.kity;
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
-if (!kity) {
-  throw new Error('Missing Kity Graphic Lib');
+if (!runtime?.kity) {
+  throw new Error('Missing FormulaX legacy kity runtime');
 }
 
-export default kity;
+export default runtime.kity;

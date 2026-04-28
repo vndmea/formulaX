@@ -1,7 +1,7 @@
-const kf = window.kf;
+const runtime = window.__FORMULAX_KITY_RUNTIME__;
 
-if (!kf) {
-  throw new Error('Missing kf runtime');
+if (!runtime?.kf) {
+  throw new Error('Missing FormulaX legacy kf runtime');
 }
 
-export default kf;
+export default runtime.kf;
