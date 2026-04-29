@@ -1,5 +1,6 @@
 export type KityEditorOptions = {
   assetBase?: string;
+  height?: number | string;
   initialLatex?: string;
   autofocus?: boolean;
   render?: {
@@ -10,17 +11,36 @@ export type KityEditorOptions = {
   };
 };
 
+export type KityEditorConstructorOptions = KityEditorOptions & {
+  el: string | HTMLElement;
+};
+
 export type KityEditorHandle = {
   ready: (callback: (this: { execCommand: (name: string, value?: string) => void }) => void) => void;
   execCommand: (name: string, value?: string) => void;
   focus: () => void;
   destroy: () => void;
+  host: HTMLElement;
   raw: unknown;
 };
 
 export function ensureKityRuntime(options?: Pick<KityEditorOptions, 'assetBase'>): Promise<void>;
 export function createKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
 export function mountKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
+export class FormulaXKityEditor {
+  constructor(options: KityEditorConstructorOptions);
+  ready(callback: KityEditorHandle['ready'] extends (callback: infer T) => void ? T : never): this;
+  execCommand(name: string, value?: string): Promise<this>;
+  focus(): Promise<this>;
+  destroy(): Promise<void>;
+  getHandle(): Promise<KityEditorHandle>;
+}
+
+declare global {
+  interface Window {
+    FormulaXKityEditor?: typeof FormulaXKityEditor;
+  }
+}
 
 export * from './dom-utils';
 export * from './toolbar-assets';

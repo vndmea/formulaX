@@ -17,6 +17,7 @@ import { legacyBaseUtils } from './vendor/legacy-utils';
 
 const DEFAULT_ASSET_BASE = '/kity';
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
+const DEFAULT_EDITOR_HEIGHT = 'auto';
 
 type JQueryShim = {
   get: (url: string, callback: (data: string, state: 'success' | 'error') => void) => void;
@@ -72,6 +73,7 @@ type KityWindow = Window &
 
 export type KityEditorOptions = {
   assetBase?: string;
+  height?: number | string;
   initialLatex?: string;
   autofocus?: boolean;
   render?: {
@@ -82,18 +84,45 @@ export type KityEditorOptions = {
   };
 };
 
+export type KityEditorConstructorOptions = KityEditorOptions & {
+  el: string | HTMLElement;
+};
+
 export type KityEditorHandle = {
   ready: EditorRuntimeFactory['ready'];
   execCommand: (name: string, value?: string) => void;
   focus: () => void;
   destroy: () => void;
+  host: HTMLElement;
   raw: EditorRuntimeFactory;
 };
 
 let runtimePromise: Promise<void> | null = null;
 
+function resolveContainer(el: string | HTMLElement) {
+  if (typeof el === 'string') {
+    const element = document.querySelector(el);
+
+    if (!(element instanceof HTMLElement)) {
+      throw new Error(`Kity editor mount target not found: ${el}`);
+    }
+
+    return element;
+  }
+
+  return el;
+}
+
 function normalizeAssetBase(assetBase = DEFAULT_ASSET_BASE) {
   return assetBase.endsWith('/') ? assetBase.slice(0, -1) : assetBase;
+}
+
+function normalizeCssSize(value: number | string | undefined, fallback: string) {
+  if (typeof value === 'number') {
+    return `${value}px`;
+  }
+
+  return value ?? fallback;
 }
 
 function installMiniJQuery(runtimeWindow: KityWindow) {
@@ -118,19 +147,6 @@ function installMiniJQuery(runtimeWindow: KityWindow) {
 
   runtimeWindow.jQuery = shim;
   runtimeWindow.$ = shim;
-}
-
-function ensureStyle(href: string) {
-  const existing = document.querySelector<HTMLLinkElement>(`link[data-kity-href="${href}"]`);
-  if (existing) {
-    return;
-  }
-
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = href;
-  link.dataset.kityHref = href;
-  document.head.appendChild(link);
 }
 
 function loadScript(src: string) {
@@ -227,11 +243,6 @@ export async function ensureKityRuntime(options: Pick<KityEditorOptions, 'assetB
   runtimePromise = (async () => {
     const runtimeWindow = window as KityWindow;
 
-    ensureStyle(`${assetBase}/assets/styles/page.css`);
-    ensureStyle(`${assetBase}/assets/styles/base.css`);
-    ensureStyle(`${assetBase}/assets/styles/ui.css`);
-    ensureStyle(`${assetBase}/assets/styles/scrollbar.css`);
-
     runtimeWindow.kf = runtimeWindow.kf ?? {};
     installMiniJQuery(runtimeWindow);
 
@@ -252,6 +263,7 @@ export async function createKityEditor(container: HTMLElement, options: KityEdit
   const assetBase = normalizeAssetBase(options.assetBase);
   const resourcePath = options.resource?.path ?? `${assetBase}/resource/`;
   const fontsize = options.render?.fontsize ?? 40;
+  const editorHeight = normalizeCssSize(options.height, DEFAULT_EDITOR_HEIGHT);
 
   await ensureKityRuntime({ assetBase });
 
@@ -262,11 +274,15 @@ export async function createKityEditor(container: HTMLElement, options: KityEdit
   }
 
   container.innerHTML = '';
-  container.classList.add('kf-editor');
-  container.style.width = '100%';
-  container.style.height = '100%';
 
-  const factory = runtimeWindow.kf.EditorFactory.create(container, {
+  const host = document.createElement('div');
+  host.className = 'kf-editor';
+  host.style.width = '100%';
+  host.style.height = editorHeight;
+
+  container.appendChild(host);
+
+  const factory = runtimeWindow.kf.EditorFactory.create(host, {
     render: {
       fontsize,
     },
@@ -289,8 +305,8 @@ export async function createKityEditor(container: HTMLElement, options: KityEdit
     },
     destroy() {
       container.innerHTML = '';
-      container.classList.remove('kf-editor');
     },
+    host,
     raw: factory,
   };
 }
@@ -309,4 +325,53 @@ export async function mountKityEditor(container: HTMLElement, options: KityEdito
   });
 
   return editor;
+}
+
+export class FormulaXKityEditor {
+  private readonly container: HTMLElement;
+  private readonly options: KityEditorOptions;
+  private readonly handlePromise: Promise<KityEditorHandle>;
+
+  constructor(options: KityEditorConstructorOptions) {
+    const { el, ...editorOptions } = options;
+    this.container = resolveContainer(el);
+    this.options = editorOptions;
+    this.handlePromise = mountKityEditor(this.container, this.options);
+  }
+
+  ready(callback: Parameters<KityEditorHandle['ready']>[0]) {
+    void this.handlePromise.then((handle) => handle.ready(callback));
+    return this;
+  }
+
+  async execCommand(name: string, value?: string) {
+    const handle = await this.handlePromise;
+    handle.execCommand(name, value);
+    return this;
+  }
+
+  async focus() {
+    const handle = await this.handlePromise;
+    handle.focus();
+    return this;
+  }
+
+  async destroy() {
+    const handle = await this.handlePromise;
+    handle.destroy();
+  }
+
+  async getHandle() {
+    return this.handlePromise;
+  }
+}
+
+declare global {
+  interface Window {
+    FormulaXKityEditor?: typeof FormulaXKityEditor;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.FormulaXKityEditor = FormulaXKityEditor;
 }

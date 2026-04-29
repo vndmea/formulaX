@@ -51,6 +51,8 @@ var kity = require( "kity"),
 
         ELEMENT_LIST = require( "ui/toolbar-ele-list" ),
 
+        DEFAULT_EDIT_AREA_HEIGHT = 100,
+
         UIComponent = kity.createClass( 'UIComponent', {
 
             constructor: function ( kfEditor, options ) {
@@ -116,10 +118,17 @@ var kity = require( "kity"),
             updateContainerSize: function ( container, toolbar, editArea ) {
 
                 var containerBox = container.getBoundingClientRect(),
-                    toolbarBox = toolbar.getBoundingClientRect();
+                    toolbarBox = toolbar.getBoundingClientRect(),
+                    declaredHeight = container.style.height,
+                    containerHeight = containerBox.height,
+                    editAreaHeight = DEFAULT_EDIT_AREA_HEIGHT;
 
-                editArea.style.width = containerBox.width + "px";
-                editArea.style.height = containerBox.bottom - toolbarBox.bottom + "px";
+                if ( declaredHeight && declaredHeight !== "auto" ) {
+                    editAreaHeight = Math.max( containerHeight - toolbarBox.height, DEFAULT_EDIT_AREA_HEIGHT );
+                }
+
+                editArea.style.width = "100%";
+                editArea.style.height = editAreaHeight + "px";
 
             },
 
@@ -254,7 +263,7 @@ var kity = require( "kity"),
         var container = doc.createElement( "div" );
         container.className = "kf-editor-edit-area";
         container.style.width = "100%";
-        container.style.height = "100%";
+        container.style.height = DEFAULT_EDIT_AREA_HEIGHT + "px";
         return container;
     }
 

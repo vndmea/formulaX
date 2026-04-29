@@ -23,8 +23,8 @@
     display: block;
     z-index: 1;
     flex: 1 1 auto;
-    min-height: 0;
-    height: auto;
+    min-height: 100px;
+    height: 100px;
     background-color: white;
     /*background-color: white;*/
     /*background-size: 21px 21px;*/
