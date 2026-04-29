@@ -2,8 +2,8 @@ import { createLegacyBaseComponent } from '../vendor/legacy-component';
 import { legacyGroupType } from '../vendor/legacy-group-type';
 import { legacySysconf } from '../vendor/legacy-sysconf';
 import { getLegacyKf, getLegacyKity } from '../vendor/runtime-interop';
+import extensionModule from './kf-ext-extension';
 import legacyVirtualGroupMap from './vgroup-def';
-import extensionModule from '../../../kity-assets/public/src/kf-ext/extension.js';
 import type { LegacyEditorInstance } from './editor';
 
 type LegacyTreeNode = {
