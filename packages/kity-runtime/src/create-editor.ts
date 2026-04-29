@@ -327,7 +327,7 @@ export async function mountKityEditor(container: HTMLElement, options: KityEdito
   return editor;
 }
 
-export class FormulaXKityEditor {
+export class FormulaXEditor {
   private readonly container: HTMLElement;
   private readonly options: KityEditorOptions;
   private readonly handlePromise: Promise<KityEditorHandle>;
@@ -368,10 +368,10 @@ export class FormulaXKityEditor {
 
 declare global {
   interface Window {
-    FormulaXKityEditor?: typeof FormulaXKityEditor;
+    FormulaXEditor?: typeof FormulaXEditor;
   }
 }
 
 if (typeof window !== 'undefined') {
-  window.FormulaXKityEditor = FormulaXKityEditor;
+  window.FormulaXEditor = FormulaXEditor;
 }

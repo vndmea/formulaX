@@ -27,7 +27,7 @@ export type KityEditorHandle = {
 export function ensureKityRuntime(options?: Pick<KityEditorOptions, 'assetBase'>): Promise<void>;
 export function createKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
 export function mountKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
-export class FormulaXKityEditor {
+export class FormulaXEditor {
   constructor(options: KityEditorConstructorOptions);
   ready(callback: KityEditorHandle['ready'] extends (callback: infer T) => void ? T : never): this;
   execCommand(name: string, value?: string): Promise<this>;
@@ -38,7 +38,7 @@ export class FormulaXKityEditor {
 
 declare global {
   interface Window {
-    FormulaXKityEditor?: typeof FormulaXKityEditor;
+    FormulaXEditor?: typeof FormulaXEditor;
   }
 }
 
