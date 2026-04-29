@@ -1,6 +1,6 @@
 # Core vs Kity Architecture
 
-This document explains the relationship between FormulaX core packages and the imported Kity packages.
+This document explains the relationship between FormulaX core packages and the embedded Kity runtime packages.
 
 ## Current FormulaX Packages
 
@@ -24,44 +24,36 @@ The FormulaX editor package provides:
 - Selection/path mapping
 - Kity-style minimal interaction surface
 
-## Imported Kity Packages
+## Embedded Kity Packages
 
-### `@formulax/kity-vendor-editor`
+### `@formulax/kity-runtime`
 
-Contains the imported `kf-editor` source - the core Kity formula editor implementation.
+Contains the modern bootstrap API, compatibility shims, and progressively migrated source modules used to start the embedded Kity editor.
 
-### `@formulax/kity-vendor-parser`
+### `@formulax/kity-assets`
 
-Contains the imported `kf-parser` source - the Kity LaTeX parser.
-
-### `@formulax/kity-vendor-render`
-
-Contains the imported `kf-render` source - the Kity formula rendering engine.
+Contains the static Kity assets that are served by workspace apps, including legacy bundles, styles, fonts, and image resources.
 
 ## Long-Term Ownership Boundaries
 
 | Package | Ownership | Notes |
 |---------|-----------|-------|
 | `@formulax/core` | FormulaX | Host-agnostic formula model |
-| `@formulax/kity-adapter` | FormulaX | Wraps vendor packages |
-| `@formulax/kity-toolbar` | FormulaX | Toolbar UI layer |
-| `@formulax/kity-vendor-*` | External | Imported source, minimal modifications |
+| `@formulax/kity-runtime` | FormulaX | Modern runtime bridge over embedded Kity source |
+| `@formulax/kity-assets` | FormulaX | Static assets and legacy bundles |
 
 ## Migration Strategy
 
-1. **Phase 1**: Import vendor source into workspace packages
-2. **Phase 2**: Build adapter layer with modern TypeScript interfaces
-3. **Phase 3**: Implement new toolbar on top of adapter
-4. **Phase 4**: Rewire playground to use new toolbar
-5. **Phase 5**: Deprecate old UI paths
-6. **Phase 6**: Add comprehensive tests
-7. **Phase 7**: Documentation and CI improvements
-8. **Phase 8**: Cleanup old code paths
+1. **Phase 1**: Move Kity runtime boot and shared data into workspace packages
+2. **Phase 2**: Replace public source files with thin compatibility shims
+3. **Phase 3**: Route playground through `@formulax/kity-runtime`
+4. **Phase 4**: Continue migrating source modules from asset-side JS into typed workspace modules
+5. **Phase 5**: Reduce dependence on legacy bundles and unused experiments
+6. **Phase 6**: Add broader tests and package-level integrations
 
 ## Design Principles
 
 - Core semantics remain in `@formulax/core`
-- Vendor code remains isolated in `kity-vendor-*` packages
-- Adapter provides stable modern API over vendor internals
-- Toolbar provides UI layer that can be replaced independently
+- Embedded Kity runtime is surfaced through `@formulax/kity-runtime`
+- Static assets remain isolated in `@formulax/kity-assets`
 - Clear boundaries enable independent evolution of each layer

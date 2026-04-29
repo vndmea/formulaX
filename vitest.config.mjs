@@ -11,12 +11,7 @@ export default defineConfig({
       '@formulax/renderer-katex': fromRoot('./packages/renderer-katex/src/index.ts'),
       '@formulax/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
       '@formulax/tinymce': fromRoot('./packages/tinymce/src/index.ts'),
-      '@formulax/ui': fromRoot('./packages/ui/src/index.ts'),
-      '@formulax/kity-adapter': fromRoot('./packages/kity-adapter/src/index.ts'),
-      '@formulax/kity-toolbar': fromRoot('./packages/kity-toolbar/src/index.ts'),
-      '@formulax/kity-vendor-editor': fromRoot('./packages/kity-vendor-editor/src/index.ts'),
-      '@formulax/kity-vendor-parser': fromRoot('./packages/kity-vendor-parser/src/index.ts'),
-      '@formulax/kity-vendor-render': fromRoot('./packages/kity-vendor-render/src/index.ts'),
+      '@formulax/kity-runtime': fromRoot('./packages/kity-runtime/src/index.ts'),
     },
   },
   test: {

@@ -60,11 +60,7 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(jsdom@26.1.0)
 
-  apps/playground:
-    dependencies:
-      '@formulax/kity-runtime':
-        specifier: workspace:*
-        version: link:../../packages/kity-runtime
+  apps/playground: {}
 
   apps/tinymce-demo:
     dependencies:
@@ -98,49 +94,9 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/kity-adapter:
-    dependencies:
-      '@formulax/kity-vendor-editor':
-        specifier: workspace:*
-        version: link:../kity-vendor-editor
-      '@formulax/kity-vendor-parser':
-        specifier: workspace:*
-        version: link:../kity-vendor-parser
-      '@formulax/kity-vendor-render':
-        specifier: workspace:*
-        version: link:../kity-vendor-render
+  packages/kity-assets: {}
 
   packages/kity-runtime: {}
-
-  packages/kity-toolbar:
-    dependencies:
-      '@formulax/kity-adapter':
-        specifier: workspace:*
-        version: link:../kity-adapter
-
-  packages/kity-vendor-editor:
-    dependencies:
-      '@formulax/core':
-        specifier: workspace:*
-        version: link:../core
-      '@formulax/editor':
-        specifier: workspace:*
-        version: link:../editor
-
-  packages/kity-vendor-parser:
-    dependencies:
-      '@formulax/core':
-        specifier: workspace:*
-        version: link:../core
-
-  packages/kity-vendor-render:
-    dependencies:
-      '@formulax/core':
-        specifier: workspace:*
-        version: link:../core
-      '@formulax/renderer-katex':
-        specifier: workspace:*
-        version: link:../renderer-katex
 
   packages/renderer-katex:
     dependencies:
@@ -174,12 +130,6 @@ importers:
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
-
-  packages/ui:
-    dependencies:
-      '@formulax/core':
-        specifier: workspace:*
-        version: link:../core
 
 packages:
 

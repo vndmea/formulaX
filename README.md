@@ -38,17 +38,11 @@ FormulaX/
 |- packages/
 |  |- core/
 |  |- editor/
+|  |- kity-assets/
+|  |- kity-runtime/
 |  |- renderer-katex/
 |  |- tiptap/
-|  |- tinymce/
-|  |- ui/
-|  |- kity-vendor-editor/    # Kity editor vendor source
-|  |- kity-vendor-parser/    # Kity parser vendor source
-|  |- kity-vendor-render/    # Kity render vendor source
-|  |- kity-adapter/          # Modern adapter for kity packages
-|  `- kity-toolbar/          # Kity-based toolbar implementation
-|- tests/
-|  `- e2e/kity/              # E2E tests for kity toolbar
+|  `- tinymce/
 `- .changeset/
 ```
 
@@ -60,19 +54,15 @@ FormulaX is migrating toward the real `kityformula` source model to build a tool
 
 | Package | Purpose |
 |---------|---------|
-| `@formulax/kity-vendor-editor` | Imported kf-editor source |
-| `@formulax/kity-vendor-parser` | Imported kf-parser source |
-| `@formulax/kity-vendor-render` | Imported kf-render source |
-| `@formulax/kity-adapter` | Modern wrapper around vendor packages |
-| `@formulax/kity-toolbar` | Kity-based toolbar with Word-style layout |
+| `@formulax/kity-runtime` | Runtime bridge and editor bootstrap API |
+| `@formulax/kity-assets` | Static Kity assets served by workspace apps |
 
 ### Migration Status
 
-- Vendor packages: Created with placeholder structure
-- Adapter package: Implemented with basic exports
-- Toolbar package: Implemented with symbols and structures
-- Playground: Rewired to use new kity-toolbar
-- Old UI path: Marked as deprecated
+- Runtime package: Active editor bootstrap path
+- Asset package: Serves embedded Kity resources from the workspace
+- Playground: Loads Kity through `@formulax/kity-runtime`
+- Old adapter and toolbar experiments: Removed
 
 ## Package Overview
 
@@ -130,15 +120,15 @@ Responsibilities:
 - generate and parse host-side formula markup
 - bridge TinyMCE content with FormulaX payloads
 
-### `@formulax/ui`
+### `@formulax/kity-runtime`
 
-Reusable UI components for formula editing workflows.
+Typed runtime bridge for loading the embedded Kity editor in modern apps.
 
 Responsibilities:
 
-- toolbar actions
-- symbol panel content
-- modal/dialog shell helpers
+- load Kity runtime assets
+- install compatibility shims
+- expose editor bootstrap APIs
 
 ## Getting Started
 
@@ -380,10 +370,11 @@ Expected publishing targets:
 
 - `@formulax/core`
 - `@formulax/editor`
+- `@formulax/kity-assets`
+- `@formulax/kity-runtime`
 - `@formulax/renderer-katex`
 - `@formulax/tiptap`
 - `@formulax/tinymce`
-- `@formulax/ui`
 
 Before publishing, the following areas still need tightening:
 
