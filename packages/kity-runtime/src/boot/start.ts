@@ -1,8 +1,8 @@
-import KFEditor from '../legacy/editor';
+import KFEditor, { type LegacyEditorInstance } from '../legacy/editor';
 import Factory from '../legacy/factory';
 import UIComponent from '../../../kity-assets/public/src/ui/ui.js';
 import Parser from '../legacy/parser';
-import Render from '../../../kity-assets/public/src/render/render.js';
+import Render from '../legacy/render';
 import Position from '../legacy/position';
 import Syntax from '../legacy/syntax';
 import Controller from '../legacy/controller';
@@ -23,7 +23,7 @@ export function installKityEditorStart(target: Window & typeof globalThis = wind
   if (!installed) {
     KFEditor.registerComponents('ui', UIComponent);
     KFEditor.registerComponents('parser', Parser);
-    KFEditor.registerComponents('render', Render);
+    KFEditor.registerComponents('render', Render as unknown as new (editor: LegacyEditorInstance, options?: unknown) => unknown);
     KFEditor.registerComponents('position', Position);
     KFEditor.registerComponents('syntax', Syntax);
     KFEditor.registerComponents('control', Controller);
