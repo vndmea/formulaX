@@ -249,7 +249,7 @@ export async function ensureKityRuntime(options: Pick<KityEditorOptions, 'assetB
     await loadScript(`${assetBase}/dev-lib/kitygraph.all.js`);
     await loadScript(`${assetBase}/dev-lib/kity-formula.all.js`);
     hydrateLegacyKf(runtimeWindow);
-    await loadScript(`${assetBase}/dev-lib/kity-formula-parser.all.min.js`);
+    await loadScript(`${assetBase}/dev-lib/kity-formula-parser.all.js`);
     installLegacyRuntime(runtimeWindow);
 
     const { installKityEditorStart } = await import('./boot/start');
