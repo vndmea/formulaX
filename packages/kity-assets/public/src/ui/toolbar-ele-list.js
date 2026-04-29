@@ -31,7 +31,7 @@ var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
         OTHER_POSITION = require( "ui/other-position.data" ),
         kity = require( "kity" );
 
-    var ASSET_BASE = "kity/assets/images/toolbar/";
+var ASSET_BASE = "assets/images/toolbar/";
 
     var config = [ {
         type: UI_ELE_TYPE.DRAPDOWN_BOX,

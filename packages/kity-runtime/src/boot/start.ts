@@ -1,11 +1,11 @@
-import KFEditor from '../../../kity-assets/public/src/editor/editor.js';
-import Factory from '../../../kity-assets/public/src/editor/factory.js';
+import KFEditor from '../legacy/editor';
+import Factory from '../legacy/factory';
 import UIComponent from '../../../kity-assets/public/src/ui/ui.js';
 import Parser from '../../../kity-assets/public/src/parse/parser.js';
 import Render from '../../../kity-assets/public/src/render/render.js';
 import Position from '../../../kity-assets/public/src/position/position.js';
 import Syntax from '../../../kity-assets/public/src/syntax/syntax.js';
-import Controller from '../../../kity-assets/public/src/control/controller.js';
+import Controller from '../legacy/controller';
 import Printer from '../../../kity-assets/public/src/print/printer.js';
 
 type RuntimeWindow = Window &
@@ -17,7 +17,9 @@ type RuntimeWindow = Window &
 
 let installed = false;
 
-export function installKityEditorStart(target: RuntimeWindow = window as RuntimeWindow) {
+export function installKityEditorStart(target: Window & typeof globalThis = window) {
+  const runtimeTarget = target as RuntimeWindow;
+
   if (!installed) {
     KFEditor.registerComponents('ui', UIComponent);
     KFEditor.registerComponents('parser', Parser);
@@ -29,8 +31,8 @@ export function installKityEditorStart(target: RuntimeWindow = window as Runtime
     installed = true;
   }
 
-  target.kf = target.kf ?? {};
-  target.kf.EditorFactory = Factory;
+  runtimeTarget.kf = runtimeTarget.kf ?? {};
+  runtimeTarget.kf.EditorFactory = Factory;
 
   return {
     KFEditor,
