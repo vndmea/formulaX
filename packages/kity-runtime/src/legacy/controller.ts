@@ -1,4 +1,4 @@
-import ListenerComponent from '../../../kity-assets/public/src/control/listener.js';
+import ListenerComponent from './listener';
 import { getLegacyKity } from '../vendor/runtime-interop';
 import type { LegacyEditorInstance } from './editor';
 
