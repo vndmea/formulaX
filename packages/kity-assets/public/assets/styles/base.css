@@ -9,7 +9,7 @@
     top: 0;
     left: 0;
 
-    overflow: hidden;
+    overflow: visible;
     z-index: 2;
     background-color: #f6f5ee;
 }
@@ -25,6 +25,7 @@
     flex: 1 1 auto;
     min-height: 100px;
     height: 100px;
+    overflow: hidden;
     background-color: white;
     /*background-color: white;*/
     /*background-size: 21px 21px;*/

@@ -28,6 +28,21 @@ function require(id) {
   }
 }
 
+function getViewportBox ( doc ) {
+
+    var view = doc.documentElement;
+
+    return {
+        top: 0,
+        left: 0,
+        right: view.clientWidth,
+        bottom: view.clientHeight,
+        width: view.clientWidth,
+        height: view.clientHeight
+    };
+
+}
+
 var kity = require( "kity" ),
 
         PREFIX = "kf-editor-ui-",
@@ -90,7 +105,7 @@ var kity = require( "kity" ),
 
             updateSize: function () {
 
-                var containerBox = $$.getRectBox( this.toolbar.getContainer() ),
+                var containerBox = getViewportBox( this.doc ),
                     diff = 30,
                     curBox = $$.getRectBox( this.element );
 
@@ -114,7 +129,7 @@ var kity = require( "kity" ),
                         return;
                     }
 
-                    panelRect = getRectBox( panel );
+                    panelRect = $$.getRectBox( panel );
 
                     panel.style.height = containerBox.bottom - panelRect.top - diff + "px";
 
