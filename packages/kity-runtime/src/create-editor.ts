@@ -15,7 +15,7 @@ import { legacyUiDef } from './vendor/legacy-ui-def';
 import { createLegacyUiUtils } from './vendor/legacy-ui-utils';
 import { legacyBaseUtils } from './vendor/legacy-utils';
 
-const DEFAULT_ASSET_BASE = '/kity';
+const DEFAULT_ASSET_BASE = '';
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
 const DEFAULT_EDITOR_HEIGHT = 'auto';
 
