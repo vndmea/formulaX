@@ -1,10 +1,10 @@
 import KFEditor from '../legacy/editor';
 import Factory from '../legacy/factory';
 import UIComponent from '../../../kity-assets/public/src/ui/ui.js';
-import Parser from '../../../kity-assets/public/src/parse/parser.js';
+import Parser from '../legacy/parser';
 import Render from '../../../kity-assets/public/src/render/render.js';
 import Position from '../legacy/position';
-import Syntax from '../../../kity-assets/public/src/syntax/syntax.js';
+import Syntax from '../legacy/syntax';
 import Controller from '../legacy/controller';
 import Printer from '../legacy/printer';
 
