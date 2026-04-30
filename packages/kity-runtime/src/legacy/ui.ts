@@ -4,8 +4,8 @@ import { legacyBaseUtils } from '../vendor/legacy-utils';
 import { getLegacyKity } from '../vendor/runtime-interop';
 import type { LegacyEditorInstance } from './editor';
 import ScrollZoom from './scroll-zoom';
-import Scrollbar from '../../../kity-assets/public/src/ui/ui-impl/scrollbar/scrollbar.js';
-import Toolbar from '../../../kity-assets/public/src/ui/toolbar/toolbar.js';
+import Toolbar from './toolbar';
+import Scrollbar from './scrollbar';
 import ELEMENT_LIST from '../../../kity-assets/public/src/ui/toolbar-ele-list.js';
 
 type ViewState = (typeof legacyUiDef.VIEW_STATE)[keyof typeof legacyUiDef.VIEW_STATE];
