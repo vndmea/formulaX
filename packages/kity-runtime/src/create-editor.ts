@@ -10,6 +10,7 @@ import { legacyInputFilter } from './vendor/legacy-input-filter';
 import { legacyItemType } from './vendor/legacy-item-type';
 import { legacyKfExtDef } from './vendor/legacy-kf-ext-def';
 import { legacyKfEvent } from './vendor/legacy-kfevent';
+import { installLegacyParserRuntime } from './vendor/kity-formula-parser';
 import { legacySysconf } from './vendor/legacy-sysconf';
 import { legacyUiDef } from './vendor/legacy-ui-def';
 import { createLegacyUiUtils } from './vendor/legacy-ui-utils';
@@ -249,7 +250,7 @@ export async function ensureKityRuntime(options: Pick<KityEditorOptions, 'assetB
     await loadScript(`${assetBase}/dev-lib/kitygraph.all.js`);
     await loadScript(`${assetBase}/dev-lib/kity-formula.all.js`);
     hydrateLegacyKf(runtimeWindow);
-    await loadScript(`${assetBase}/dev-lib/kity-formula-parser.all.js`);
+    installLegacyParserRuntime(runtimeWindow);
     installLegacyRuntime(runtimeWindow);
 
     const { installKityEditorStart } = await import('./boot/start');
