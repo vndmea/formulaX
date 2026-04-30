@@ -1,4 +1,4 @@
-import { legacyUiDef } from '../vendor/legacy-ui-def';
+﻿import { legacyUiDef } from '../vendor/legacy-ui-def';
 import { createLegacyUiUtils } from '../vendor/legacy-ui-utils';
 import { legacyBaseUtils } from '../vendor/legacy-utils';
 import { getLegacyKity } from '../vendor/runtime-interop';
@@ -6,7 +6,7 @@ import type { LegacyEditorInstance } from './editor';
 import ScrollZoom from './scroll-zoom';
 import Toolbar from './toolbar';
 import Scrollbar from './scrollbar';
-import ELEMENT_LIST from '../../../kity-assets/public/src/ui/toolbar-ele-list.js';
+import ELEMENT_LIST from './toolbar-config';
 
 type ViewState = (typeof legacyUiDef.VIEW_STATE)[keyof typeof legacyUiDef.VIEW_STATE];
 
@@ -220,3 +220,4 @@ function createScrollbarContainer(doc: Document) {
 }
 
 export default UIComponent as new (kfEditor: LegacyEditorInstance, options?: Record<string, any>) => UIComponentInstance;
+

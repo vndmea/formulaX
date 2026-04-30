@@ -1,39 +1,28 @@
-/*!
- * toolbar元素列表定义
- */
+// @ts-nocheck
+import { legacyBoxType } from '../vendor/legacy-box-type';
+import { legacyEleType } from '../vendor/legacy-ele-type';
+import { legacyCharPosition } from '../vendor/char-position';
+import { legacyOtherPosition } from '../vendor/other-position';
 
-import __dep_0 from './ui-impl/def/ele-type.js';
-import __dep_1 from './ui-impl/def/box-type.js';
-import __dep_2 from './char-position.data.js';
-import __dep_3 from './other-position.data.js';
-import __dep_4 from '../kity.js';
+type ToolbarConfig = Record<string, any>;
 
-function require(id) {
-  switch (id) {
-    case 'ui/ui-impl/def/ele-type':
-      return __dep_0;
-    case 'ui/ui-impl/def/box-type':
-      return __dep_1;
-    case 'ui/char-position.data':
-      return __dep_2;
-    case 'ui/other-position.data':
-      return __dep_3;
-    case 'kity':
-      return __dep_4;
-    default:
-      throw new Error('Unknown legacy dependency: ' + id);
+const UI_ELE_TYPE = legacyEleType;
+const BOX_TYPE = legacyBoxType;
+const CHAR_POSITION = legacyCharPosition;
+const OTHER_POSITION = legacyOtherPosition;
+
+function each(list: any, callback: (item: any, index: any) => void) {
+  if (Array.isArray(list)) {
+    list.forEach((item, index) => callback(item, index));
+    return;
   }
+
+  Object.keys(list).forEach((key) => callback(list[key], key));
 }
 
-var UI_ELE_TYPE = require( "ui/ui-impl/def/ele-type" ),
-        BOX_TYPE = require( "ui/ui-impl/def/box-type" ),
-        CHAR_POSITION = require( "ui/char-position.data" ),
-        OTHER_POSITION = require( "ui/other-position.data" ),
-        kity = require( "kity" );
+const ASSET_BASE = "assets/images/toolbar/";
 
-var ASSET_BASE = "assets/images/toolbar/";
-
-    var config = [ {
+    const config: ToolbarConfig[] = [ {
         type: UI_ELE_TYPE.DRAPDOWN_BOX,
         options: {
             button: {
@@ -445,7 +434,7 @@ var ASSET_BASE = "assets/images/toolbar/";
             otherImageSrc = ASSET_BASE + "other.png",
             currentConf = [];
 
-        kity.Utils.each( config, function ( conf ) {
+        each( config, function ( conf ) {
 
             if ( conf.type === UI_ELE_TYPE.DELIMITER ) {
                 return;
@@ -457,7 +446,7 @@ var ASSET_BASE = "assets/images/toolbar/";
 
         } );
 
-        kity.Utils.each( tmp, function ( conf ) {
+        each( tmp, function ( conf ) {
 
             conf = conf.items;
 
@@ -468,7 +457,7 @@ var ASSET_BASE = "assets/images/toolbar/";
         } );
 
         // 添加定位信息
-        kity.Utils.each( currentConf, function ( conf ) {
+        each( currentConf, function ( conf ) {
 
             var data = OTHER_POSITION[ conf.item.val ];
 
@@ -647,25 +636,25 @@ var ASSET_BASE = "assets/images/toolbar/";
             } ],
             configList = config[ 2 ].options.box.group[ 5 ].items;
 
-        kity.Utils.each( list[ 0 ].values, function ( item, index ) {
+        each( list[ 0 ].values, function ( item, index ) {
 
             list[ 0 ].values[ index ] = "mathcal{" + item + "}";
 
         } );
 
-        kity.Utils.each( list[ 1 ].values, function ( item, index ) {
+        each( list[ 1 ].values, function ( item, index ) {
 
             list[ 1 ].values[ index ] = "mathfrak{" + item + "}";
 
         } );
 
-        kity.Utils.each( list[ 2 ].values, function ( item, index ) {
+        each( list[ 2 ].values, function ( item, index ) {
 
             list[ 2 ].values[ index ] = "mathbb{" + item + "}";
 
         } );
 
-        kity.Utils.each( list[ 3 ].values, function ( item, index ) {
+        each( list[ 3 ].values, function ( item, index ) {
 
             list[ 3 ].values[ index ] = "mathrm{" + item + "}";
 
@@ -698,7 +687,7 @@ var ASSET_BASE = "assets/images/toolbar/";
 
         var result = [];
 
-        kity.Utils.each( keySet, function ( key ) {
+        each( keySet, function ( key ) {
 
             if ( key.length > 1 ) {
                 key = "\\" + key;
