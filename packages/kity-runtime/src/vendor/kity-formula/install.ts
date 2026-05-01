@@ -11,6 +11,22 @@ type KityFormulaRuntimeWindow = Window &
   };
 
 let installed = false;
+import { createExpressionClass } from './expression';
+import { createEmptyExpressionClass } from './empty-expression';
+import { createCompoundExpressionClass } from './compound-expression';
+import { createBinaryExpressionClass } from './binary-expression';
+import { createCombinationExpressionClass } from './combination-expression';
+import { createScriptExpressionClass } from './script-expression';
+import { createSubscriptExpressionClass } from './subscript-expression';
+import { createSuperscriptExpressionClass } from './superscript-expression';
+import { createFractionExpressionClass } from './fraction-expression';
+import { createFunctionExpressionClass } from './function-expression';
+import { createIntegrationExpressionClass } from './integration-expression';
+import { createRadicalExpressionClass } from './radical-expression';
+import { createSummationExpressionClass } from './summation-expression';
+import { createOperatorClass } from './operator';
+import { createSignGroupClass } from './signgroup';
+import { createTextExpressionClass } from './text-expression';
 
 export function installLegacyKityFormulaRuntime(target: KityFormulaRuntimeWindow = window) {
   if (installed && target.kf?.ResourceManager && target.__kityFormulaRequire__) {
@@ -3580,55 +3596,15 @@ define("def/script-type", [], function() {
 });
 define("expression/compound-exp/binary-exp/subscript", [ "kity", "expression/compound-exp/script", "operator/script", "expression/compound" ], function(require, exports, modules) {
     var kity = require("kity"), ScriptExpression = require("expression/compound-exp/script");
-    return kity.createClass("SubscriptExpression", {
-        base: require("expression/compound-exp/script"),
-        constructor: function(operand, subscript) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase(operand, null, subscript);
-            }
-            ScriptExpression.call(this, operand, null, subscript);
-            this.setFlag("Subscript");
-        }
-    });
+    return createSubscriptExpressionClass(kity, ScriptExpression);
 });
 define("expression/compound-exp/binary-exp/superscript", [ "kity", "expression/compound-exp/script", "operator/script", "expression/compound" ], function(require, exports, modules) {
     var kity = require("kity"), ScriptExpression = require("expression/compound-exp/script");
-    return kity.createClass("SuperscriptExpression", {
-        base: require("expression/compound-exp/script"),
-        constructor: function(operand, superscript) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase(operand, superscript, null);
-            }
-            ScriptExpression.call(this, operand, superscript, null);
-            this.setFlag("Superscript");
-        }
-    });
+    return createSuperscriptExpressionClass(kity, ScriptExpression);
 });
 define("expression/compound-exp/binary", [ "kity", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), CompoundExpression = require("expression/compound");
-    return kity.createClass("BinaryExpression", {
-        base: require("expression/compound"),
-        constructor: function(firstOperand, lastOperand) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFirstOperand(firstOperand);
-            this.setLastOperand(lastOperand);
-        },
-        setFirstOperand: function(operand) {
-            return this.setOperand(operand, 0);
-        },
-        getFirstOperand: function() {
-            return this.getOperand(0);
-        },
-        setLastOperand: function(operand) {
-            return this.setOperand(operand, 1);
-        },
-        getLastOperand: function() {
-            return this.getOperand(1);
-        }
-    });
+    return createBinaryExpressionClass(kity, CompoundExpression);
 });
 define("expression/compound-exp/brackets", [ "kity", "operator/brackets", "char/text", "font/manager", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), BracketsOperator = require("operator/brackets"), CompoundExpression = require("expression/compound");
@@ -3659,461 +3635,47 @@ define("expression/compound-exp/brackets", [ "kity", "operator/brackets", "char/
 });
 define("expression/compound-exp/combination", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "operator/combination", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), FONT_CONF = require("sysconf").font, CombinationOperator = require("operator/combination"), CompoundExpression = require("expression/compound");
-    return kity.createClass("CombinationExpression", {
-        base: require("expression/compound"),
-        constructor: function(abc) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFlag("Combination");
-            this.setOperator(new CombinationOperator());
-            kity.Utils.each(arguments, function(operand, index) {
-                this.setOperand(operand, index);
-            }, this);
-        },
-        getRenderBox: function(refer) {
-            var rectBox = CompoundExpression.prototype.getRenderBox.call(this, refer);
-            if (this.getOperands().length === 0) {
-                rectBox.height = FONT_CONF.spaceHeight;
-            }
-            return rectBox;
-        },
-        getBaseline: function(refer) {
-            var maxBaseline = 0, operands = this.getOperands();
-            if (operands.length === 0) {
-                return CompoundExpression.prototype.getBaseline.call(this, refer);
-            }
-            kity.Utils.each(operands, function(operand) {
-                maxBaseline = Math.max(operand.getBaseline(refer), maxBaseline);
-            });
-            return maxBaseline;
-        },
-        getMeanline: function(refer) {
-            var minMeanline = 1e7, operands = this.getOperands();
-            if (operands.length === 0) {
-                return CompoundExpression.prototype.getMeanline.call(this, refer);
-            }
-            kity.Utils.each(operands, function(operand) {
-                minMeanline = Math.min(operand.getMeanline(refer), minMeanline);
-            });
-            return minMeanline;
-        }
-    });
+    return createCombinationExpressionClass(kity, FONT_CONF, CompoundExpression, CombinationOperator);
 });
 define("expression/compound-exp/fraction", [ "kity", "operator/fraction", "sysconf", "operator/operator", "expression/compound-exp/binary", "expression/compound" ], function(require, exports, modules) {
     var kity = require("kity"), FractionOperator = require("operator/fraction"), BinaryExpression = require("expression/compound-exp/binary");
-    return kity.createClass("FractionExpression", {
-        base: require("expression/compound-exp/binary"),
-        constructor: function(upOperand, downOperand) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase(upOperand, downOperand);
-            }
-            BinaryExpression.call(this, upOperand, downOperand);
-            this.setFlag("Fraction");
-            this.setOperator(new FractionOperator());
-        },
-        getBaseline: function(refer) {
-            var downOperand = this.getOperand(1), rectBox = downOperand.getRenderBox(refer);
-            return rectBox.y + downOperand.getBaselineProportion() * rectBox.height;
-        },
-        getMeanline: function(refer) {
-            var upOperand = this.getOperand(0), rectBox = upOperand.getRenderBox(refer);
-            return upOperand.getMeanlineProportion() * rectBox.height;
-        }
-    });
+    return createFractionExpressionClass(kity, BinaryExpression, FractionOperator);
 });
 define("expression/compound-exp/func", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "operator/func", "char/text", "operator/common/script-controller", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), FUNC_CONF = require("sysconf").func, FunctionOperator = require("operator/func"), CompoundExpression = require("expression/compound");
-    return kity.createClass("FunctionExpression", {
-        base: require("expression/compound"),
-        constructor: function(funcName, expr, sup, sub) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFlag("Func");
-            this.funcName = funcName;
-            this.setOperator(new FunctionOperator(funcName));
-            this.setExpr(expr);
-            this.setSuperscript(sup);
-            this.setSubscript(sub);
-        },
-        isSideScript: function() {
-            return !FUNC_CONF["ud-script"][this.funcName];
-        },
-        setExpr: function(expr) {
-            return this.setOperand(expr, 0);
-        },
-        setSuperscript: function(sub) {
-            return this.setOperand(sub, 1);
-        },
-        setSubscript: function(sub) {
-            return this.setOperand(sub, 2);
-        }
-    });
+    return createFunctionExpressionClass(kity, FUNC_CONF, CompoundExpression, FunctionOperator);
 });
 define("expression/compound-exp/integration", [ "kity", "operator/integration", "operator/common/script-controller", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
-    var kity = require("kity"), IntegrationOperator = require("operator/integration"), CompoundExpression = require("expression/compound"), IntegrationExpression = kity.createClass("IntegrationExpression", {
-        base: require("expression/compound"),
-        constructor: function(integrand, superscript, subscript) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFlag("Integration");
-            this.setOperator(new IntegrationOperator());
-            this.setIntegrand(integrand);
-            this.setSuperscript(superscript);
-            this.setSubscript(subscript);
-        },
-        setType: function(type) {
-            this.getOperator().setType(type);
-            return this;
-        },
-        resetType: function() {
-            this.getOperator().resetType();
-            return this;
-        },
-        setIntegrand: function(integrand) {
-            this.setOperand(integrand, 0);
-        },
-        setSuperscript: function(sup) {
-            this.setOperand(sup, 1);
-        },
-        setSubscript: function(sub) {
-            this.setOperand(sub, 2);
-        }
-    });
-    return IntegrationExpression;
+    var kity = require("kity"), IntegrationOperator = require("operator/integration"), CompoundExpression = require("expression/compound");
+    return createIntegrationExpressionClass(kity, CompoundExpression, IntegrationOperator);
 });
 define("expression/compound-exp/radical", [ "kity", "operator/radical", "operator/operator", "expression/compound-exp/binary", "expression/compound" ], function(require, exports, modules) {
     var kity = require("kity"), RadicalOperator = require("operator/radical"), BinaryExpression = require("expression/compound-exp/binary");
-    return kity.createClass("RadicalExpression", {
-        base: require("expression/compound-exp/binary"),
-        constructor: function(radicand, exponent) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase(radicand, exponent);
-            }
-            BinaryExpression.call(this, radicand, exponent);
-            this.setFlag("Radicand");
-            this.setOperator(new RadicalOperator());
-        },
-        setRadicand: function(operand) {
-            return this.setFirstOperand(operand);
-        },
-        getRadicand: function() {
-            return this.getFirstOperand();
-        },
-        setExponent: function(operand) {
-            return this.setLastOperand(operand);
-        },
-        getExponent: function() {
-            return this.getLastOperand();
-        }
-    });
+    return createRadicalExpressionClass(kity, BinaryExpression, RadicalOperator);
 });
 define("expression/compound-exp/script", [ "kity", "operator/script", "operator/common/script-controller", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), ScriptOperator = require("operator/script"), CompoundExpression = require("expression/compound");
-    return kity.createClass("ScriptExpression", {
-        base: require("expression/compound"),
-        constructor: function(operand, superscript, subscript) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFlag("Script");
-            this.setOperator(new ScriptOperator());
-            this.setOpd(operand);
-            this.setSuperscript(superscript);
-            this.setSubscript(subscript);
-        },
-        setOpd: function(operand) {
-            this.setOperand(operand, 0);
-        },
-        setSuperscript: function(sup) {
-            this.setOperand(sup, 1);
-        },
-        setSubscript: function(sub) {
-            this.setOperand(sub, 2);
-        }
-    });
+    return createScriptExpressionClass(kity, CompoundExpression, ScriptOperator);
 });
 define("expression/compound-exp/summation", [ "kity", "operator/summation", "operator/common/script-controller", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), SummationOperator = require("operator/summation"), CompoundExpression = require("expression/compound");
-    return kity.createClass("SummationExpression", {
-        base: require("expression/compound"),
-        constructor: function(expr, superscript, subscript) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFlag("Summation");
-            this.setOperator(new SummationOperator());
-            this.setExpr(expr);
-            this.setSuperscript(superscript);
-            this.setSubscript(subscript);
-        },
-        setExpr: function(expr) {
-            this.setOperand(expr, 0);
-        },
-        setSuperscript: function(sup) {
-            this.setOperand(sup, 1);
-        },
-        setSubscript: function(sub) {
-            this.setOperand(sub, 2);
-        }
-    });
+    return createSummationExpressionClass(kity, CompoundExpression, SummationOperator);
 });
 define("expression/compound", [ "kity", "def/gtype", "expression/expression", "sysconf", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), GTYPE = require("def/gtype"), Expression = require("expression/expression");
-    return kity.createClass("CompoundExpression", {
-        base: require("expression/expression"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            Expression.call(this);
-            this.type = GTYPE.COMPOUND_EXP;
-            this.operands = [];
-            this.operator = null;
-            this.operatorBox = new kity.Group();
-            this.operatorBox.setAttr("data-type", "kf-editor-exp-op-box");
-            this.operandBox = new kity.Group();
-            this.operandBox.setAttr("data-type", "kf-editor-exp-operand-box");
-            this.setChildren(0, this.operatorBox);
-            this.setChildren(1, this.operandBox);
-        },
-        setOperator: function(operator) {
-            if (operator === undefined) {
-                return this;
-            }
-            if (this.operator) {
-                this.operator.remove();
-            }
-            this.operatorBox.addShape(operator);
-            this.operator = operator;
-            this.operator.setParentExpression(this);
-            operator.expression = this;
-            return this;
-        },
-        getOperator: function() {
-            return this.operator;
-        },
-        setOperand: function(operand, index, isWrap) {
-            if (isWrap === false) {
-                this.operands[index] = operand;
-                return this;
-            }
-            operand = Expression.wrap(operand);
-            if (this.operands[index]) {
-                this.operands[index].remove();
-            }
-            this.operands[index] = operand;
-            this.operandBox.addShape(operand);
-            return this;
-        },
-        getOperand: function(index) {
-            return this.operands[index];
-        },
-        getOperands: function() {
-            return this.operands;
-        },
-        addedCall: function() {
-            this.operator.applyOperand.apply(this.operator, this.operands);
-            return this;
-        }
-    });
+    return createCompoundExpressionClass(kity, GTYPE, Expression);
 });
 define("expression/empty", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "expression/expression", "def/gtype", "signgroup" ], function(require, exports, module) {
-    var kity = require("kity"), FONT_CONF = require("sysconf").font, Expression = require("expression/expression"), EmptyExpression = kity.createClass("EmptyExpression", {
-        base: Expression,
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            Expression.call(this);
-            this.setFlag("Empty");
-        },
-        getRenderBox: function() {
-            return {
-                width: 0,
-                height: FONT_CONF.spaceHeight,
-                x: 0,
-                y: 0
-            };
-        }
-    });
-    EmptyExpression.isEmpty = function(target) {
-        return target instanceof EmptyExpression;
-    };
-    Expression.registerWrap("empty", function(operand) {
-        if (operand === null || operand === undefined) {
-            return new EmptyExpression();
-        }
-    });
-    return EmptyExpression;
+    var kity = require("kity"), FONT_CONF = require("sysconf").font, Expression = require("expression/expression");
+    return createEmptyExpressionClass(kity, FONT_CONF, Expression);
 });
 define("expression/expression", [ "kity", "def/gtype", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "signgroup" ], function(require, exports, module) {
-    var kity = require("kity"), GTYPE = require("def/gtype"), FONT_CONF = require("sysconf").font, SignGroup = require("signgroup"), WRAP_FN = [], WRAP_FN_INDEX = {}, Expression = kity.createClass("Expression", {
-        base: require("signgroup"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            SignGroup.call(this);
-            this.type = GTYPE.EXP;
-            this._offset = {
-                top: 0,
-                bottom: 0
-            };
-            this.children = [];
-            this.box.fill("transparent").setAttr("data-type", "kf-editor-exp-box");
-            this.box.setAttr("data-type", "kf-editor-exp-bg-box");
-            this.expContent = new kity.Group();
-            this.expContent.setAttr("data-type", "kf-editor-exp-content-box");
-            this.addShape(this.expContent);
-        },
-        getChildren: function() {
-            return this.children;
-        },
-        getChild: function(index) {
-            return this.children[index] || null;
-        },
-        getTopOffset: function() {
-            return this._offset.top;
-        },
-        getBottomOffset: function() {
-            return this._offset.bottom;
-        },
-        getOffset: function() {
-            return this._offset;
-        },
-        setTopOffset: function(val) {
-            this._offset.top = val;
-        },
-        setBottomOffset: function(val) {
-            this._offset.bottom = val;
-        },
-        setOffset: function(top, bottom) {
-            this._offset.top = top;
-            this._offset.bottom = bottom;
-        },
-        setFlag: function(flag) {
-            this.setAttr("data-flag", flag || "Expression");
-        },
-        setChildren: function(index, exp) {
-            if (this.children[index]) {
-                this.children[index].remove();
-            }
-            this.children[index] = exp;
-            this.expContent.addShape(exp);
-        },
-        getBaselineProportion: function() {
-            return FONT_CONF.baselinePosition;
-        },
-        getMeanlineProportion: function() {
-            return FONT_CONF.meanlinePosition;
-        },
-        getBaseline: function(refer) {
-            return this.getRenderBox(refer).height * FONT_CONF.baselinePosition - 3;
-        },
-        getMeanline: function(refer) {
-            return this.getRenderBox(refer).height * FONT_CONF.meanlinePosition - 1;
-        },
-        getAscenderline: function() {
-            return this.getFixRenderBox().height * FONT_CONF.ascenderPosition;
-        },
-        getDescenderline: function() {
-            return this.getFixRenderBox().height * FONT_CONF.descenderPosition;
-        },
-        translateElement: function(x, y) {
-            this.expContent.translate(x, y);
-        },
-        expand: function(width, height) {
-            var renderBox = this.getFixRenderBox();
-            this.setBoxSize(renderBox.width + width, renderBox.height + height);
-        },
-        getBaseWidth: function() {
-            return this.getWidth();
-        },
-        getBaseHeight: function() {
-            return this.getHeight();
-        },
-        updateBoxSize: function() {
-            var renderBox = this.expContent.getFixRenderBox();
-            this.setBoxSize(renderBox.width, renderBox.height);
-        },
-        getBox: function() {
-            return this.box;
-        }
-    });
-    kity.Utils.extend(Expression, {
-        registerWrap: function(name, fn) {
-            WRAP_FN_INDEX[name] = WRAP_FN.length;
-            WRAP_FN.push(fn);
-        },
-        revokeWrap: function(name) {
-            var fn = null;
-            if (name in WRAP_FN_INDEX) {
-                fn = WRAP_FN[WRAP_FN_INDEX[name]];
-                WRAP_FN[WRAP_FN_INDEX[name]] = null;
-                delete WRAP_FN_INDEX[name];
-            }
-            return fn;
-        },
-        wrap: function(operand) {
-            var result = undefined;
-            kity.Utils.each(WRAP_FN, function(fn) {
-                if (!fn) {
-                    return;
-                }
-                result = fn(operand);
-                if (result) {
-                    return false;
-                }
-            });
-            return result;
-        }
-    });
-    return Expression;
+    var kity = require("kity"), GTYPE = require("def/gtype"), FONT_CONF = require("sysconf").font, SignGroup = require("signgroup");
+    return createExpressionClass(kity, GTYPE, FONT_CONF, SignGroup);
 });
 define("expression/text", [ "char/text", "kity", "sysconf", "font/manager", "char/text-factory", "signgroup", "char/conf", "expression/expression", "def/gtype" ], function(require, exports, module) {
-    var Text = require("char/text"), kity = require("kity"), FONT_CONF = require("char/conf"), Expression = require("expression/expression"), TextExpression = kity.createClass("TextExpression", {
-        base: require("expression/expression"),
-        constructor: function(content, fontFamily) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            Expression.call(this);
-            this.fontFamily = fontFamily || FONT_CONF.defaultFont;
-            this.setFlag("Text");
-            this.content = content + "";
-            this.textContent = new Text(this.content, this.fontFamily);
-            this.setChildren(0, this.textContent);
-            this.setChildren(1, new kity.Rect(0, 0, 0, 0).fill("transparent"));
-        },
-        setFamily: function(fontFamily) {
-            this.textContent.setFamily(fontFamily);
-        },
-        setFontSize: function(fontSize) {
-            this.textContent.setFontSize(fontSize);
-        },
-        addedCall: function() {
-            var box = this.textContent.getFixRenderBox();
-            this.getChild(1).setSize(box.width, box.height);
-            this.updateBoxSize();
-            return this;
-        }
-    });
-    Expression.registerWrap("text", function(operand) {
-        var operandType = typeof operand;
-        if (operandType === "number" || operandType === "string") {
-            operand = new TextExpression(operand);
-        }
-        return operand;
-    });
-    return TextExpression;
+    var Text = require("char/text"), kity = require("kity"), FONT_CONF = require("char/conf"), Expression = require("expression/expression");
+    return createTextExpressionClass(kity, FONT_CONF, Expression, Text);
 });
 define("font/checker-tpl", [], function(require) {
     return [ '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">', '<text id="abcd" font-family="KF AMS MAIN" font-size="50" x="0" y="0">x</text>', "</svg>" ];
@@ -7745,38 +7307,7 @@ define("operator/integration", [ "kity", "operator/common/script-controller", "e
 });
 define("operator/operator", [ "kity", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), GTYPE = require("def/gtype"), SignGroup = require("signgroup");
-    return kity.createClass("Operator", {
-        base: require("signgroup"),
-        constructor: function(operatorName) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            SignGroup.call(this);
-            this.type = GTYPE.OP;
-            this.parentExpression = null;
-            this.operatorName = operatorName;
-            this.operatorShape = new kity.Group();
-            this.addShape(this.operatorShape);
-        },
-        applyOperand: function() {
-            throw new Error("applyOperand is abstract");
-        },
-        setParentExpression: function(exp) {
-            this.parentExpression = exp;
-        },
-        getParentExpression: function() {
-            return this.parentExpression;
-        },
-        clearParentExpression: function() {
-            this.parentExpression = null;
-        },
-        addOperatorShape: function(shpae) {
-            return this.operatorShape.addShape(shpae);
-        },
-        getOperatorShape: function() {
-            return this.operatorShape;
-        }
-    });
+    return createOperatorClass(kity, GTYPE, SignGroup);
 });
 define("operator/radical", [ "kity", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), Operator = require("operator/operator"), SHAPE_DATA_WIDTH = 1, radians = 2 * Math.PI / 360, sin15 = Math.sin(15 * radians), cos15 = Math.cos(15 * radians), tan15 = Math.tan(15 * radians);
@@ -7946,44 +7477,7 @@ define("resource-manager", [ "kity", "sysconf", "font/map/kf-ams-main", "font/ma
 });
 define("signgroup", [ "kity", "def/gtype" ], function(require, exports, module) {
     var kity = require("kity"), GTYPE = require("def/gtype");
-    return kity.createClass("SignGroup", {
-        base: kity.Group,
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            kity.Group.call(this);
-            this.box = new kity.Rect(0, 0, 0, 0);
-            this.type = GTYPE.UNKNOWN;
-            this.addShape(this.box);
-            this.zoom = 1;
-        },
-        setZoom: function(zoom) {
-            this.zoom = zoom;
-        },
-        getZoom: function() {
-            return this.zoom;
-        },
-        setBoxSize: function(w, h) {
-            return this.box.setSize(w, h);
-        },
-        setBoxWidth: function(w) {
-            return this.box.setWidth(w);
-        },
-        setBoxHeight: function(h) {
-            return this.box.setHeight(h);
-        },
-        getType: function() {
-            return this.type;
-        },
-        getBaseHeight: function() {
-            return this.getHeight();
-        },
-        getBaseWidth: function() {
-            return this.getWidth();
-        },
-        addedCall: function() {}
-    });
+    return createSignGroupClass(kity, GTYPE);
 });
 define("sysconf", [ "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman" ], function(require) {
     return {
