@@ -24,6 +24,15 @@ import { createFunctionExpressionClass } from './function-expression';
 import { createIntegrationExpressionClass } from './integration-expression';
 import { createRadicalExpressionClass } from './radical-expression';
 import { createSummationExpressionClass } from './summation-expression';
+import { createScriptControllerClass } from './script-controller';
+import { createBracketsOperatorClass } from './brackets-operator';
+import { createCombinationOperatorClass } from './combination-operator';
+import { createFractionOperatorClass } from './fraction-operator';
+import { createFunctionOperatorClass } from './function-operator';
+import { createIntegrationOperatorClass } from './integration-operator';
+import { createRadicalOperatorClass } from './radical-operator';
+import { createScriptOperatorClass } from './script-operator';
+import { createSummationOperatorClass } from './summation-operator';
 import { createOperatorClass } from './operator';
 import { createSignGroupClass } from './signgroup';
 import { createTextExpressionClass } from './text-expression';
@@ -6966,487 +6975,44 @@ define("kity", [], function(require, exports, module) {
     return window.kity;
 });
 define("operator/brackets", [ "kity", "char/text", "sysconf", "font/manager", "char/text-factory", "signgroup", "operator/operator", "def/gtype" ], function(require, exports, modules) {
-    var kity = require("kity"), Text = require("char/text"), FontManager = require("font/manager"), Operator = require("operator/operator");
-    return kity.createClass("BracketsOperator", {
-        base: require("operator/operator"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Brackets");
-            }
-            Operator.call(this, "Brackets");
-        },
-        applyOperand: function(exp) {
-            generate.call(this, exp);
-        }
-    });
-    function generate(exp) {
-        var left = this.getParentExpression().getLeftSymbol(), right = this.getParentExpression().getRightSymbol(), fontSize = exp.getFixRenderBox().height, group = new kity.Group(), offset = 0, leftOp = new Text(left, "KF AMS MAIN").fill("black"), rightOp = new Text(right, "KF AMS MAIN").fill("black");
-        leftOp.setFontSize(fontSize);
-        rightOp.setFontSize(fontSize);
-        this.addOperatorShape(group.addShape(leftOp).addShape(rightOp));
-        offset += leftOp.getFixRenderBox().width;
-        exp.translate(offset, 0);
-        offset += exp.getFixRenderBox().width;
-        rightOp.translate(offset, 0);
-    }
+    var kity = require("kity"), Text = require("char/text"), Operator = require("operator/operator");
+    return createBracketsOperatorClass(kity, Operator, Text);
 });
 define("operator/combination", [ "kity", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), Operator = require("operator/operator");
-    return kity.createClass("CombinationOperator", {
-        base: require("operator/operator"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Combination");
-            }
-            Operator.call(this, "Combination");
-        },
-        applyOperand: function() {
-            var offsetX = 0, offsetY = 0, operands = arguments, maxHeight = 0, maxOffsetTop = 0, maxOffsetBottom = 0, cached = [], offsets = [];
-            kity.Utils.each(operands, function(operand) {
-                var box = operand.getFixRenderBox(), offsetY = operand.getOffset();
-                box.height -= offsetY.top + offsetY.bottom;
-                cached.push(box);
-                offsets.push(offsetY);
-                maxOffsetTop = Math.max(offsetY.top, maxOffsetTop);
-                maxOffsetBottom = Math.max(offsetY.bottom, maxOffsetBottom);
-                maxHeight = Math.max(box.height, maxHeight);
-            });
-            kity.Utils.each(operands, function(operand, index) {
-                var box = cached[index];
-                operand.translate(offsetX - box.x, (maxHeight - (box.y + box.height)) / 2 + maxOffsetBottom - offsets[index].bottom);
-                offsetX += box.width;
-            });
-            this.parentExpression.setOffset(maxOffsetTop, maxOffsetBottom);
-            this.parentExpression.updateBoxSize();
-        }
-    });
+    return createCombinationOperatorClass(kity, Operator);
 });
 define("operator/common/script-controller", [ "kity", "expression/empty", "sysconf", "expression/expression" ], function(require) {
-    var kity = require("kity"), EmptyExpression = require("expression/empty"), defaultOptions = {
-        subOffset: 0,
-        supOffset: 0,
-        zoom: .66
-    };
-    return kity.createClass("ScriptController", {
-        constructor: function(opObj, target, sup, sub, options) {
-            this.observer = opObj.getParentExpression();
-            this.target = target;
-            this.sup = sup;
-            this.sub = sub;
-            this.options = kity.Utils.extend({}, defaultOptions, options);
-        },
-        applyUpDown: function() {
-            var target = this.target, sup = this.sup, sub = this.sub, options = this.options;
-            sup.scale(options.zoom);
-            sub.scale(options.zoom);
-            var targetBox = target.getFixRenderBox();
-            if (EmptyExpression.isEmpty(sup) && EmptyExpression.isEmpty(sub)) {
-                return {
-                    width: targetBox.width,
-                    height: targetBox.height,
-                    top: 0,
-                    bottom: 0
-                };
-            } else {
-                if (!EmptyExpression.isEmpty(sup) && EmptyExpression.isEmpty(sub)) {
-                    return this.applyUp(target, sup);
-                } else if (EmptyExpression.isEmpty(sup) && !EmptyExpression.isEmpty(sub)) {
-                    return this.applyDown(target, sub);
-                } else {
-                    return this.applyUpDownScript(target, sup, sub);
-                }
-            }
-        },
-        applySide: function() {
-            var target = this.target, sup = this.sup, sub = this.sub;
-            if (EmptyExpression.isEmpty(sup) && EmptyExpression.isEmpty(sub)) {
-                var targetRectBox = target.getRenderBox(this.observer);
-                return {
-                    width: targetRectBox.width,
-                    height: targetRectBox.height,
-                    top: 0,
-                    bottom: 0
-                };
-            } else {
-                if (EmptyExpression.isEmpty(sup) && !EmptyExpression.isEmpty(sub)) {
-                    return this.applySideSub(target, sub);
-                } else if (!EmptyExpression.isEmpty(sup) && EmptyExpression.isEmpty(sub)) {
-                    return this.applySideSuper(target, sup);
-                } else {
-                    return this.applySideScript(target, sup, sub);
-                }
-            }
-        },
-        applySideSuper: function(target, sup) {
-            sup.scale(this.options.zoom);
-            var targetRectBox = target.getRenderBox(this.observer), supRectBox = sup.getRenderBox(this.observer), targetMeanline = target.getMeanline(this.observer), supBaseline = sup.getBaseline(this.observer), positionline = targetMeanline, diff = supBaseline - positionline, space = {
-                top: 0,
-                bottom: 0,
-                width: targetRectBox.width + supRectBox.width,
-                height: targetRectBox.height
-            };
-            sup.translate(targetRectBox.width, 0);
-            if (this.options.supOffset) {
-                sup.translate(this.options.supOffset, 0);
-            }
-            if (diff > 0) {
-                target.translate(0, diff);
-                space.bottom = diff;
-                space.height += diff;
-            } else {
-                sup.translate(0, -diff);
-            }
-            return space;
-        },
-        applySideSub: function(target, sub) {
-            sub.scale(this.options.zoom);
-            var targetRectBox = target.getRenderBox(this.observer), subRectBox = sub.getRenderBox(this.observer), subOffset = sub.getOffset(), targetBaseline = target.getBaseline(this.observer), subPosition = (subRectBox.height + subOffset.top + subOffset.bottom) / 2, diff = targetRectBox.height - targetBaseline - subPosition, space = {
-                top: 0,
-                bottom: 0,
-                width: targetRectBox.width + subRectBox.width,
-                height: targetRectBox.height
-            };
-            sub.translate(targetRectBox.width, subOffset.top + targetBaseline - subPosition);
-            if (this.options.subOffset) {
-                sub.translate(this.options.subOffset, 0);
-            }
-            if (diff < 0) {
-                space.top = -diff;
-                space.height -= diff;
-            }
-            return space;
-        },
-        applySideScript: function(target, sup, sub) {
-            sup.scale(this.options.zoom);
-            sub.scale(this.options.zoom);
-            var targetRectBox = target.getRenderBox(this.observer), subRectBox = sub.getRenderBox(this.observer), supRectBox = sup.getRenderBox(this.observer), targetMeanline = target.getMeanline(this.observer), targetBaseline = target.getBaseline(this.observer), supBaseline = sup.getBaseline(this.observer), subAscenderline = sub.getAscenderline(this.observer), supPosition = targetMeanline, subPosition = targetMeanline + (targetBaseline - targetMeanline) * 2 / 3, topDiff = supPosition - supBaseline, bottomDiff = targetRectBox.height - subPosition - (subRectBox.height - subAscenderline), space = {
-                top: 0,
-                bottom: 0,
-                width: targetRectBox.width + Math.max(subRectBox.width, supRectBox.width),
-                height: targetRectBox.height
-            };
-            sup.translate(targetRectBox.width, topDiff);
-            sub.translate(targetRectBox.width, subPosition - subAscenderline);
-            if (this.options.supOffset) {
-                sup.translate(this.options.supOffset, 0);
-            }
-            if (this.options.subOffset) {
-                sub.translate(this.options.subOffset, 0);
-            }
-            if (topDiff > 0) {
-                if (bottomDiff < 0) {
-                    targetRectBox.height -= bottomDiff;
-                    space.top = -bottomDiff;
-                }
-            } else {
-                target.translate(0, -topDiff);
-                sup.translate(0, -topDiff);
-                sub.translate(0, -topDiff);
-                space.height -= topDiff;
-                if (bottomDiff > 0) {
-                    space.bottom = -topDiff;
-                } else {
-                    space.height -= bottomDiff;
-                    topDiff = -topDiff;
-                    bottomDiff = -bottomDiff;
-                    if (topDiff > bottomDiff) {
-                        space.bottom = topDiff - bottomDiff;
-                    } else {
-                        space.top = bottomDiff - topDiff;
-                    }
-                }
-            }
-            return space;
-        },
-        applyUp: function(target, sup) {
-            var supBox = sup.getFixRenderBox(), targetBox = target.getFixRenderBox(), space = {
-                width: Math.max(targetBox.width, supBox.width),
-                height: supBox.height + targetBox.height,
-                top: 0,
-                bottom: supBox.height
-            };
-            sup.translate((space.width - supBox.width) / 2, 0);
-            target.translate((space.width - targetBox.width) / 2, supBox.height);
-            return space;
-        },
-        applyDown: function(target, sub) {
-            var subBox = sub.getFixRenderBox(), targetBox = target.getFixRenderBox(), space = {
-                width: Math.max(targetBox.width, subBox.width),
-                height: subBox.height + targetBox.height,
-                top: subBox.height,
-                bottom: 0
-            };
-            sub.translate((space.width - subBox.width) / 2, targetBox.height);
-            target.translate((space.width - targetBox.width) / 2, 0);
-            return space;
-        }
-    });
+    var kity = require("kity"), EmptyExpression = require("expression/empty");
+    return createScriptControllerClass(kity, EmptyExpression);
 });
 define("operator/fraction", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), ZOOM = require("sysconf").zoom, Operator = require("operator/operator");
-    return kity.createClass("FractionOperator", {
-        base: require("operator/operator"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Fraction");
-            }
-            Operator.call(this, "Fraction");
-        },
-        applyOperand: function(upOperand, downOperand) {
-            upOperand.scale(ZOOM);
-            downOperand.scale(ZOOM);
-            var upWidth = Math.ceil(upOperand.getWidth()), downWidth = Math.ceil(downOperand.getWidth()), upHeight = Math.ceil(upOperand.getHeight()), downHeight = Math.ceil(downOperand.getHeight()), overflow = 3, padding = 1, maxWidth = Math.max(upWidth, downWidth), maxHeight = Math.max(upHeight, downHeight), operatorShape = generateOperator(maxWidth, overflow);
-            this.addOperatorShape(operatorShape);
-            upOperand.translate((maxWidth - upWidth) / 2 + overflow, 0);
-            operatorShape.translate(0, upHeight + 1);
-            downOperand.translate((maxWidth - downWidth) / 2 + overflow, upHeight + operatorShape.getHeight() + 1 * 2);
-            this.parentExpression.setOffset(maxHeight - upHeight, maxHeight - downHeight);
-            this.parentExpression.expand(padding * 2, padding * 2);
-            this.parentExpression.translateElement(padding, padding);
-        }
-    });
-    function generateOperator(width, overflow) {
-        return new kity.Rect(width + overflow * 2, 1).fill("black");
-    }
+    return createFractionOperatorClass(kity, ZOOM, Operator);
 });
 define("operator/func", [ "kity", "char/text", "sysconf", "font/manager", "char/text-factory", "signgroup", "operator/common/script-controller", "expression/empty", "operator/operator", "def/gtype" ], function(require, exports, modules) {
     var kity = require("kity"), Text = require("char/text"), ScriptController = require("operator/common/script-controller"), Operator = require("operator/operator");
-    return kity.createClass("FunctionOperator", {
-        base: require("operator/operator"),
-        constructor: function(funcName) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Function: " + funcName);
-            }
-            Operator.call(this, "Function: " + funcName);
-            this.funcName = funcName;
-        },
-        applyOperand: function(expr, sup, sub) {
-            var opShape = generateOperator.call(this), expBox = expr.getFixRenderBox(), scriptHanlder = this.parentExpression.isSideScript() ? "applySide" : "applyUpDown", space = new ScriptController(this, opShape, sup, sub, {
-                zoom: .5
-            })[scriptHanlder](), padding = 5, diff = (space.height + space.top + space.bottom - expBox.height) / 2;
-            opShape.translate(0, space.top);
-            sup.translate(0, space.top);
-            sub.translate(0, space.top);
-            if (diff >= 0) {
-                expr.translate(space.width + padding, diff);
-            } else {
-                diff = -diff;
-                opShape.translate(0, diff);
-                sup.translate(0, diff);
-                sub.translate(0, diff);
-                expr.translate(space.width + padding, 0);
-            }
-            this.parentExpression.expand(padding, padding * 2);
-            this.parentExpression.translateElement(padding, padding);
-        }
-    });
-    function generateOperator() {
-        var opShape = new Text(this.funcName, "KF AMS ROMAN");
-        this.addOperatorShape(opShape);
-        return opShape;
-    }
+    return createFunctionOperatorClass(kity, Operator, Text, ScriptController);
 });
 define("operator/integration", [ "kity", "operator/common/script-controller", "expression/empty", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), ScriptController = require("operator/common/script-controller"), Operator = require("operator/operator");
-    return kity.createClass("IntegrationOperator", {
-        base: require("operator/operator"),
-        constructor: function(type) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Integration");
-            }
-            Operator.call(this, "Integration");
-            this.opType = type || 1;
-        },
-        setType: function(type) {
-            this.opType = type | 0;
-        },
-        resetType: function() {
-            this.opType = 1;
-        },
-        applyOperand: function(exp, sup, sub) {
-            var opShape = this.getOperatorShape(), padding = 3, expBox = exp.getFixRenderBox(), space = new ScriptController(this, opShape, sup, sub, {
-                supOffset: 3,
-                subOffset: -15
-            }).applySide(), diff = (space.height + space.top - expBox.height) / 2;
-            opShape.translate(0, space.top);
-            sup.translate(0, space.top);
-            sub.translate(0, space.top);
-            if (diff >= 0) {
-                exp.translate(space.width + padding, diff);
-            } else {
-                diff = -diff;
-                opShape.translate(0, diff);
-                sup.translate(0, diff);
-                sub.translate(0, diff);
-                exp.translate(space.width + padding, 0);
-            }
-            this.parentExpression.expand(padding, padding * 2);
-            this.parentExpression.translateElement(padding, padding);
-        },
-        getOperatorShape: function() {
-            var pathData = "M1.318,48.226c0,0,0.044,0.066,0.134,0.134c0.292,0.313,0.626,0.447,1.006,0.447c0.246,0.022,0.358-0.044,0.604-0.268   c0.782-0.782,1.497-2.838,2.324-6.727c0.514-2.369,0.938-4.693,1.586-8.448C8.559,24.068,9.9,17.878,11.978,9.52   c0.917-3.553,1.922-7.576,3.866-8.983C16.247,0.246,16.739,0,17.274,0c1.564,0,2.503,1.162,2.592,2.57   c0,0.827-0.424,1.386-1.273,1.386c-0.671,0-1.229-0.514-1.229-1.251c0-0.805,0.514-1.095,1.185-1.274   c0.022,0-0.291-0.29-0.425-0.379c-0.201-0.134-0.514-0.224-0.737-0.224c-0.067,0-0.112,0-0.157,0.022   c-0.469,0.134-0.983,0.939-1.453,2.234c-0.537,1.475-0.961,3.174-1.631,6.548c-0.424,2.101-0.693,3.464-1.229,6.727   c-1.608,9.185-2.949,15.487-5.006,23.756c-0.514,2.034-0.849,3.24-1.207,4.335c-0.559,1.698-1.162,2.95-1.811,3.799   c-0.514,0.715-1.385,1.408-2.436,1.408c-1.363,0-2.391-1.185-2.458-2.592c0-0.804,0.447-1.363,1.273-1.363   c0.671,0,1.229,0.514,1.229,1.251C2.503,47.757,1.989,48.047,1.318,48.226z", group = new kity.Group(), opGroup = new kity.Group(), opShape = new kity.Path(pathData).fill("black"), opBox = new kity.Rect(0, 0, 0, 0).fill("transparent"), tmpShape = null;
-            opGroup.addShape(opShape);
-            group.addShape(opBox);
-            group.addShape(opGroup);
-            this.addOperatorShape(group);
-            for (var i = 1; i < this.opType; i++) {
-                tmpShape = new kity.Use(opShape).translate(opShape.getWidth() / 2 * i, 0);
-                opGroup.addShape(tmpShape);
-            }
-            opGroup.scale(1.6);
-            tmpShape = null;
-            group.getBaseline = function() {
-                return opGroup.getFixRenderBox().height;
-            };
-            group.getMeanline = function() {
-                return 10;
-            };
-            return group;
-        }
-    });
+    return createIntegrationOperatorClass(kity, Operator, ScriptController);
 });
 define("operator/operator", [ "kity", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), GTYPE = require("def/gtype"), SignGroup = require("signgroup");
     return createOperatorClass(kity, GTYPE, SignGroup);
 });
 define("operator/radical", [ "kity", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, modules) {
-    var kity = require("kity"), Operator = require("operator/operator"), SHAPE_DATA_WIDTH = 1, radians = 2 * Math.PI / 360, sin15 = Math.sin(15 * radians), cos15 = Math.cos(15 * radians), tan15 = Math.tan(15 * radians);
-    return kity.createClass("RadicalOperator", {
-        base: require("operator/operator"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Radical");
-            }
-            Operator.call(this, "Radical");
-        },
-        applyOperand: function(radicand, exponent) {
-            generateOperator.call(this, radicand, exponent);
-        }
-    });
-    function generateOperator(radicand, exponent) {
-        var decoration = generateDecoration(radicand), vLine = generateVLine(radicand), padding = 5, hLine = generateHLine(radicand);
-        this.addOperatorShape(decoration);
-        this.addOperatorShape(vLine);
-        this.addOperatorShape(hLine);
-        adjustmentPosition.call(this, mergeShape(decoration, vLine, hLine), this.operatorShape, radicand, exponent);
-        this.parentExpression.expand(0, padding * 2);
-        this.parentExpression.translateElement(0, padding);
-    }
-    function generateDecoration(radicand) {
-        var shape = new kity.Path(), a = SHAPE_DATA_WIDTH, h = radicand.getHeight() / 3, drawer = shape.getDrawer();
-        drawer.moveTo(0, cos15 * a * 6);
-        drawer.lineBy(sin15 * a, cos15 * a);
-        drawer.lineBy(cos15 * a * 3, -sin15 * a * 3);
-        drawer.lineBy(tan15 * h, h);
-        drawer.lineBy(sin15 * a * 3, -cos15 * a * 3);
-        drawer.lineBy(-sin15 * h, -h);
-        drawer.close();
-        return shape.fill("black");
-    }
-    function generateVLine(operand) {
-        var shape = new kity.Path(), h = operand.getHeight() * .9, drawer = shape.getDrawer();
-        drawer.moveTo(tan15 * h, 0);
-        drawer.lineTo(0, h);
-        drawer.lineBy(sin15 * SHAPE_DATA_WIDTH * 3, cos15 * SHAPE_DATA_WIDTH * 3);
-        drawer.lineBy(tan15 * h + sin15 * SHAPE_DATA_WIDTH * 3, -(h + 3 * SHAPE_DATA_WIDTH * cos15));
-        drawer.close();
-        return shape.fill("black");
-    }
-    function generateHLine(operand) {
-        var w = operand.getWidth() + 2 * SHAPE_DATA_WIDTH;
-        return new kity.Rect(w, 2 * SHAPE_DATA_WIDTH).fill("black");
-    }
-    function mergeShape(decoration, vLine, hLine) {
-        var decoBox = decoration.getFixRenderBox(), vLineBox = vLine.getFixRenderBox();
-        vLine.translate(decoBox.width - sin15 * SHAPE_DATA_WIDTH * 3, 0);
-        decoration.translate(0, vLineBox.height - decoBox.height);
-        vLineBox = vLine.getFixRenderBox();
-        hLine.translate(vLineBox.x + vLineBox.width - SHAPE_DATA_WIDTH / cos15, 0);
-        return {
-            x: vLineBox.x + vLineBox.width - SHAPE_DATA_WIDTH / cos15,
-            y: 0
-        };
-    }
-    function adjustmentPosition(position, operator, radicand, exponent) {
-        var exponentBox = null, opOffset = {
-            x: 0,
-            y: 0
-        }, opBox = operator.getFixRenderBox();
-        exponent.scale(.66);
-        exponentBox = exponent.getFixRenderBox();
-        if (exponentBox.width > 0 && exponentBox.height > 0) {
-            opOffset.y = exponentBox.height - opBox.height / 2;
-            if (opOffset.y < 0) {
-                exponent.translate(0, -opOffset.y);
-                opOffset.y = 0;
-            }
-            opOffset.x = exponentBox.width + opBox.height / 2 * tan15 - position.x;
-        }
-        operator.translate(opOffset.x, opOffset.y);
-        radicand.translate(opOffset.x + position.x + SHAPE_DATA_WIDTH, opOffset.y + 2 * SHAPE_DATA_WIDTH);
-    }
+    var kity = require("kity"), Operator = require("operator/operator");
+    return createRadicalOperatorClass(kity, Operator);
 });
 define("operator/script", [ "kity", "operator/common/script-controller", "expression/empty", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, module) {
     var kity = require("kity"), ScriptController = require("operator/common/script-controller"), Operator = require("operator/operator");
-    return kity.createClass("ScriptOperator", {
-        base: require("operator/operator"),
-        constructor: function(operatorName) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase(operatorName || "Script");
-            }
-            Operator.call(this, operatorName || "Script");
-        },
-        applyOperand: function(operand, sup, sub) {
-            var opShape = this.getOperatorShape(), padding = 1, parent = this.parentExpression, space = new ScriptController(this, operand, sup, sub).applySide();
-            space && parent.setOffset(space.top, space.bottom);
-            parent.expand(4, padding * 2);
-            parent.translateElement(2, padding);
-        }
-    });
+    return createScriptOperatorClass(kity, Operator, ScriptController);
 });
 define("operator/summation", [ "kity", "operator/common/script-controller", "expression/empty", "operator/operator", "def/gtype", "signgroup" ], function(require, exports, modules) {
     var kity = require("kity"), ScriptController = require("operator/common/script-controller"), Operator = require("operator/operator");
-    return kity.createClass("SummationOperator", {
-        base: require("operator/operator"),
-        constructor: function() {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase("Summation");
-            }
-            Operator.call(this, "Summation");
-            this.displayType = "equation";
-        },
-        applyOperand: function(expr, sup, sub) {
-            var opShape = this.getOperatorShape(), expBox = expr.getFixRenderBox(), padding = 0, space = new ScriptController(this, opShape, sup, sub).applyUpDown(), diff = (space.height - space.top - space.bottom - expBox.height) / 2;
-            if (diff >= 0) {
-                expr.translate(space.width + padding, diff + space.bottom);
-            } else {
-                diff = -diff;
-                opShape.translate(0, diff);
-                sup.translate(0, diff);
-                sub.translate(0, diff);
-                expr.translate(space.width + padding, space.bottom);
-            }
-            this.parentExpression.setOffset(space.top, space.bottom);
-            this.parentExpression.expand(padding, padding * 2);
-            this.parentExpression.translateElement(padding, padding);
-        },
-        getOperatorShape: function() {
-            var pathData = "M0.672,33.603c-0.432,0-0.648,0-0.648-0.264c0-0.024,0-0.144,0.24-0.432l12.433-14.569L0,0.96c0-0.264,0-0.72,0.024-0.792   C0.096,0.024,0.12,0,0.672,0h28.371l2.904,6.745h-0.6C30.531,4.8,28.898,3.72,28.298,3.336c-1.896-1.2-3.984-1.608-5.28-1.8   c-0.216-0.048-2.4-0.384-5.617-0.384H4.248l11.185,15.289c0.168,0.24,0.168,0.312,0.168,0.36c0,0.12-0.048,0.192-0.216,0.384   L3.168,31.515h14.474c4.608,0,6.96-0.624,7.464-0.744c2.76-0.72,5.305-2.352,6.241-4.848h0.6l-2.904,7.681H0.672z", operatorShape = new kity.Path(pathData).fill("black"), opBgShape = new kity.Rect(0, 0, 0, 0).fill("transparent"), group = new kity.Group(), opRenderBox = null;
-            group.addShape(opBgShape);
-            group.addShape(operatorShape);
-            operatorShape.scale(1.6);
-            this.addOperatorShape(group);
-            opRenderBox = operatorShape.getFixRenderBox();
-            if (this.displayType === "inline") {
-                operatorShape.translate(5, 15);
-                opBgShape.setSize(opRenderBox.width + 10, opRenderBox.height + 25);
-            } else {
-                operatorShape.translate(2, 5);
-                opBgShape.setSize(opRenderBox.width + 4, opRenderBox.height + 8);
-            }
-            return group;
-        }
-    });
+    return createSummationOperatorClass(kity, Operator, ScriptController);
 });
 define("resource-manager", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "font/installer", "font/manager", "jquery", "font/checker-tpl", "formula", "def/gtype", "base/output", "fpaper" ], function(require) {
     var kity = require("kity"), cbList = [], RES_CONF = require("sysconf").resource, FontInstall = require("font/installer"), Formula = require("formula"), __readyState = false, inited = false;
