@@ -1,5 +1,13 @@
 export * from './install';
 export { default } from './install';
+export * from './gtype';
+export * from './script-type';
+export * from './char-conf';
+export * from './font-checker-template';
+export * from './text-factory';
+export * from './font-manager';
+export * from './sysconf';
+export * from './text';
 export * from './signgroup';
 export * from './expression';
 export * from './operator';

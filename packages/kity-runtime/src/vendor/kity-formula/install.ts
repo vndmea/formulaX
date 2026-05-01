@@ -41,6 +41,14 @@ import { createFontInstallerClass } from './font-installer';
 import { createFPaperClass } from './fpaper';
 import { createFormulaClass } from './formula';
 import { createResourceManager } from './resource-manager';
+import { GTYPE } from './gtype';
+import { SCRIPT_TYPE } from './script-type';
+import { CHAR_CONF } from './char-conf';
+import { FONT_CHECKER_TEMPLATE } from './font-checker-template';
+import { createTextFactory } from './text-factory';
+import { createFontManager } from './font-manager';
+import { createSysconf } from './sysconf';
+import { createTextClass } from './text';
 
 export function installLegacyKityFormulaRuntime(target: KityFormulaRuntimeWindow = window) {
   if (installed && target.kf?.ResourceManager && target.__kityFormulaRequire__) {
@@ -3170,9 +3178,7 @@ define("char/char", [ "kity", "signgroup", "def/gtype" ], function(require, expo
     });
 });
 define("char/conf", [], function(require) {
-    return {
-        defaultFont: "KF AMS MAIN"
-    };
+    return CHAR_CONF;
 });
 define("char/map", [], function(require) {
     return {
@@ -3509,104 +3515,18 @@ define("char/map", [], function(require) {
     };
 });
 define("char/text-factory", [ "kity" ], function(require) {
-    var kity = require("kity"), divNode = document.createElement("div"), NAMESPACE = "http://www.w3.org/XML/1998/namespace";
-    function createText(content) {
-        var text = new kity.Text();
-        if ("innerHTML" in text.node) {
-            text.node.setAttributeNS(NAMESPACE, "xml:space", "preserve");
-        } else {
-            if (content.indexOf(" ") != -1) {
-                content = convertContent(content);
-            }
-        }
-        text.setContent(content);
-        return text;
-    }
-    function convertContent(content) {
-        divNode.innerHTML = '<svg><text gg="asfdas">' + content.replace(/\s/gi, "&nbsp;") + "</text></svg>";
-        return divNode.firstChild.firstChild.textContent;
-    }
-    return {
-        create: function(content) {
-            return createText(content);
-        }
-    };
+    var kity = require("kity");
+    return createTextFactory(kity);
 });
 define("char/text", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "font/manager", "char/text-factory", "signgroup", "def/gtype" ], function(require, exports, module) {
     var kity = require("kity"), FONT_CONF = require("sysconf").font, FontManager = require("font/manager"), TextFactory = require("char/text-factory"), SignGroup = require("signgroup");
-    return kity.createClass("Text", {
-        base: require("signgroup"),
-        constructor: function(content, fontFamily) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            SignGroup.call(this);
-            this.fontFamily = fontFamily;
-            this.fontSize = 50;
-            this.content = content || "";
-            this.box.remove();
-            this.translationContent = this.translation(this.content);
-            this.contentShape = new kity.Group();
-            this.contentNode = this.createContent();
-            this.contentShape.addShape(this.contentNode);
-            this.addShape(this.contentShape);
-        },
-        createContent: function() {
-            var contentNode = TextFactory.create(this.translationContent);
-            contentNode.setAttr({
-                "font-family": this.fontFamily,
-                "font-size": 50,
-                x: 0,
-                y: FONT_CONF.offset
-            });
-            return contentNode;
-        },
-        setFamily: function(fontFamily) {
-            this.fontFamily = fontFamily;
-            this.contentNode.setAttr("font-family", fontFamily);
-        },
-        setFontSize: function(fontSize) {
-            this.fontSize = fontSize;
-            this.contentNode.setAttr("font-size", fontSize + "px");
-            this.contentNode.setAttr("y", fontSize / 50 * FONT_CONF.offset);
-        },
-        getBaseHeight: function() {
-            var chars = this.contentShape.getItems(), currentChar = null, index = 0, height = 0;
-            while (currentChar = chars[index]) {
-                height = Math.max(height, currentChar.getHeight());
-                index++;
-            }
-            return height;
-        },
-        translation: function(content) {
-            var fontFamily = this.fontFamily;
-            return content.replace(/``/g, "\u201c").replace(/\\([a-zA-Z,]+)\\/g, function(match, input) {
-                if (input === ",") {
-                    return " ";
-                }
-                var data = FontManager.getCharacterValue(input, fontFamily);
-                if (!data) {
-                    console.error(input + "\u4e22\u5931");
-                    return "";
-                }
-                return data;
-            });
-        }
-    });
+    return createTextClass(kity, FONT_CONF, FontManager, TextFactory, SignGroup);
 });
 define("def/gtype", [], function() {
-    return {
-        UNKNOWN: -1,
-        EXP: 0,
-        COMPOUND_EXP: 1,
-        OP: 2
-    };
+    return GTYPE;
 });
 define("def/script-type", [], function() {
-    return {
-        SIDE: "side",
-        FOLLOW: "follow"
-    };
+    return SCRIPT_TYPE;
 });
 define("expression/compound-exp/binary-exp/subscript", [ "kity", "expression/compound-exp/script", "operator/script", "expression/compound" ], function(require, exports, modules) {
     var kity = require("kity"), ScriptExpression = require("expression/compound-exp/script");
@@ -3669,30 +3589,15 @@ define("expression/text", [ "char/text", "kity", "sysconf", "font/manager", "cha
     return createTextExpressionClass(kity, FONT_CONF, Expression, Text);
 });
 define("font/checker-tpl", [], function(require) {
-    return [ '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">', '<text id="abcd" font-family="KF AMS MAIN" font-size="50" x="0" y="0">x</text>', "</svg>" ];
+    return FONT_CHECKER_TEMPLATE;
 });
 define("font/installer", [ "kity", "font/manager", "sysconf", "jquery", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "font/checker-tpl" ], function(require) {
     var kity = require("kity"), FontManager = require("font/manager"), FONT_CONF = require("sysconf").font, checkerTemplate = require("font/checker-tpl");
     return createFontInstallerClass(kity, FontManager, FONT_CONF, checkerTemplate);
 });
 define("font/manager", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman" ], function(require) {
-    var FONT_LIST = {}, kity = require("kity"), CONF = require("sysconf").font.list;
-    (function() {
-        kity.Utils.each(CONF, function(fontData) {
-            FONT_LIST[fontData.meta.fontFamily] = fontData;
-        });
-    })();
-    return {
-        getFontList: function() {
-            return FONT_LIST;
-        },
-        getCharacterValue: function(key, fontFamily) {
-            if (!FONT_LIST[fontFamily]) {
-                return null;
-            }
-            return FONT_LIST[fontFamily].map[key] || null;
-        }
-    };
+    var kity = require("kity"), CONF = require("sysconf").font.list;
+    return createFontManager(kity, CONF);
 });
 define("font/map/kf-ams-bb", [], function(require) {
     return {
@@ -6742,23 +6647,7 @@ define("signgroup", [ "kity", "def/gtype" ], function(require, exports, module) 
     return createSignGroupClass(kity, GTYPE);
 });
 define("sysconf", [ "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman" ], function(require) {
-    return {
-        zoom: .66,
-        font: {
-            meanline: Math.round(380 / 1e3 * 50),
-            baseline: Math.round(800 / 1e3 * 50),
-            baseHeight: 50,
-            list: [ require("font/map/kf-ams-main"), require("font/map/kf-ams-cal"), require("font/map/kf-ams-frak"), require("font/map/kf-ams-bb"), require("font/map/kf-ams-roman") ]
-        },
-        resource: {
-            path: "src/resource/"
-        },
-        func: {
-            "ud-script": {
-                limit: true
-            }
-        }
-    };
+    return createSysconf([ require("font/map/kf-ams-main"), require("font/map/kf-ams-cal"), require("font/map/kf-ams-frak"), require("font/map/kf-ams-bb"), require("font/map/kf-ams-roman") ]);
 });
 
 /**
