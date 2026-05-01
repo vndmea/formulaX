@@ -114,8 +114,23 @@ function resolveContainer(el: string | HTMLElement) {
   return el;
 }
 
-function normalizeAssetBase(assetBase = DEFAULT_ASSET_BASE) {
-  return assetBase.endsWith('/') ? assetBase.slice(0, -1) : assetBase;
+function resolveDefaultAssetBase() {
+  if (typeof document === 'undefined') {
+    return DEFAULT_ASSET_BASE;
+  }
+
+  const baseUrl = new URL('.', document.baseURI);
+  return baseUrl.pathname;
+}
+
+function normalizeAssetBase(assetBase?: string) {
+  const resolvedAssetBase = assetBase ?? resolveDefaultAssetBase();
+
+  if (resolvedAssetBase === '/') {
+    return '';
+  }
+
+  return resolvedAssetBase.endsWith('/') ? resolvedAssetBase.slice(0, -1) : resolvedAssetBase;
 }
 
 function normalizeCssSize(value: number | string | undefined, fallback: string) {

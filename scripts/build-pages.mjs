@@ -51,7 +51,7 @@ const buildApp = ({ dir, basePath, outputSubdir }) => {
   const appDir = join(root, dir);
   const outDir = join(outputDir, outputSubdir);
   mkdirSync(outDir, { recursive: true });
-  run(`corepack pnpm vite build --base ${basePath} --outDir "${outDir}"`, appDir);
+  run(`corepack pnpm vite build --base ${basePath} --outDir "${outDir}" --emptyOutDir`, appDir);
 };
 
 const renderIndex = () => `<!doctype html>
