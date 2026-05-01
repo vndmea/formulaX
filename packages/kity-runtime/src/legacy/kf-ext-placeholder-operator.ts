@@ -71,7 +71,7 @@ const PlaceholderOperator = kity.createClass('PlaceholderOperator', {
 
   constructor(this: PlaceholderOperatorInstance) {
     this.opShape = null;
-    if (false) {
+    if ((this as any).__formulaxNeverCallBase__) {
       (this as any).callBase('Placeholder');
     }
     kf.Operator.call(this, 'Placeholder');

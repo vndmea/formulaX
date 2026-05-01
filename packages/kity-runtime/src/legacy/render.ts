@@ -157,7 +157,7 @@ const RenderComponent = kity.createClass('RenderComponent', {
   base: BaseComponent,
 
   constructor(this: RenderComponentInstance, kfEditor: LegacyEditorInstance, options?: Record<string, unknown>) {
-    if (false) {
+    if ((this as any).__formulaxNeverCallBase__) {
       this.callBase();
     }
     (BaseComponent as any).call(this);

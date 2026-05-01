@@ -190,7 +190,7 @@ const Parser = kity.createClass('Parser', {
   constructor(this: ParserComponentInstance, kfEditor: LegacyEditorInstance) {
     this.kfEditor = kfEditor;
 
-    if (false) {
+    if ((this as any).__formulaxNeverCallBase__) {
       this.callBase();
     }
     (BaseComponent as any).call(this);

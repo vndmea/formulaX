@@ -29,7 +29,7 @@ const PlaceholderExpression = kity.createClass('PlaceholderExpression', {
   base: kf.CompoundExpression,
 
   constructor(this: PlaceholderExpressionInstance) {
-    if (false) {
+    if ((this as any).__formulaxNeverCallBase__) {
       (this as any).callBase();
     }
     BaseCompoundExpression.call(this);
