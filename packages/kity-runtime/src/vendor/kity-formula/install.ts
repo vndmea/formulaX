@@ -25,6 +25,7 @@ import { createIntegrationExpressionClass } from './integration-expression';
 import { createRadicalExpressionClass } from './radical-expression';
 import { createSummationExpressionClass } from './summation-expression';
 import { createScriptControllerClass } from './script-controller';
+import { createBracketsExpressionClass } from './brackets-expression';
 import { createBracketsOperatorClass } from './brackets-operator';
 import { createCombinationOperatorClass } from './combination-operator';
 import { createFractionOperatorClass } from './fraction-operator';
@@ -36,6 +37,10 @@ import { createSummationOperatorClass } from './summation-operator';
 import { createOperatorClass } from './operator';
 import { createSignGroupClass } from './signgroup';
 import { createTextExpressionClass } from './text-expression';
+import { createFontInstallerClass } from './font-installer';
+import { createFPaperClass } from './fpaper';
+import { createFormulaClass } from './formula';
+import { createResourceManager } from './resource-manager';
 
 export function installLegacyKityFormulaRuntime(target: KityFormulaRuntimeWindow = window) {
   if (installed && target.kf?.ResourceManager && target.__kityFormulaRequire__) {
@@ -3617,30 +3622,7 @@ define("expression/compound-exp/binary", [ "kity", "expression/compound", "def/g
 });
 define("expression/compound-exp/brackets", [ "kity", "operator/brackets", "char/text", "font/manager", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), BracketsOperator = require("operator/brackets"), CompoundExpression = require("expression/compound");
-    return kity.createClass("BracketsExpression", {
-        base: require("expression/compound"),
-        constructor: function(left, right, exp) {
-            if (this.__FORMULAX_PRESERVE_CALL_BASE__) {
-                this.callBase();
-            }
-            CompoundExpression.call(this);
-            this.setFlag("Brackets");
-            if (arguments.length === 2) {
-                exp = right;
-                right = left;
-            }
-            this.leftSymbol = left;
-            this.rightSymbol = right;
-            this.setOperator(new BracketsOperator());
-            this.setOperand(exp, 0);
-        },
-        getLeftSymbol: function() {
-            return this.leftSymbol;
-        },
-        getRightSymbol: function() {
-            return this.rightSymbol;
-        }
-    });
+    return createBracketsExpressionClass(kity, CompoundExpression, BracketsOperator);
 });
 define("expression/compound-exp/combination", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "operator/combination", "operator/operator", "expression/compound", "def/gtype", "expression/expression" ], function(require, exports, modules) {
     var kity = require("kity"), FONT_CONF = require("sysconf").font, CombinationOperator = require("operator/combination"), CompoundExpression = require("expression/compound");
@@ -3690,84 +3672,8 @@ define("font/checker-tpl", [], function(require) {
     return [ '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">', '<text id="abcd" font-family="KF AMS MAIN" font-size="50" x="0" y="0">x</text>', "</svg>" ];
 });
 define("font/installer", [ "kity", "font/manager", "sysconf", "jquery", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "font/checker-tpl" ], function(require) {
-    var kity = require("kity"), FontManager = require("font/manager"), $ = require("jquery"), FONT_CONF = require("sysconf").font, NODE_LIST = [];
-    return kity.createClass("FontInstaller", {
-        constructor: function(doc, resource) {
-            if (this.__KityMethodClass && this.__KityMethodClass.parent) {
-                this.callBase();
-            }
-            this.resource = resource || "../src/resource/";
-            this.doc = doc;
-        },
-        mount: function(callback) {
-            var fontList = FontManager.getFontList(), count = 0, _self = this;
-            kity.Utils.each(fontList, function(fontInfo) {
-                count++;
-                fontInfo.meta.src = _self.resource + fontInfo.meta.src;
-                _self.createFontStyle(fontInfo);
-                preload(_self.doc, fontInfo, function() {
-                    count--;
-                    if (count === 0) {
-                        complete(_self.doc, callback);
-                    }
-                });
-            });
-        },
-        createFontStyle: function(fontInfo) {
-            var stylesheet = this.doc.createElement("style"), tpl = '@font-face{\nfont-family: "${fontFamily}";\nsrc: url("${src}");\n}';
-            stylesheet.setAttribute("type", "text/css");
-            stylesheet.innerHTML = tpl.replace("${fontFamily}", fontInfo.meta.fontFamily).replace("${src}", fontInfo.meta.src);
-            this.doc.head.appendChild(stylesheet);
-        }
-    });
-    function preload(doc, fontInfo, callback) {
-        $.get(fontInfo.meta.src, function(data, state) {
-            if (state === "success") {
-                applyFonts(doc, fontInfo);
-            }
-            callback();
-        });
-    }
-    function complete(doc, callback) {
-        window.setTimeout(function() {
-            initFontSystemInfo(doc);
-            removeTmpNode();
-            callback();
-        }, 100);
-    }
-    function applyFonts(doc, fontInfo) {
-        var node = document.createElement("div"), fontFamily = fontInfo.meta.fontFamily, strs = [];
-        node.style.cssText = "position: absolute; top: 0; left: -100000px;";
-        kity.Utils.each(fontInfo.data, function(v, key) {
-            strs.push(key);
-        });
-        node.style.fontFamily = fontFamily;
-        node.innerHTML = strs.join("");
-        doc.body.appendChild(node);
-        NODE_LIST.push(node);
-    }
-    function initFontSystemInfo(doc) {
-        var tmpNode = doc.createElement("div");
-        tmpNode.style.cssText = "position: absolute; top: 0; left: -100000px;";
-        tmpNode.innerHTML = require("font/checker-tpl").join("");
-        doc.body.appendChild(tmpNode);
-        var rectBox = tmpNode.getElementsByTagName("text")[0].getBBox();
-        FONT_CONF.spaceHeight = rectBox.height;
-        FONT_CONF.topSpace = -rectBox.y - FONT_CONF.baseline;
-        FONT_CONF.bottomSpace = FONT_CONF.spaceHeight - FONT_CONF.topSpace - FONT_CONF.baseHeight;
-        FONT_CONF.offset = FONT_CONF.baseline + FONT_CONF.topSpace;
-        FONT_CONF.baselinePosition = (FONT_CONF.topSpace + FONT_CONF.baseline) / FONT_CONF.spaceHeight;
-        FONT_CONF.meanlinePosition = (FONT_CONF.topSpace + FONT_CONF.meanline) / FONT_CONF.spaceHeight;
-        FONT_CONF.ascenderPosition = FONT_CONF.topSpace / FONT_CONF.spaceHeight;
-        FONT_CONF.descenderPosition = (FONT_CONF.topSpace + FONT_CONF.baseHeight) / FONT_CONF.spaceHeight;
-        doc.body.removeChild(tmpNode);
-    }
-    function removeTmpNode() {
-        kity.Utils.each(NODE_LIST, function(node) {
-            node.parentNode.removeChild(node);
-        });
-        NODE_LIST = [];
-    }
+    var kity = require("kity"), FontManager = require("font/manager"), FONT_CONF = require("sysconf").font, checkerTemplate = require("font/checker-tpl");
+    return createFontInstallerClass(kity, FontManager, FONT_CONF, checkerTemplate);
 });
 define("font/manager", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman" ], function(require) {
     var FONT_LIST = {}, kity = require("kity"), CONF = require("sysconf").font.list;
@@ -6768,199 +6674,12 @@ define("font/map/kf-ams-roman", [], function(require) {
     };
 });
 define("formula", [ "kity", "def/gtype", "font/manager", "sysconf", "font/installer", "font/checker-tpl", "base/output", "base/canvg", "fpaper" ], function(require, exports, module) {
-    var kity = require("kity"), GTYPE = require("def/gtype"), FontManager = require("font/manager"), FontInstaller = require("font/installer"), FPaper = require("fpaper"), DEFAULT_OPTIONS = {
-        fontsize: 50,
-        autoresize: true,
-        padding: [ 0 ]
-    }, Output = require("base/output"), EXPRESSION_INTERVAL = 10, ExpressionWrap = kity.createClass("ExpressionWrap", {
-        constructor: function(exp, config) {
-            this.wrap = new kity.Group();
-            this.bg = new kity.Rect(0, 0, 0, 0).fill("transparent");
-            this.exp = exp;
-            this.config = config;
-            this.wrap.setAttr("data-type", "kf-exp-wrap");
-            this.bg.setAttr("data-type", "kf-exp-wrap-bg");
-            this.wrap.addShape(this.bg);
-            this.wrap.addShape(this.exp);
-        },
-        getWrapShape: function() {
-            return this.wrap;
-        },
-        getExpression: function() {
-            return this.exp;
-        },
-        getBackground: function() {
-            return this.bg;
-        },
-        resize: function() {
-            var padding = this.config.padding, expBox = this.exp.getFixRenderBox();
-            if (padding.length === 1) {
-                padding[1] = padding[0];
-            }
-            this.bg.setSize(padding[1] * 2 + expBox.width, padding[0] * 2 + expBox.height);
-            this.exp.translate(padding[1], padding[0]);
-        }
-    }), Formula = kity.createClass("Formula", {
-        base: require("fpaper"),
-        constructor: function(container, config) {
-            if (this.__KityMethodClass && this.__KityMethodClass.parent) {
-                this.callBase(container);
-            } else {
-                FPaper.call(this, container);
-            }
-            this.expressions = [];
-            this.fontInstaller = new FontInstaller(this);
-            this.config = kity.Utils.extend({}, DEFAULT_OPTIONS, config);
-            this.initEnvironment();
-            this.initInnerFont();
-        },
-        getContentContainer: function() {
-            return this.container;
-        },
-        initEnvironment: function() {
-            this.zoom = this.config.fontsize / 50;
-            if ("width" in this.config) {
-                this.setWidth(this.config.width);
-            }
-            if ("height" in this.config) {
-                this.setHeight(this.config.height);
-            }
-            this.node.setAttribute("font-size", DEFAULT_OPTIONS.fontsize);
-        },
-        initInnerFont: function() {
-            var fontList = FontManager.getFontList(), _self = this;
-            kity.Utils.each(fontList, function(fontInfo) {
-                createFontStyle(fontInfo);
-            });
-            function createFontStyle(fontInfo) {
-                var stylesheet = _self.doc.createElement("style"), tpl = '@font-face{font-family: "${fontFamily}";font-style: normal;src: url("${src}") format("woff");}';
-                stylesheet.setAttribute("type", "text/css");
-                stylesheet.innerHTML = tpl.replace("${fontFamily}", fontInfo.meta.fontFamily).replace("${src}", fontInfo.meta.src);
-                _self.resourceNode.appendChild(stylesheet);
-            }
-        },
-        insertExpression: function(expression, index) {
-            var expWrap = this.wrap(expression);
-            this.container.clearTransform();
-            this.expressions.splice(index, 0, expWrap.getWrapShape());
-            this.addShape(expWrap.getWrapShape());
-            notifyExpression.call(this, expWrap.getExpression());
-            expWrap.resize();
-            correctOffset.call(this);
-            this.resetZoom();
-            this.config.autoresize && this.resize();
-        },
-        appendExpression: function(expression) {
-            this.insertExpression(expression, this.expressions.length);
-        },
-        resize: function() {
-            var renderBox = this.container.getFixRenderBox();
-            this.node.setAttribute("width", renderBox.width);
-            this.node.setAttribute("height", renderBox.height);
-        },
-        resetZoom: function() {
-            var zoomLevel = this.zoom / this.getBaseZoom();
-            if (zoomLevel !== 0) {
-                this.container.scale(zoomLevel);
-            }
-        },
-        wrap: function(exp) {
-            return new ExpressionWrap(exp, this.config);
-        },
-        clear: function() {
-            FPaper.prototype.clear.call(this);
-            this.expressions = [];
-        },
-        clearExpressions: function() {
-            kity.Utils.each(this.expressions, function(exp, i) {
-                exp.remove();
-            });
-            this.expressions = [];
-        },
-        toJPG: function(cb) {
-            new Output(this).toJPG(cb);
-        },
-        toPNG: function(cb) {
-            new Output(this).toPNG(cb);
-        }
-    });
-    kity.Utils.extend(Formula, {
-        registerFont: function(fontData) {
-            FontManager.registerFont(fontData);
-        }
-    });
-    function correctOffset() {
-        var exprOffset = 0;
-        kity.Utils.each(this.expressions, function(expr) {
-            var box = null;
-            if (!expr) {
-                return;
-            }
-            expr.setMatrix(new kity.Matrix(1, 0, 0, 1, 0, 0));
-            box = expr.getFixRenderBox();
-            expr.translate(0 - box.x, exprOffset);
-            exprOffset += box.height + EXPRESSION_INTERVAL;
-        });
-        return this;
-    }
-    function notifyExpression(expression) {
-        var len = 0, childGroup = null;
-        if (!expression) {
-            return;
-        }
-        if (expression.getType() === GTYPE.EXP) {
-            for (var i = 0, len = expression.getChildren().length; i < len; i++) {
-                notifyExpression(expression.getChild(i));
-            }
-        } else if (expression.getType() === GTYPE.COMPOUND_EXP) {
-            for (var i = 0, len = expression.getOperands().length; i < len; i++) {
-                notifyExpression(expression.getOperand(i));
-            }
-            notifyExpression(expression.getOperator());
-        }
-        expression.addedCall && expression.addedCall();
-    }
-    return Formula;
+    var kity = require("kity"), GTYPE = require("def/gtype"), FontManager = require("font/manager"), FontInstaller = require("font/installer"), FPaper = require("fpaper"), Output = require("base/output");
+    return createFormulaClass(kity, GTYPE, FontManager, FontInstaller, FPaper, Output);
 });
 define("fpaper", [ "kity" ], function(require, exports, module) {
     var kity = require("kity");
-    return kity.createClass("FPaper", {
-        base: kity.Paper,
-        constructor: function(container) {
-            if (this.__KityMethodClass && this.__KityMethodClass.parent) {
-                this.callBase(container);
-            } else {
-                kity.Paper.call(this, container);
-            }
-            this.doc = container.ownerDocument;
-            this.container = new kity.Group();
-            this.container.setAttr("data-type", "kf-container");
-            this.background = new kity.Group();
-            this.background.setAttr("data-type", "kf-bg");
-            this.baseZoom = 1;
-            this.zoom = 1;
-            kity.Paper.prototype.addShape.call(this, this.background);
-            kity.Paper.prototype.addShape.call(this, this.container);
-        },
-        getZoom: function() {
-            return this.zoom;
-        },
-        getBaseZoom: function() {
-            return this.baseZoom;
-        },
-        addShape: function(shape, pos) {
-            return this.container.addShape(shape, pos);
-        },
-        getBackground: function() {
-            return this.background;
-        },
-        removeShape: function(pos) {
-            return this.container.removeShape(pos);
-        },
-        clear: function() {
-            return this.container.clear();
-        }
-    });
+    return createFPaperClass(kity);
 });
 define("jquery", [], function(require, exports, module) {
     if (!window.jQuery) {
@@ -7015,31 +6734,8 @@ define("operator/summation", [ "kity", "operator/common/script-controller", "exp
     return createSummationOperatorClass(kity, Operator, ScriptController);
 });
 define("resource-manager", [ "kity", "sysconf", "font/map/kf-ams-main", "font/map/kf-ams-cal", "font/map/kf-ams-frak", "font/map/kf-ams-bb", "font/map/kf-ams-roman", "font/installer", "font/manager", "jquery", "font/checker-tpl", "formula", "def/gtype", "base/output", "fpaper" ], function(require) {
-    var kity = require("kity"), cbList = [], RES_CONF = require("sysconf").resource, FontInstall = require("font/installer"), Formula = require("formula"), __readyState = false, inited = false;
-    return {
-        ready: function(cb, options) {
-            if (!inited) {
-                inited = true;
-                init(options);
-            }
-            if (__readyState) {
-                window.setTimeout(function() {
-                    cb(Formula);
-                }, 0);
-            } else {
-                cbList.push(cb);
-            }
-        }
-    };
-    function init(options) {
-        var options = kity.Utils.extend({}, RES_CONF, options);
-        new FontInstall(document, options.path).mount(complete);
-    }
-    function complete() {
-        kity.Utils.each(cbList, function(cb) {
-            cb(Formula);
-        });
-    }
+    var kity = require("kity"), RES_CONF = require("sysconf").resource, FontInstall = require("font/installer"), Formula = require("formula");
+    return createResourceManager(kity, RES_CONF, FontInstall, Formula);
 });
 define("signgroup", [ "kity", "def/gtype" ], function(require, exports, module) {
     var kity = require("kity"), GTYPE = require("def/gtype");
