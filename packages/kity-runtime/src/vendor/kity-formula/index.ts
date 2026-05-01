@@ -8,6 +8,7 @@ export * from './text-factory';
 export * from './font-manager';
 export * from './sysconf';
 export * from './text';
+export * from './output';
 export * from './signgroup';
 export * from './expression';
 export * from './operator';
