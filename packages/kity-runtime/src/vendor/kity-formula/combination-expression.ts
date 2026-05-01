@@ -14,7 +14,7 @@ export class CombinationExpressionModule {
         CompoundExpression.call(this);
         this.setFlag("Combination");
         this.setOperator(new CombinationOperator());
-        kity.Utils.each(operands, function (operand: any, index: number) {
+        kity.Utils.each(operands, (operand: any, index: number) => {
           this.setOperand(operand, index);
         }, this);
       },
@@ -52,4 +52,3 @@ export class CombinationExpressionModule {
 }
 
 export const createCombinationExpressionClass = CombinationExpressionModule.create;
-
