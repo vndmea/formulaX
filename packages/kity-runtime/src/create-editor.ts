@@ -21,10 +21,6 @@ const DEFAULT_ASSET_BASE = '';
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
 const DEFAULT_EDITOR_HEIGHT = 'auto';
 
-type JQueryShim = {
-  get: (url: string, callback: (data: string, state: 'success' | 'error') => void) => void;
-};
-
 type EditorRuntimeFactory = {
   ready: (callback: (this: { execCommand: (name: string, value?: string) => void }) => void) => void;
 };
@@ -42,9 +38,8 @@ type EditorFactory = {
 type KityWindow = Window &
   typeof globalThis & {
     kity?: unknown;
-    jQuery?: JQueryShim;
-    $?: JQueryShim;
-    __kityFormulaRequire__?: (id: string) => unknown;
+    __kityFormulaRequire__?: <T = unknown>(id: string) => T | null;
+    __kityFormulaUse__?: <T = unknown>(id: string) => T | null;
     __FORMULAX_KITY_RUNTIME__?: {
       baseComponent?: unknown;
       baseUtils?: typeof legacyBaseUtils;
@@ -142,30 +137,6 @@ function normalizeCssSize(value: number | string | undefined, fallback: string) 
   return value ?? fallback;
 }
 
-function installMiniJQuery(runtimeWindow: KityWindow) {
-  if (runtimeWindow.jQuery?.get) {
-    return;
-  }
-
-  const shim: JQueryShim = {
-    get(url, callback) {
-      fetch(url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch ${url}`);
-          }
-
-          return response.arrayBuffer();
-        })
-        .then(() => callback('', 'success'))
-        .catch(() => callback('', 'error'));
-    },
-  };
-
-  runtimeWindow.jQuery = shim;
-  runtimeWindow.$ = shim;
-}
-
 function loadScript(src: string) {
   return new Promise<void>((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[data-kity-src="${src}"]`);
@@ -261,7 +232,6 @@ export async function ensureKityRuntime(options: Pick<KityEditorOptions, 'assetB
     const runtimeWindow = window as KityWindow;
 
     runtimeWindow.kf = runtimeWindow.kf ?? {};
-    installMiniJQuery(runtimeWindow);
 
     await loadScript(`${assetBase}/dev-lib/kitygraph.all.js`);
     installLegacyKityFormulaRuntime(runtimeWindow);
