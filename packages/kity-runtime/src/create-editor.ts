@@ -16,13 +16,16 @@ import { legacySysconf } from './vendor/legacy-sysconf';
 import { legacyUiDef } from './vendor/legacy-ui-def';
 import { createLegacyUiUtils } from './vendor/legacy-ui-utils';
 import { legacyBaseUtils } from './vendor/legacy-utils';
+import { installKityRuntime } from './kity/index';
 
 const DEFAULT_ASSET_BASE = '';
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
 const DEFAULT_EDITOR_HEIGHT = 'auto';
 
 type EditorRuntimeFactory = {
-  ready: (callback: (this: { execCommand: (name: string, value?: string) => void }) => void) => void;
+  ready: (
+    callback: (this: { execCommand: (name: string, value?: string) => void }) => void,
+  ) => void;
 };
 
 type EditorFactory = {
@@ -137,37 +140,6 @@ function normalizeCssSize(value: number | string | undefined, fallback: string) 
   return value ?? fallback;
 }
 
-function loadScript(src: string) {
-  return new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(`script[data-kity-src="${src}"]`);
-    if (existing) {
-      if (existing.dataset.loaded === 'true') {
-        resolve();
-        return;
-      }
-
-      existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = false;
-    script.dataset.kitySrc = src;
-    script.addEventListener(
-      'load',
-      () => {
-        script.dataset.loaded = 'true';
-        resolve();
-      },
-      { once: true },
-    );
-    script.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
-    document.head.appendChild(script);
-  });
-}
-
 function hydrateLegacyKf(runtimeWindow: KityWindow) {
   const requireFormula = runtimeWindow.__kityFormulaRequire__;
 
@@ -177,7 +149,9 @@ function hydrateLegacyKf(runtimeWindow: KityWindow) {
 
   runtimeWindow.kf = {
     ...(runtimeWindow.kf ?? {}),
-    ResourceManager: requireFormula('resource-manager') as NonNullable<KityWindow['kf']>['ResourceManager'],
+    ResourceManager: requireFormula('resource-manager') as NonNullable<
+      KityWindow['kf']
+    >['ResourceManager'],
     Operator: requireFormula('operator/operator'),
     Expression: requireFormula('expression/expression'),
     CompoundExpression: requireFormula('expression/compound'),
@@ -199,7 +173,9 @@ function hydrateLegacyKf(runtimeWindow: KityWindow) {
 function installLegacyRuntime(runtimeWindow: KityWindow) {
   runtimeWindow.__FORMULAX_KITY_RUNTIME__ = {
     baseComponent: runtimeWindow.kity
-      ? createLegacyBaseComponent(runtimeWindow.kity as { createClass: (name: string, definition: object) => unknown })
+      ? createLegacyBaseComponent(
+          runtimeWindow.kity as { createClass: (name: string, definition: object) => unknown },
+        )
       : undefined,
     baseUtils: legacyBaseUtils,
     boxType: legacyBoxType,
@@ -221,19 +197,17 @@ function installLegacyRuntime(runtimeWindow: KityWindow) {
   };
 }
 
-export async function ensureKityRuntime(options: Pick<KityEditorOptions, 'assetBase'> = {}) {
+export async function ensureKityRuntime(_options: Pick<KityEditorOptions, 'assetBase'> = {}) {
   if (runtimePromise) {
     return runtimePromise;
   }
-
-  const assetBase = normalizeAssetBase(options.assetBase);
 
   runtimePromise = (async () => {
     const runtimeWindow = window as KityWindow;
 
     runtimeWindow.kf = runtimeWindow.kf ?? {};
 
-    await loadScript(`${assetBase}/dev-lib/kitygraph.all.js`);
+    installKityRuntime(runtimeWindow);
     installLegacyKityFormulaRuntime(runtimeWindow);
     hydrateLegacyKf(runtimeWindow);
     installLegacyParserRuntime(runtimeWindow);
@@ -246,7 +220,10 @@ export async function ensureKityRuntime(options: Pick<KityEditorOptions, 'assetB
   return runtimePromise;
 }
 
-export async function createKityEditor(container: HTMLElement, options: KityEditorOptions = {}): Promise<KityEditorHandle> {
+export async function createKityEditor(
+  container: HTMLElement,
+  options: KityEditorOptions = {},
+): Promise<KityEditorHandle> {
   const assetBase = normalizeAssetBase(options.assetBase);
   const resourcePath = options.resource?.path ?? `${assetBase}/resource/`;
   const fontsize = options.render?.fontsize ?? 40;
