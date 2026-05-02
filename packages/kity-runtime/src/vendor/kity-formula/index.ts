@@ -3,6 +3,7 @@ export { default } from './install';
 export * from './gtype';
 export * from './script-type';
 export * from './char-conf';
+export * from './char-map';
 export * from './font-checker-template';
 export * from './text-factory';
 export * from './font-manager';
