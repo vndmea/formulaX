@@ -6,12 +6,14 @@ import { legacyOtherPosition } from '../vendor/other-position';
 
 type ToolbarConfig = Record<string, any>;
 
+type ToolbarCollection = ToolbarConfig[];
+
 const UI_ELE_TYPE = legacyEleType;
 const BOX_TYPE = legacyBoxType;
 const CHAR_POSITION = legacyCharPosition;
 const OTHER_POSITION = legacyOtherPosition;
 
-function each(list: any, callback: (item: any, index: any) => void) {
+function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: number | string) => void) {
   if (Array.isArray(list)) {
     list.forEach((item, index) => callback(item, index));
     return;
@@ -20,9 +22,9 @@ function each(list: any, callback: (item: any, index: any) => void) {
   Object.keys(list).forEach((key) => callback(list[key], key));
 }
 
-const ASSET_BASE = "assets/images/toolbar/";
+const ASSET_BASE = 'assets/images/toolbar/';
 
-    const config: ToolbarConfig[] = [ {
+    const config: ToolbarCollection = [ {
         type: UI_ELE_TYPE.DRAPDOWN_BOX,
         options: {
             button: {
@@ -430,7 +432,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     //--------------------------------------------- 初始化特殊字符区域以外的配置项
     ( function () {
 
-        var tmp = [],
+        let tmp = [],
             otherImageSrc = ASSET_BASE + "other.png",
             currentConf = [];
 
@@ -450,7 +452,7 @@ const ASSET_BASE = "assets/images/toolbar/";
 
             conf = conf.items;
 
-            for ( var i = 0, len = conf.length; i < len; i++ ) {
+            for ( let i = 0, len = conf.length; i < len; i++ ) {
                 currentConf = currentConf.concat( conf[ i ].content );
             }
 
@@ -459,7 +461,7 @@ const ASSET_BASE = "assets/images/toolbar/";
         // 添加定位信息
         each( currentConf, function ( conf ) {
 
-            var data = OTHER_POSITION[ conf.item.val ];
+            let data = OTHER_POSITION[ conf.item.val ];
 
             if ( !data ) {
                 return;
@@ -477,7 +479,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     // 基础数学
     ( function () {
 
-        var list = [
+        let list = [
                 "pm", "infty", "=", "sim", "times", "div", "!", "<", "ll", ">",
                 "gg", "leq", "geq", "mp", "cong", "equiv", "propto", "approx",
                 "forall", "partial", "surd", "cup", "cap", "varnothing", "%",
@@ -499,7 +501,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     // 希腊字符配置
     ( function () {
 
-        var greekList = [ {
+        let greekList = [ {
                 title: "小写",
                 values: [ "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega" ]
             }, {
@@ -534,7 +536,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     // 求反运算符
     ( function () {
 
-        var greekList = [ {
+        let greekList = [ {
                 title: "求反关系运算符",
                 values: [
                     "neq", "nless", "ngtr", "nleq", "ngeq", "nsim", "lneqq",
@@ -557,7 +559,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     // 字母类符号
     ( function () {
 
-        var list = [
+        let list = [
                 "aleph", "beth", "daleth", "gimel", "complement", "ell", "eth", "hbar",
                 "hslash", "mho", "partial", "wp", "circledS", "Bbbk", "Finv", "Game",
                 "Im", "Re"
@@ -574,7 +576,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     // 化箭头
     ( function () {
 
-        var list = [
+        let list = [
                 "gets", "to", "uparrow", "downarrow", "leftrightarrow", "updownarrow",
                 "Leftarrow", "Rightarrow", "Uparrow", "Downarrow", "Leftrightarrow",
                 "Updownarrow", "longleftarrow", "longrightarrow", "longleftrightarrow",
@@ -602,7 +604,7 @@ const ASSET_BASE = "assets/images/toolbar/";
     // 手写体
     ( function () {
 
-        var list = [ {
+        let list = [ {
                 title: "手写体",
                 values: [
                     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
@@ -685,7 +687,7 @@ const ASSET_BASE = "assets/images/toolbar/";
 
     function getIconContents ( keySet, imgSrc ) {
 
-        var result = [];
+        let result = [];
 
         each( keySet, function ( key ) {
 
