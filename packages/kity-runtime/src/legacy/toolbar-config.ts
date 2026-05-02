@@ -429,7 +429,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
         }
     } ];
 
-    //--------------------------------------------- 初始化特殊字符区域以外的配置项
+    //--------------------------------------------- Initialize items outside the special character area
     ( function () {
 
         let tmp = [],
@@ -458,7 +458,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
         } );
 
-        // 添加定位信息
+        // Add positioning metadata
         each( currentConf, function ( conf ) {
 
             let data = OTHER_POSITION[ conf.item.val ];
@@ -475,8 +475,8 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    //--------------------------------------------- 初始化特殊字符区域
-    // 基础数学
+    //--------------------------------------------- Initialize the special character area
+    // Basic mathematics
     ( function () {
 
         let list = [
@@ -498,7 +498,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    // 希腊字符配置
+    // Greek character configuration
     ( function () {
 
         let greekList = [ {
@@ -513,19 +513,19 @@ const ASSET_BASE = 'assets/images/toolbar/';
             } ],
             greekConfigList = config[ 2 ].options.box.group[ 1 ].items;
 
-        // 小写处理
+        // Lowercase handling
         greekConfigList.push( {
             title: greekList[ 0 ].title,
             content: getIconContents( greekList[ 0 ].values, ASSET_BASE + "char.png" )
         } );
 
-        // 大写处理
+        // Uppercase handling
         greekConfigList.push( {
             title: greekList[ 1 ].title,
             content: getIconContents( greekList[ 1 ].values, ASSET_BASE + "char.png" )
         } );
 
-        // 变体处理
+        // Variant handling
         greekConfigList.push( {
             title: greekList[ 2 ].title,
             content: getIconContents( greekList[ 2 ].values, ASSET_BASE + "char.png" )
@@ -533,7 +533,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    // 求反运算符
+    // Negated operators
     ( function () {
 
         let greekList = [ {
@@ -556,7 +556,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    // 字母类符号
+    // Letter-like symbols
     ( function () {
 
         let list = [
@@ -573,7 +573,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    // 化箭头
+    // Arrow symbols
     ( function () {
 
         let list = [
@@ -601,7 +601,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    // 手写体
+    // Script styles
     ( function () {
 
         let list = [ {
@@ -662,7 +662,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
         } );
 
-        // 手写体
+        // Script-style glyphs
         configList.push( {
             title: list[ 0 ].title,
             content: getIconContents( list[ 0 ].values, ASSET_BASE + "char.png" )
