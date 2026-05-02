@@ -506,7 +506,7 @@ function getTransformToElement(target: SVGGraphicsElement, source: SVGGraphicsEl
   try {
     return source.getScreenCTM()!.inverse().multiply(target.getScreenCTM()!);
   } catch {
-    throw new Error("Can not inverse source element' ctm.");
+    throw new Error("Unable to invert the source element's transformation matrix.");
   }
 }
 
@@ -535,29 +535,17 @@ function getTransformToElement(target: SVGGraphicsElement, source: SVGGraphicsEl
     case 'view':
     case 'top':
       if (target.getPaper()) {
-        const mat =
-          node.getTransformToElement !== undefined
-            ? node.getTransformToElement(target.getPaper().shapeNode)
-            : getTransformToElement(node, target.getPaper().shapeNode);
-        ctm = mat;
+        ctm = getTransformToElement(node, target.getPaper().shapeNode);
       }
       break;
     case 'parent':
       if (target.node.parentNode) {
-        const mat =
-          node.getTransformToElement !== undefined
-            ? node.getTransformToElement(target.node.parentNode)
-            : getTransformToElement(node, target.node.parentNode);
-        ctm = mat;
+        ctm = getTransformToElement(node, target.node.parentNode);
       }
       break;
     default:
       if (refer && (refer as any).node) {
-        const mat =
-          node.getTransformToElement !== undefined
-            ? node.getTransformToElement((refer as any).shapeNode || (refer as any).node)
-            : getTransformToElement(node, (refer as any).shapeNode || (refer as any).node);
-        ctm = mat;
+        ctm = getTransformToElement(node, (refer as any).shapeNode || (refer as any).node);
       }
   }
   return new Matrix(ctm.a, ctm.b, ctm.c, ctm.d, ctm.e, ctm.f);

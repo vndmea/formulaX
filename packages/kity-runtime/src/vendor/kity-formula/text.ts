@@ -61,7 +61,7 @@ export class TextModule {
           }
           const data = FontManager.getCharacterValue(input, currentFontFamily);
           if (!data) {
-            console.error(`${input}丢失`);
+            console.warn(`Missing glyph mapping for "${input}".`);
             return "";
           }
           return data;

@@ -274,23 +274,6 @@ const svg = {
   },
 };
 
-/* ===== EventHandler polyfill ===== */
-
-(function () {
-  function CustomEvent(event: string, params: any) {
-    params = params || {
-      bubbles: false,
-      cancelable: false,
-      detail: undefined,
-    };
-    const evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-    return evt;
-  }
-  CustomEvent.prototype = window.Event.prototype;
-  (window as any).CustomEvent = CustomEvent;
-})();
-
 /* ===== EventHandler ===== */
 
 const INNER_HANDLER_CACHE: Record<string, Record<string, any>> = {};
@@ -298,19 +281,11 @@ const USER_HANDLER_CACHE: Record<string, Record<string, any[]>> = {};
 let _guid = 0;
 
 function bindDomEvent(node: any, type: string, handler: any) {
-  if (node.addEventListener) {
-    node.addEventListener(type, handler, false);
-  } else {
-    node.attachEvent('on' + type, handler);
-  }
+  node.addEventListener(type, handler, false);
 }
 
 function deleteDomEvent(node: any, type: string, handler: any) {
-  if (node.removeEventListener) {
-    node.removeEventListener(type, handler, false);
-  } else {
-    node.detachEvent('on' + type, handler);
-  }
+  node.removeEventListener(type, handler, false);
 }
 
 function sendMessage(messageObj: any, type: string, msg?: any) {
@@ -472,13 +447,9 @@ const ShapeEvent = createClass<any>('ShapeEvent', {
     if (!evt) {
       return true;
     }
-    if (evt.preventDefault) {
-      evt.preventDefault();
-      return evt.cancelable;
-    } else {
-      evt.returnValue = false;
-      return true;
-    }
+
+    evt.preventDefault();
+    return evt.cancelable;
   },
 
   getPosition(refer?: any, touchIndex?: number) {
@@ -504,11 +475,8 @@ const ShapeEvent = createClass<any>('ShapeEvent', {
     if (!evt) {
       return true;
     }
-    if (evt.stopPropagation) {
-      evt.stopPropagation();
-    } else {
-      evt.cancelBubble = true;
-    }
+
+    evt.stopPropagation();
   },
 });
 
