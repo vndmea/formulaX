@@ -111,13 +111,13 @@ utils.flatten = function flatten(arr: any[]): any[] {
   return result;
 };
 
-utils.paralle = function paralle(v1: any, v2: any, op: (a: any, b: any) => any): any {
+const parallel = function parallel(v1: any, v2: any, op: (a: any, b: any) => any): any {
   let value: any;
 
   if (v1 instanceof Array) {
     value = [];
     for (let index = 0; index < v1.length; index++) {
-      value.push(utils.paralle(v1[index], v2[index], op));
+      value.push(parallel(v1[index], v2[index], op));
     }
     return value;
   }
@@ -127,7 +127,7 @@ utils.paralle = function paralle(v1: any, v2: any, op: (a: any, b: any) => any):
     if (Class && Class.parse) {
       v1 = v1.valueOf();
       v2 = v2.valueOf();
-      value = utils.paralle(v1, v2, op);
+      value = parallel(v1, v2, op);
       value = Class.parse(value);
     } else {
       value = {};
@@ -136,7 +136,7 @@ utils.paralle = function paralle(v1: any, v2: any, op: (a: any, b: any) => any):
           Object.prototype.hasOwnProperty.call(v1, name) &&
           Object.prototype.hasOwnProperty.call(v2, name)
         ) {
-          value[name] = utils.paralle(v1[name], v2[name], op);
+          value[name] = parallel(v1[name], v2[name], op);
         }
       }
     }
@@ -150,9 +150,12 @@ utils.paralle = function paralle(v1: any, v2: any, op: (a: any, b: any) => any):
   return value;
 };
 
+utils.parallel = parallel;
+utils.paralle = parallel;
+
 utils.parallelize = function parallelize(op: (a: any, b: any) => any) {
   return function (v1: any, v2: any) {
-    return utils.paralle(v1, v2, op);
+    return utils.parallel(v1, v2, op);
   };
 };
 

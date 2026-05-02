@@ -18,6 +18,7 @@ const mc = Matrix as unknown as MatrixConstructor;
 /* ===== Interfaces ===== */
 
 export interface EventHandlerInstance {
+  _EVENT_UID: number;
   _EVNET_UID: number;
   addEventListener(type: string | string[], handler: (...args: any[]) => any): EventHandlerInstance;
   addOnceEventListener(
@@ -280,6 +281,36 @@ const INNER_HANDLER_CACHE: Record<string, Record<string, any>> = {};
 const USER_HANDLER_CACHE: Record<string, Record<string, any[]>> = {};
 let _guid = 0;
 
+function getEventUid(target: { _EVENT_UID?: number; _EVNET_UID?: number }): number {
+  const eventUid = target._EVENT_UID ?? target._EVNET_UID;
+
+  if (eventUid === undefined) {
+    throw new Error('Event handler instance is missing an event uid.');
+  }
+
+  return eventUid;
+}
+
+function setLegacyEventUid(target: { _EVENT_UID?: number; _EVNET_UID?: number }, eventUid: number) {
+  target._EVENT_UID = eventUid;
+
+  if (Object.prototype.hasOwnProperty.call(target, '_EVNET_UID')) {
+    target._EVNET_UID = eventUid;
+    return;
+  }
+
+  Object.defineProperty(target, '_EVNET_UID', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return target._EVENT_UID;
+    },
+    set(value: number) {
+      target._EVENT_UID = value;
+    },
+  });
+}
+
 function bindDomEvent(node: any, type: string, handler: any) {
   node.addEventListener(type, handler, false);
 }
@@ -289,7 +320,7 @@ function deleteDomEvent(node: any, type: string, handler: any) {
 }
 
 function sendMessage(messageObj: any, type: string, msg?: any) {
-  const handlers = INNER_HANDLER_CACHE[messageObj._EVNET_UID];
+  const handlers = INNER_HANDLER_CACHE[getEventUid(messageObj)];
   if (!handlers) {
     return;
   }
@@ -302,7 +333,7 @@ function sendMessage(messageObj: any, type: string, msg?: any) {
 }
 
 function listen(node: any, type: string, handler: any, isOnce: boolean, targetObject: any) {
-  const eid = targetObject._EVNET_UID;
+  const eid = getEventUid(targetObject);
 
   if (!INNER_HANDLER_CACHE[eid]) {
     INNER_HANDLER_CACHE[eid] = {};
@@ -355,7 +386,7 @@ function _addEvent(this: any, type: string | string[], handler: any, isOnce?: bo
 }
 
 function _removeEvent(this: any, type: string, handler?: any) {
-  const eventId = this._EVNET_UID as string;
+  const eventId = String(getEventUid(this));
   const userHandlerList = USER_HANDLER_CACHE[eventId]![type];
   let isRemoveAll = handler === undefined;
 
@@ -380,7 +411,7 @@ function _removeEvent(this: any, type: string, handler?: any) {
 
 const EventHandler = createClass<EventHandlerInstance>('EventHandler', {
   constructor() {
-    this._EVNET_UID = ++_guid;
+    setLegacyEventUid(this, ++_guid);
   },
 
   addEventListener(type: any, handler: any) {

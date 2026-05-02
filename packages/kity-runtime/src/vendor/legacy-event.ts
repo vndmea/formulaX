@@ -5,10 +5,39 @@ const eventListenerStore: Record<number, Record<string, Array<((event: Event) =>
 let eventId = 0;
 let beforeResult = true;
 
-const eventHandler = function eventHandler(this: EventTarget & { __kfe_eid?: number }, event: Event) {
+type LegacyEventTarget = EventTarget & {
+  __kfeEventId?: number;
+  __kfe_eid?: number;
+};
+
+function getLegacyEventId(target: LegacyEventTarget) {
+  return target.__kfeEventId ?? target.__kfe_eid;
+}
+
+function setLegacyEventId(target: LegacyEventTarget, resolvedEventId: number) {
+  target.__kfeEventId = resolvedEventId;
+
+  if (Object.prototype.hasOwnProperty.call(target, '__kfe_eid')) {
+    target.__kfe_eid = resolvedEventId;
+    return;
+  }
+
+  Object.defineProperty(target, '__kfe_eid', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return target.__kfeEventId;
+    },
+    set(value: number) {
+      target.__kfeEventId = value;
+    },
+  });
+}
+
+const eventHandler = function eventHandler(this: LegacyEventTarget, event: Event) {
   const type = event.type;
   const target = event.target as EventTarget;
-  const eid = this.__kfe_eid as number;
+  const eid = getLegacyEventId(this) as number;
   const hasAutoTrigger = /^(?:before|after)/.test(type);
   const handlerList = eventListenerStore[eid]?.[type] ?? [];
 
@@ -40,16 +69,16 @@ const eventHandler = function eventHandler(this: EventTarget & { __kfe_eid?: num
 };
 
 export const legacyEventListener = {
-  addEvent(target: EventTarget & { __kfe_eid?: number }, type: string, handler: (event: Event) => boolean | void) {
+  addEvent(target: LegacyEventTarget, type: string, handler: (event: Event) => boolean | void) {
     let hasHandler = true;
 
-    if (!target.__kfe_eid) {
+    if (!getLegacyEventId(target)) {
       hasHandler = false;
-      target.__kfe_eid = ++eventId;
-      eventListenerStore[target.__kfe_eid] = {};
+      setLegacyEventId(target, ++eventId);
+      eventListenerStore[getLegacyEventId(target) as number] = {};
     }
 
-    const eventCache = eventListenerStore[target.__kfe_eid];
+    const eventCache = eventListenerStore[getLegacyEventId(target) as number];
 
     if (!eventCache[type]) {
       hasHandler = false;
