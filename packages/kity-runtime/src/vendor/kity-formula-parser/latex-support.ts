@@ -17,10 +17,10 @@ _p[2] = {
         let Utils = _p.r(4);
         function rpn(units) {
             let signStack = [], currentUnit = null;
-            // 先处理函数
+            // Process functions first
             units = processFunction(units);
             while (currentUnit = units.shift()) {
-                // 移除brackets中外层包裹的combination节点
+                // Remove the combination node wrapped outside brackets
                 if (currentUnit.name === "combination" && currentUnit.operand.length === 1 && currentUnit.operand[0].name === "brackets") {
                     currentUnit = currentUnit.operand[0];
                 }
@@ -30,19 +30,19 @@ _p[2] = {
                 }
                 signStack.push(currentUnit);
             }
-            // 要处理brackets被附加的包裹元素
+            // Handle brackets with attached wrapper elements
             return signStack;
         }
         /**
-     * “latex函数”处理器
-     * @param units 单元组
-     * @returns {Array} 处理过后的单元组
+     * "latex function" processor
+     * @param units Unit group
+     * @returns {Array} Processed unit group
      */
         function processFunction(units) {
             let processed = [], currentUnit = null;
             while ((currentUnit = units.pop()) !== undefined) {
                 if (currentUnit && typeof currentUnit === "object" && (currentUnit.sign === false || currentUnit.name === "function")) {
-                    // 预先处理不可作为独立符号的函数
+                    // Pre-process functions that cannot be independent symbols
                     let tt = currentUnit.handler(currentUnit, [], processed.reverse());
                     processed.unshift(tt);
                     processed.reverse();
@@ -57,7 +57,7 @@ _p[2] = {
 };
 
 /**
- * 从单元组构建树
+ * Build tree from unit group
  */
 _p[3] = {
     value: function(require) {
@@ -71,7 +71,7 @@ _p[3] = {
             }
             while (currentUnit = units.shift()) {
                 if (typeof currentUnit === "object" && currentUnit.handler) {
-                    // 后操作数
+                    // Post-operand
                     tree.push(currentUnit.handler(currentUnit, tree, units));
                 } else {
                     tree.push(currentUnit);
@@ -84,15 +84,15 @@ _p[3] = {
 };
 
 /**
- * 通用工具包
+ * Common utility package
  */
 _p[4] = {
     value: function(require) {
         let OPERATOR_LIST = _p.r(7), FUNCTION_LIST = _p.r(6), FUNCTION_HANDLER = _p.r(15), Utils = {
-            // 根据输入的latex字符串， 检测出该字符串所对应的kf的类型
+            // Detect the kf type based on input latex string
             getLatexType: function(str) {
                 str = str.replace(/^\\/, "");
-                // 操作符
+                // Operator
                 if (OPERATOR_LIST[str]) {
                     return "operator";
                 }
@@ -133,7 +133,7 @@ _p[4] = {
 };
 
 /**
- * 定义括号类型， 对于属于括号类型的符号或表达式， 则可以应用brackets函数处理
+ * Define bracket types - symbols or expressions belonging to bracket types can be processed by the brackets function
  */
 _p[5] = {
     value: function() {
@@ -152,7 +152,7 @@ _p[5] = {
 };
 
 /**
- * 函数列表
+ * Function list
  */
 _p[6] = {
     value: function() {
@@ -194,7 +194,7 @@ _p[6] = {
 };
 
 /**
- * 操作符列表
+ * Operator list
  */
 _p[7] = {
     value: function(require) {
@@ -268,21 +268,21 @@ _p[7] = {
 };
 
 /**
- * 预处理器列表
+ * Preprocessor list
  */
 _p[8] = {
     value: function(require) {
         return {
-            // 积分预处理器
+            // Integration preprocessor
             "int": _p.r(26),
-            // 引号预处理
+            // Quote preprocessor
             quot: _p.r(27)
         };
     }
 };
 
 /*!
- * 逆解析对照表
+ * Reverse parsing mapping table
  */
 _p[9] = {
     value: function(require) {
@@ -306,7 +306,7 @@ _p[9] = {
 };
 
 /*!
- * 特殊字符定义
+ * Special character definition
  */
 _p[10] = {
     value: function() {
@@ -325,7 +325,7 @@ _p[10] = {
 };
 
 /**
- * 操作符类型定义
+ * Operator type definition
  */
 _p[11] = {
     value: function() {
@@ -337,13 +337,13 @@ _p[11] = {
 };
 
 /*!
- * 括号处理器
+ * Bracket processor
  */
 _p[12] = {
     value: function(require) {
         let BRACKETS_TYPE = _p.r(5);
         return function(info, processedStack, unprocessedStack) {
-            // 括号验证
+            // Bracket validation
             for (let i = 0, len = info.params.length; i < len; i++) {
                 if (!(info.params[i] in BRACKETS_TYPE)) {
                     throw new Error("Brackets: invalid params");
@@ -359,7 +359,7 @@ _p[12] = {
 };
 
 /*!
- * 合并处理(特殊处理函数)
+ * Merge processing (special processing function)
  */
 _p[13] = {
     value: function() {
@@ -373,15 +373,15 @@ _p[13] = {
 };
 
 /*!
- * 分数函数处理器
+ * Fraction function processor
  */
 _p[14] = {
     value: function() {
-        // 处理函数接口
+        // Process function interface
         return function(info, processedStack, unprocessedStack) {
-            let numerator = unprocessedStack.shift(), // 分子
+            let numerator = unprocessedStack.shift(), // Numerator
             denominator = unprocessedStack.shift();
-            // 分母
+            // Denominator
             if (numerator === undefined || denominator === undefined) {
                 throw new Error("Frac: Syntax Error");
             }
@@ -393,12 +393,12 @@ _p[14] = {
 };
 
 /*!
- * 函数表达式处理器
+ * Function expression processor
  */
 _p[15] = {
     value: function(require) {
         let ScriptExtractor = _p.r(17);
-        // 处理函数接口
+        // Process function interface
         return function(info, processedStack, unprocessedStack) {
             let params = ScriptExtractor.exec(unprocessedStack);
             info.operand = [ info.params, params.expr, params.superscript, params.subscript ];
@@ -410,7 +410,7 @@ _p[15] = {
 };
 
 /*!
- * 积分函数处理器
+ * Integration function processor
  */
 _p[16] = {
     value: function(require) {
@@ -421,7 +421,7 @@ _p[16] = {
                 params.expr = params.expr.handler(params.expr, processedStack, unprocessedStack);
             }
             info.operand = [ params.expr, params.superscript, params.subscript ];
-            // 参数配置调用
+            // Argument configuration call
             info.callFn = {
                 setType: [ count | 0 ]
             };
@@ -432,13 +432,13 @@ _p[16] = {
 };
 
 /*!
- * 通用上下标提取器
+ * Common superscript/subscript extractor
  */
 _p[17] = {
     value: function() {
         return {
             exec: function(stack) {
-                // 提取上下标
+                // Extract superscript/subscript
                 let result = extractScript(stack), expr = stack.shift();
                 if (expr && expr.name && expr.name.indexOf("script") !== -1) {
                     throw new Error("Script: syntax error!");
@@ -484,7 +484,7 @@ _p[17] = {
 };
 
 /*!
- * 双线处理
+ * Double-struck processing
  */
 _p[18] = {
     value: function() {
@@ -508,7 +508,7 @@ _p[18] = {
 };
 
 /*!
- * 手写体处理
+ * Script/Cursive style processing
  */
 _p[19] = {
     value: function() {
@@ -532,7 +532,7 @@ _p[19] = {
 };
 
 /*!
- * 花体处理
+ * Fraktur/Old German style processing
  */
 _p[20] = {
     value: function() {
@@ -556,7 +556,7 @@ _p[20] = {
 };
 
 /*!
- * 罗马处理
+ * Roman style processing
  */
 _p[21] = {
     value: function() {
@@ -580,11 +580,11 @@ _p[21] = {
 };
 
 /*!
- * 上下标操作符函数处理
+ * Superscript/subscript operator function processing
  */
 _p[22] = {
     value: function() {
-        // 处理函数接口
+        // Process function interface
         return function(info, processedStack, unprocessedStack) {
             let base = processedStack.pop(), script = unprocessedStack.shift() || null;
             if (!script) {
@@ -594,7 +594,7 @@ _p[22] = {
             if (base.name === info.name || base.name === "script") {
                 throw new Error("script error");
             }
-            // 执行替换
+            // Execute replacement
             if (base.name === "subscript") {
                 base.name = "script";
                 base.operand[2] = base.operand[1];
@@ -606,7 +606,7 @@ _p[22] = {
                 return base;
             }
             info.operand = [ base, script ];
-            // 删除处理器
+            // Delete processor
             delete info.handler;
             return info;
         };
@@ -614,14 +614,14 @@ _p[22] = {
 };
 
 /*!
- * 方根函数处理器
+ * Square root function processor
  */
 _p[23] = {
     value: function(require) {
         let mergeHandler = _p.r(13);
-        // 处理函数接口
+        // Process function interface
         return function(info, processedStack, unprocessedStack) {
-            let exponent = unprocessedStack.shift(), tmp = null, // 被开方数
+            let exponent = unprocessedStack.shift(), tmp = null, // Radicand
             radicand = null;
             if (exponent === "[") {
                 exponent = [];
@@ -649,7 +649,7 @@ _p[23] = {
 };
 
 /*!
- * 求和函数处理器
+ * Summation function processor
  */
 _p[24] = {
     value: function(require) {
@@ -664,7 +664,7 @@ _p[24] = {
 };
 
 /**
- * Kity Formula Latex解析器实现
+ * Kity Formula Latex parser implementation
  */
 /* jshint forin: false */
 }

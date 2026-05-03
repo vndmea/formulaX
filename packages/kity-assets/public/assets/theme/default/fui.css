@@ -1,8 +1,8 @@
 /**
- * 所有构件样式规则
+ * All component style rules
  **/
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -55,10 +55,10 @@
 }
 
 /**
- * 容器类通用样式
+ * Container common styles
  **/
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -73,7 +73,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -100,10 +100,10 @@
 }
 
 /**
- * 通用button
+ * Common button
  */
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -156,7 +156,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -217,16 +217,16 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
 
 /**
- * 通用button
+ * Common button
  */
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -260,7 +260,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -337,7 +337,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -359,7 +359,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -374,7 +374,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -392,7 +392,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -418,7 +418,7 @@
 }
 
 /**
- * 通用button
+ * Common button
  */
 .fui-mask {
   position: fixed;
@@ -426,7 +426,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -443,10 +443,10 @@
 }
 
 /**
- * 通用button
+ * Common button
  */
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -473,7 +473,7 @@
 }
 
 /**
- * 通用button
+ * Common button
  */
 .fui-ppanel::-webkit-scrollbar {
   width: 15px;
@@ -491,7 +491,7 @@
 }
 
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -513,10 +513,10 @@
 }
 
 /**
- * 通用button
+ * Common button
  */
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/
@@ -525,10 +525,10 @@
 }
 
 /**
- * 可切换Button (ToggleButton)
+ * Toggleable Button
  */
 /**
- * FUI 通用样式定义
+ * FUI common style definitions
  */
 /*------------ var*/
 /*------------ mixin*/

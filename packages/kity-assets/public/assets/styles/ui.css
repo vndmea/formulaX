@@ -1,4 +1,4 @@
-/* 工具栏 */
+/* Toolbar */
 .kf-editor-toolbar {
     width: 100%;
     flex: 0 0 auto;
@@ -17,7 +17,7 @@
     font-family: Helvetica, Arial, "微软雅黑", "Microsoft YaHei", "宋体", sans-serif;
 }
 
-/* 按钮 */
+/* Button */
 .kf-editor-inner-toolbar {
     width: 100%;
 }
@@ -110,7 +110,7 @@
     background: #61b864!important;
 }
 
-/* 分割符 */
+/* Delimiter */
 .kf-editor-ui-delimiter {
     width: 11px;
     height: 100%;
@@ -410,7 +410,7 @@
     visibility: hidden;
 }
 
-/* area 内容区 */
+/* area content area */
 .kf-editor-ui-area-item {
     width: 26px;
     height: 26px;
@@ -484,24 +484,24 @@
     height: 5px;
     background: url(../images/scrollbar/custom/down.png) 0 0 repeat-y white;
 }
-/*定义滚动条渐减按扭的样式 */
+/* Define styles for scrollbar decrement button */
 .kf-editor-ui-box::-webkit-scrollbar-button:start:decrement {
     height: 5px;
     background: url(../images/scrollbar/custom/up.png) 0 0 repeat-y white;
 }
 
-/* 垂直滚动条的第三层轨道的上段 */
+/* Upper segment of vertical scrollbar track piece */
 .kf-editor-ui-box::-webkit-scrollbar-track-piece:vertical:start {
     background-image: url(../images/scrollbar/custom/top.png), url(../images/scrollbar/custom/bg.png);
     background-repeat: no-repeat, repeat-y;
 }
-/* 垂直滚动条的第三层轨道的下段 */
+/* Lower segment of vertical scrollbar track piece */
 .kf-editor-ui-box::-webkit-scrollbar-track-piece:vertical:end {
     background-image: url(../images/scrollbar/custom/bottom.png), url(../images/scrollbar/custom/bg.png);
     background-repeat: no-repeat, repeat-y;
     background-position: 0 bottom, 0 0;
 }
-/* 垂直滚动条的滑动块 */
+/* Vertical scrollbar thumb */
 .kf-editor-ui-box::-webkit-scrollbar-thumb:vertical {
     /*background: url(./images2/bar.png) 6px 0 no-repeat;*/
     /*background-size: 6px;*/
@@ -518,24 +518,24 @@
     height: 5px;
     background: url(../images/scrollbar/custom/down.png) 0 0 repeat-y white;
 }
-/*定义滚动条渐减按扭的样式 */
+/* Define styles for scrollbar decrement button */
 .kf-editor-ui-wrap-group::-webkit-scrollbar-button:start:decrement {
     height: 5px;
     background: url(../images/scrollbar/custom/up.png) 0 0 repeat-y white;
 }
 
-/* 垂直滚动条的第三层轨道的上段 */
+/* Upper segment of vertical scrollbar track piece */
 .kf-editor-ui-wrap-group::-webkit-scrollbar-track-piece:vertical:start {
     background-image: url(../images/scrollbar/custom/top.png), url(../images/scrollbar/custom/bg.png);
     background-repeat: no-repeat, repeat-y;
 }
-/* 垂直滚动条的第三层轨道的下段 */
+/* Lower segment of vertical scrollbar track piece */
 .kf-editor-ui-wrap-group::-webkit-scrollbar-track-piece:vertical:end {
     background-image: url(../images/scrollbar/custom/bottom.png), url(../images/scrollbar/custom/bg.png);
     background-repeat: no-repeat, repeat-y;
     background-position: 0 bottom, 0 0;
 }
-/* 垂直滚动条的滑动块 */
+/* Vertical scrollbar thumb */
 .kf-editor-ui-wrap-group::-webkit-scrollbar-thumb:vertical {
     -webkit-border-image: url(../images/scrollbar/custom/bar.png) 8;
     border-width: 10px;

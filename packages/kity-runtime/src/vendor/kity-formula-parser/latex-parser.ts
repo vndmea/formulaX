@@ -33,7 +33,7 @@ _p[25] = {
                     }
                     REVERSE_DEFINE[key.replace(/\\/g, "")] = reverseObj[key];
                 }
-                // 预处理
+                // Preprocess
                 if (preObj) {
                     for (let key in preObj) {
                         if (!preObj.hasOwnProperty(key)) {
@@ -43,13 +43,13 @@ _p[25] = {
                     }
                 }
             },
-            // 格式化输入数据
+            // Format input data
             format: function(input) {
-                // 清理多余的空格
+                // Clear extra spaces
                 input = clearEmpty(input);
-                // 处理输入的“{”和“}”
+                // 处理输入的“{”和“}�?
                 input = input.replace(clearCharPattern, "").replace(/\\{/gi, leftChar).replace(/\\}/gi, rightChar);
-                // 预处理器处理
+                // Preprocessor processing
                 for (let key in PRE_HANDLER) {
                     if (PRE_HANDLER.hasOwnProperty(key)) {
                         input = PRE_HANDLER[key](input);
@@ -69,13 +69,13 @@ _p[25] = {
                 return units;
             },
             /**
-         * 根据解析出来的语法单元生成树
-         * @param units 单元
-         * @return 生成的树对象
-         */
+          * Generate tree from parsed syntax units
+          * @param units Units
+          * @return Generated tree object
+          */
             generateTree: function(units) {
                 let tree = [], currentUnit = null;
-                // 递归处理
+                // Recursive processing
                 while (currentUnit = units.shift()) {
                     if (Utils.isArray(currentUnit)) {
                         tree.push(this.generateTree(currentUnit));
@@ -102,22 +102,22 @@ _p[25] = {
                         group = groupStack.pop();
                         break;
 
-                      // left-right分组
+                      // left-right grouping
                         case "\\left":
                         bracketsCount++;
                         groupStack.push(group);
-                        // 进入两层
+                        // Enter two levels
                         group.push([ [] ]);
                         group = group[group.length - 1][0];
                         group.type = "brackets";
-                        // 读取左括号
+                        // Read left bracket
                         i++;
                         group.leftBrackets = units[i].replace(leftCharPattern, "{").replace(rightCharPattern, "}");
                         break;
 
                       case "\\right":
                         bracketsCount--;
-                        // 读取右括号
+                        // Read right bracket
                         i++;
                         group.rightBrackets = units[i].replace(leftCharPattern, "{").replace(rightCharPattern, "}");
                         group = groupStack.pop();
@@ -141,13 +141,13 @@ _p[25] = {
                 for (let i = 0, len = units.length; i < len; i++) {
                     if (Utils.isArray(units[i])) {
                         if (units[i].type === "brackets") {
-                            // 处理自动调整大小的括号组
-                            // 获取括号组定义
+                            // Handle auto-sized bracket groups
+                            // Get bracket group definition
                             structs.push(Utils.getBracketsDefine(units[i].leftBrackets, units[i].rightBrackets));
-                            // 处理内部表达式
+                            // Handle internal expression
                             structs.push(this.parseToStruct(units[i]));
                         } else {
-                            // 普通组
+                            // Normal group
                             structs.push(this.parseToStruct(units[i]));
                         }
                     } else {
@@ -157,11 +157,11 @@ _p[25] = {
                 return structs;
             }
         }));
-        /**
-     * 把序列化的字符串表示法转化为中间格式的结构化表示
-     */
+         /**
+      * Convert serialized string representation to structured intermediate format
+      */
         function parseStruct(str) {
-            // 特殊控制字符优先处理
+            // Special control characters take priority
             if (isSpecialCharacter(str)) {
                 return str.substring(1);
             }
@@ -177,7 +177,7 @@ _p[25] = {
                 return transformSpecialCharacters(str);
             }
         }
-        // 转换特殊的文本字符
+        // Transform special text characters
         function transformSpecialCharacters(char) {
             if (char.indexOf("\\") === 0) {
                 return char + "\\";
@@ -199,7 +199,7 @@ _p[25] = {
 };
 
 /**
- * “开方”预处理器
+ * "Square root" preprocessor
  */
 _p[26] = {
     value: function() {
@@ -212,26 +212,26 @@ _p[26] = {
 };
 
 /**
- * “双引号”预处理器
+ * "Double quote" preprocessor
  */
 _p[27] = {
     value: function() {
         return function(input) {
-            return input.replace(/``/g, "“");
+            return input.replace(/``/g, "�?);
         };
     }
 };
 
 /*!
- * 逆解析处理函数: brackets
+ * Reverse parsing handler: brackets
  */
 _p[28] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 左符号
-     * 1: 右符号
-     * 2: 表达式
+     * Operand mapping table
+     * 0: Left symbol
+     * 1: Right symbol
+     * 2: Expression
      */
         return function(operands) {
             if (operands[0] === "{" || operands[0] === "}") {
@@ -246,7 +246,7 @@ _p[28] = {
 };
 
 /*!
- * 逆解析处理函数：combination
+ * Reverse parsing handler: combination
  */
 _p[29] = {
     value: function() {
@@ -260,7 +260,7 @@ _p[29] = {
 };
 
 /*!
- * 逆解析处理函数: fraction
+ * Reverse parsing handler: fraction
  */
 _p[30] = {
     value: function() {
@@ -271,23 +271,23 @@ _p[30] = {
 };
 
 /*!
- * 逆解析处理函数: func
+ * Reverse parsing handler: func
  */
 _p[31] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 函数名
-     * 1: 上标
-     * 2: 下标
+     * Operand mapping table
+     * 0: Function name
+     * 1: Superscript
+     * 2: Subscript
      */
         return function(operands) {
             let result = [ "\\" + operands[0] ];
-            // 上标
+            // Superscript
             if (operands[2]) {
                 result.push("^" + operands[2]);
             }
-            // 下标
+            // Subscript
             if (operands[3]) {
                 result.push("_" + operands[3]);
             }
@@ -300,18 +300,18 @@ _p[31] = {
 };
 
 /*!
- * 逆解析处理函数: integration
+ * Reverse parsing handler: integration
  */
 _p[32] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 上标
-     * 1: 下标
+     * Operand mapping table
+     * 0: Superscript
+     * 1: Subscript
      */
         return function(operands) {
             let result = [ "\\int " ];
-            // 修正多重积分的序列化
+            // Fix serialization of multiple integrals
             if (this.callFn && this.callFn.setType) {
                 result = [ "\\" ];
                 for (let i = 0, len = this.callFn.setType; i < len; i++) {
@@ -319,11 +319,11 @@ _p[32] = {
                 }
                 result.push("nt ");
             }
-            // 上标
+            // Superscript
             if (operands[1]) {
                 result.push("^" + operands[1]);
             }
-            // 下标
+            // Subscript
             if (operands[2]) {
                 result.push("_" + operands[2]);
             }
@@ -336,18 +336,7 @@ _p[32] = {
 };
 
 /*!
- * 逆解析处理函数: mathbb
- */
-_p[33] = {
-    value: function() {
-        return function(operands) {
-            return "\\mathbb{" + operands[0] + "}";
-        };
-    }
-};
-
-/*!
- * 逆解析处理函数: mathcal
+ * Reverse parsing handler: mathcal (mathscr)
  */
 _p[34] = {
     value: function() {
@@ -358,7 +347,7 @@ _p[34] = {
 };
 
 /*!
- * 逆解析处理函数: mathfrak
+ * Reverse parsing handler: mathfrak
  */
 _p[35] = {
     value: function() {
@@ -369,7 +358,7 @@ _p[35] = {
 };
 
 /*!
- * 逆解析处理函数: mathcal
+ * Reverse parsing handler: mathrm
  */
 _p[36] = {
     value: function() {
@@ -380,15 +369,15 @@ _p[36] = {
 };
 
 /*!
- * 逆解析处理函数: script
+ * Reverse parsing handler: script
  */
 _p[37] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 表达式
-     * 1: 上标
-     * 2: 下标
+     * Operand mapping table
+     * 0: Expression
+     * 1: Superscript
+     * 2: Subscript
      */
         return function(operands) {
             return operands[0] + "^" + operands[1] + "_" + operands[2];
@@ -397,18 +386,18 @@ _p[37] = {
 };
 
 /*!
- * 逆解析处理函数: sqrt
+ * Reverse parsing handler: sqrt
  */
 _p[38] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 表达式
-     * 1: 指数
+     * Operand mapping table
+     * 0: Expression
+     * 1: Exponent
      */
         return function(operands) {
             let result = [ "\\sqrt" ];
-            // 上标
+            // Exponent
             if (operands[1]) {
                 result.push("[" + operands[1] + "]");
             }
@@ -419,14 +408,14 @@ _p[38] = {
 };
 
 /*!
- * 逆解析处理函数: subscript
+ * Reverse parsing handler: subscript
  */
 _p[39] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 表达式
-     * 1: 下标
+     * Operand mapping table
+     * 0: Expression
+     * 1: Subscript
      */
         return function(operands) {
             return operands[0] + "_" + operands[1];
@@ -435,22 +424,22 @@ _p[39] = {
 };
 
 /*!
- * 逆解析处理函数: summation
+ * Reverse parsing handler: summation
  */
 _p[40] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 上标
-     * 1: 下标
+     * Operand mapping table
+     * 0: Superscript
+     * 1: Subscript
      */
         return function(operands) {
             let result = [ "\\sum " ];
-            // 上标
+            // Superscript
             if (operands[1]) {
                 result.push("^" + operands[1]);
             }
-            // 下标
+            // Subscript
             if (operands[2]) {
                 result.push("_" + operands[2]);
             }
@@ -463,14 +452,14 @@ _p[40] = {
 };
 
 /*!
- * 逆解析处理函数: superscript
+ * Reverse parsing handler: superscript
  */
 _p[41] = {
     value: function() {
         /**
-     * operands中元素对照表
-     * 0: 表达式
-     * 1: 上标
+     * Operand mapping table
+     * 0: Expression
+     * 1: Superscript
      */
         return function(operands) {
             return operands[0] + "^" + operands[1];
@@ -489,7 +478,7 @@ _p[42] = {
         };
         function reverseParse(tree, options) {
             let operands = [], reverseHandlerName = null, originalOperands = null;
-            // 字符串处理， 需要处理特殊字符
+            // String processing, need to handle special characters
             if (typeof tree !== "object") {
                 if (isSpecialCharacter(tree)) {
                     return "\\" + tree + " ";
@@ -498,7 +487,7 @@ _p[42] = {
                     return group + " ";
                 });
             }
-            // combination需要特殊处理, 重复嵌套的combination节点要删除
+            // combination needs special handling, nested combination nodes should be removed
             if (tree.name === "combination" && tree.operand.length === 1 && tree.operand[0].name === "combination") {
                 tree = tree.operand[0];
             }
@@ -524,6 +513,6 @@ _p[42] = {
 };
 
 /*!
- * Kity Formula 公式表示法Parser接口
+ * Kity Formula formula representation parser interface
  */
 }
