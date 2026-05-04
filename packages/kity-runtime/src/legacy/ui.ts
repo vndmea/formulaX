@@ -146,9 +146,7 @@ const UIComponent = kity.createClass('UIComponent', {
     const canvas = this.kfEditor.requestService('render.get.canvas') as LegacyFormulaCanvas;
     const contentContainer = canvas.getContentContainer();
 
-    if (this.canvasRect === null) {
-      this.canvasRect = this.canvasContainer.getBoundingClientRect();
-    }
+    this.canvasRect = this.canvasContainer.getBoundingClientRect();
 
     const contentRect = contentContainer.getRenderBox('paper');
 

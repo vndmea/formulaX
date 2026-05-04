@@ -50,16 +50,52 @@ export class FontInstallerModule {
 
     function preloadFont(doc: Document, fontInfo: FontInfo) {
       const view = doc.defaultView ?? window;
-      return view.fetch(fontInfo.meta.src, { method: "GET" }).then(() => undefined);
+      if (view.fetch) {
+        return view.fetch(fontInfo.meta.src, { method: "GET" }).then(() => undefined);
+      }
+      return Promise.resolve();
+    }
+
+    function waitForFontsReady(doc: Document, fontList: FontInfo[]): Promise<void> {
+      const view = doc.defaultView ?? window;
+      if (view.document.fonts) {
+        const fontLoadPromises = fontList.map((fontInfo) => {
+          return view.document.fonts.load(`50px "${fontInfo.meta.fontFamily}"`);
+        });
+        return Promise.all(fontLoadPromises)
+          .then(() => view.document.fonts.ready)
+          .then(() => {
+            return new Promise<void>((resolve) => {
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  resolve();
+                });
+              });
+            });
+          });
+      }
+      return Promise.resolve();
     }
 
     function complete(doc: Document, callback: () => void) {
       const view = doc.defaultView ?? window;
-      view.setTimeout(() => {
-        initFontSystemInfo(doc);
-        removeTmpNode();
-        callback();
-      }, 100);
+      const fontList = FontManager.getFontList();
+      const fontArray = Object.values(fontList) as FontInfo[];
+      waitForFontsReady(doc, fontArray)
+        .then(() => {
+          view.setTimeout(() => {
+            initFontSystemInfo(doc);
+            removeTmpNode();
+            callback();
+          }, 100);
+        })
+        .catch(() => {
+          view.setTimeout(() => {
+            initFontSystemInfo(doc);
+            removeTmpNode();
+            callback();
+          }, 100);
+        });
     }
 
     function applyFonts(doc: Document, fontInfo: FontInfo) {

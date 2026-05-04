@@ -276,6 +276,11 @@ const RenderComponent = kity.createClass('RenderComponent', {
     this.kfEditor.registerCommand('render', this, function (this: RenderComponentInstance, str: string) {
       this.render(str);
       this.kfEditor.requestService('ui.update.canvas.view');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          this.kfEditor.requestService('ui.update.canvas.view');
+        });
+      });
     });
 
     this.kfEditor.registerCommand('getPaper', this, this.getPaper);
