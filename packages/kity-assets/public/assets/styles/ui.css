@@ -461,10 +461,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    border-color: transparent;
 }
 
 .kf-editor-ui-area-item-text {
-    font-size: 18px;
+    font-size: 22px;
     line-height: 1;
     text-align: center;
     color: #000;
@@ -480,10 +481,11 @@
 
 /* unicode box items */
 .kf-editor-ui-box-item-text {
-    font-size: 12px;
+    font-size: 16px;
     line-height: 1;
     text-align: center;
     color: #000;
+    display: inline-block;
 }
 
 .kf-editor-ui-enabled {

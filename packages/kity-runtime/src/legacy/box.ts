@@ -224,7 +224,7 @@ const BoxItem = kity.createClass('BoxItem', {
 
     if (tmpContent.unicode) {
       const tmpNode = $$.ele(this.doc, 'span', {
-        className: `${cls} ${PREFIX}box-item-text`,
+        className: `${PREFIX}box-item-text`,
         content: tmpContent.unicode,
       }) as HTMLSpanElement;
 
