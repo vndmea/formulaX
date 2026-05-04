@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { legacyBoxType } from '../vendor/legacy-box-type';
 import { legacyEleType } from '../vendor/legacy-ele-type';
-import { legacyCharPosition } from '../vendor/char-position';
 import { legacyOtherPosition } from '../vendor/other-position';
 import { resolveUnicode } from '../formula-symbols';
 
@@ -11,7 +10,6 @@ type ToolbarCollection = ToolbarConfig[];
 
 const UI_ELE_TYPE = legacyEleType;
 const BOX_TYPE = legacyBoxType;
-const CHAR_POSITION = legacyCharPosition;
 const OTHER_POSITION = legacyOtherPosition;
 
 function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: number | string) => void) {
@@ -686,28 +684,6 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
     } )();
 
-    function getIconContents ( keySet, imgSrc ) {
-
-        let result = [];
-
-        each( keySet, function ( key ) {
-
-            if ( key.length > 1 ) {
-                key = "\\" + key;
-            }
-
-            result.push( {
-                key: key,
-                img: imgSrc,
-                pos: CHAR_POSITION[ key ]
-            } );
-
-        } );
-
-        return result;
-
-    }
-
     function getUnicodeContents ( keySet ) {
 
         let result = [];
@@ -721,23 +697,14 @@ const ASSET_BASE = 'assets/images/toolbar/';
             }
 
             const resolved = resolveUnicode(displayKey);
-
-            if (resolved) {
-                const item: any = {
-                    key: displayKey,
-                    unicode: resolved.char
-                };
-                if (resolved.fontFamily) {
-                    item.unicodeFont = resolved.fontFamily;
-                }
-                result.push( item );
-            } else {
-                result.push( {
-                    key: displayKey,
-                    img: ASSET_BASE + "char.png",
-                    pos: CHAR_POSITION[ displayKey ]
-                } );
+            const item: any = {
+                key: displayKey,
+                unicode: resolved ? resolved.char : displayKey
+            };
+            if (resolved?.fontFamily) {
+                item.unicodeFont = resolved.fontFamily;
             }
+            result.push( item );
 
         } );
 
