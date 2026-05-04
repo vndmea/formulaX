@@ -178,6 +178,23 @@ export class ScriptControllerModule {
         sub.translate((space.width - subBox.width) / 2, targetBox.height);
         target.translate((space.width - targetBox.width) / 2, 0);
         return space;
+      },
+      applyUpDownScript: function (target: any, sup: any, sub: any) {
+        sup.scale(this.options.zoom);
+        sub.scale(this.options.zoom);
+        const supBox = sup.getFixRenderBox();
+        const subBox = sub.getFixRenderBox();
+        const targetBox = target.getFixRenderBox();
+        const space = {
+          width: Math.max(targetBox.width, supBox.width, subBox.width),
+          height: supBox.height + targetBox.height + subBox.height,
+          top: supBox.height,
+          bottom: subBox.height
+        };
+        sup.translate((space.width - supBox.width) / 2, 0);
+        target.translate((space.width - targetBox.width) / 2, supBox.height);
+        sub.translate((space.width - subBox.width) / 2, supBox.height + targetBox.height);
+        return space;
       }
     });
   }
