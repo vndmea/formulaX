@@ -13,6 +13,8 @@ type BoxItemImage = {
   key?: string;
   label?: string;
   item?: BoxItemImage & { val: string };
+  unicode?: string;
+  unicodeFont?: string;
 };
 
 type BoxContentGroup = {
