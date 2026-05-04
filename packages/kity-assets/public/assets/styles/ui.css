@@ -117,12 +117,12 @@
     display: none;
 }
 
-.kf-editor-ui-enabled.kf-editor-ui-button:HOVER {
+.kf-editor-ui-enabled.kf-editor-ui-button:hover {
     border: 1px solid #a9d9ab;
     background: #ebf7e6;
 }
 
-.kf-editor-ui-enabled.kf-editor-ui-overlap-button:HOVER {
+.kf-editor-ui-enabled.kf-editor-ui-overlap-button:hover {
     border: 1px solid #53b856;
     background: #53b856;
 }
@@ -194,11 +194,11 @@
     margin: 4px;
 }
 
-.kf-editor-ui-box-item-content:HOVER {
+.kf-editor-ui-box-item-content:hover {
     border-color: #dff3df;
 }
 
-.kf-editor-ui-box-item-content:HOVER .kf-editor-ui-box-item-val {
+.kf-editor-ui-box-item-content:hover .kf-editor-ui-box-item-val {
     border-color: #6eb864;
 }
 
@@ -235,7 +235,7 @@
     left: 0;
 }
 
-.kf-editor-ui-area .kf-editor-ui-box-item-content:HOVER {
+.kf-editor-ui-area .kf-editor-ui-box-item-content:hover {
     border: 1px solid #dff3df;
 }
 
@@ -325,15 +325,15 @@
     background: url( "../images/toolbar/btn.png" ) -346px 0 no-repeat;
 }
 
-.kf-editor-ui-enabled .kf-editor-ui-area-button:HOVER {
+.kf-editor-ui-enabled .kf-editor-ui-area-button:hover {
     background-color: #e5e4e1;
 }
 
-.kf-editor-ui-enabled .kf-editor-ui-moveup-button:HOVER {
+.kf-editor-ui-enabled .kf-editor-ui-moveup-button:hover {
     background-color: #e5e4e1;
 }
 
-.kf-editor-ui-enabled .kf-editor-ui-movedown-button:HOVER {
+.kf-editor-ui-enabled .kf-editor-ui-movedown-button:hover {
     background-color: #e5e4e1;
 }
 
@@ -395,7 +395,7 @@
     background: url( ../../assets/images/toolbar/btn.png ) no-repeat -367px 0;
 }
 
-.kf-editor-ui-list-item:HOVER {
+.kf-editor-ui-list-item:hover {
     border-color: #beddbf;
     background-color: #ecf3e9;
 }
@@ -435,7 +435,7 @@
     transform: scale( 0.76 );
 }
 
-.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:HOVER {
+.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:hover {
     border-color: #dff3df;
 
     -webkit-transform: scale( 1 );
@@ -452,7 +452,7 @@
     transition: all 0.1s linear;
 }
 
-.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:HOVER .kf-editor-ui-area-item-img {
+.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:hover .kf-editor-ui-area-item-img {
     border-color: #6eb864;
 }
 
@@ -478,17 +478,36 @@
     transition: all 0.1s linear;
 }
 
-.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:HOVER .kf-editor-ui-area-item-text {
+.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:hover .kf-editor-ui-area-item-text {
     border-color: #6eb864;
 }
 
-/* unicode box items */
+/* unicode box items (popup) */
 .kf-editor-ui-box-item-text {
-    font-size: 16px;
-    line-height: 1;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 20px;
     text-align: center;
     color: #000;
+    border: 1px solid #808080;
+    font-family: "KF AMS MAIN", "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
     display: inline-block;
+    -webkit-transition: all 0.1s linear;
+    -moz-transition: all 0.1s linear;
+    transition: all 0.1s linear;
+
+    -webkit-transform: scale( 1 );
+    -moz-transform: scale( 1 );
+    transform: scale( 1 );
+}
+
+.kf-editor-ui-box-item:hover .kf-editor-ui-box-item-text {
+    border-color: #6eb864;
+
+    -webkit-transform: scale( 1.2 );
+    -moz-transform: scale( 1.2 );
+    transform: scale( 1.2 );
 }
 
 .kf-editor-ui-enabled {
@@ -499,9 +518,6 @@
     width: 34px;
     height: 34px;
     border: 1px solid white;
-}
-
-.kf-editor-ui-overlap-container .kf-editor-ui-box-item-content:HOVER {
 }
 
 .kf-editor-ui-overlap-container .kf-editor-ui-box-item-val {
