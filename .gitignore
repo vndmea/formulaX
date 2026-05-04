@@ -3,6 +3,7 @@ dist
 .pages-dist
 .turbo
 .vitest
+pnpm-lock.yaml
 coverage
 playwright-report
 test-results

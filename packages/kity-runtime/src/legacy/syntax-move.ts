@@ -39,11 +39,6 @@ type MoveComponentInstance = {
   rightMove: () => void;
 };
 
-const DIRECTION = {
-  LEFT: 'left',
-  RIGHT: 'right',
-} as const;
-
 const kity = getLegacyKity();
 
 function isRootNode(node: Element) {

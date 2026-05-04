@@ -84,7 +84,9 @@ export function normalizeMouseEvent(event: MouseEvent | WheelEvent): NormalizedM
 }
 
 export function createElement(doc: Document, name: 'text', options: string): Text;
+// eslint-disable-next-line no-redeclare
 export function createElement(doc: Document, name: string, options?: Exclude<ElementOptions, string>): HTMLElement;
+// eslint-disable-next-line no-redeclare
 export function createElement(doc: Document, name: string, options?: ElementOptions) {
   if (name === 'text') {
     return doc.createTextNode(typeof options === 'string' ? options : '');
