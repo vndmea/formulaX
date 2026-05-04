@@ -3,7 +3,6 @@
 import { createBinaryExpressionClass } from './binary-expression';
 import { createBracketsExpressionClass } from './brackets-expression';
 import { createBracketsOperatorClass } from './brackets-operator';
-import { createCanvgRuntime } from './canvg-runtime';
 import { CHAR_CONF } from './char-conf';
 import { createCharClass } from './char';
 import { CHAR_MAP } from './char-map';
@@ -97,8 +96,7 @@ export function installLegacyKityFormulaRuntime(target: KityFormulaRuntimeWindow
 
   const moduleFactories: RuntimeModuleFactories = {
     kity: () => runtimeWindow.kity,
-    'base/canvg': () => createCanvgRuntime(),
-    'base/output': () => createOutputClass(requireModule('kity'), requireModule('base/canvg')),
+    'base/output': () => createOutputClass(requireModule('kity')),
     'char/char': () => createCharClass(requireModule('kity'), requireModule('signgroup')),
     'char/conf': () => CHAR_CONF,
     'char/map': () => CHAR_MAP,

@@ -1,7 +1,6 @@
 export * from './create-editor';
 export * from './dom-utils';
 export * from './toolbar-assets';
-export * from './vendor/char-position';
 export * from './vendor/legacy-box-type';
 export * from './vendor/legacy-common';
 export * from './vendor/legacy-component';
@@ -17,4 +16,3 @@ export * from './vendor/legacy-sysconf';
 export * from './vendor/legacy-ui-def';
 export * from './vendor/legacy-ui-utils';
 export * from './vendor/legacy-utils';
-export * from './vendor/other-position';

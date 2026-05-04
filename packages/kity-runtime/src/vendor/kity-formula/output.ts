@@ -1,5 +1,5 @@
 export class OutputModule {
-  static create(kity: any, canvg: any) {
+  static create(kity: any) {
     return kity.createClass("Output", {
       constructor: function (formula: any) {
         this.formula = formula;
@@ -79,11 +79,13 @@ export class OutputModule {
       const canvas = getImageCanvas(doc, data.width, data.height, type);
       canvas.style.cssText = "position: absolute; top: 0; left: 100000px; z-index: -1;";
       doc.body.appendChild(canvas);
-      canvg(canvas, data.content);
-      doc.body.removeChild(canvas);
-      window.setTimeout(function () {
-        cb(canvas.toDataURL(type));
-      }, 50);
+      import('./canvg-runtime').then(({ createCanvgRuntime }) => {
+        createCanvgRuntime()(canvas, data.content);
+        doc.body.removeChild(canvas);
+        window.setTimeout(function () {
+          cb(canvas.toDataURL(type));
+        }, 50);
+      });
     }
 
     function isChromeCore() {
