@@ -44,6 +44,8 @@ const ScrollZoomController = kity.createClass('ScrollZoomController', {
     const max = this.options.max;
     const step = this.step;
 
+    if (!this.target) return;
+
     legacyBaseUtils.addEvent(this.target, 'mousewheel', (e: Event & { wheelDelta?: number }) => {
       e.preventDefault();
 

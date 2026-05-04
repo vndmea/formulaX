@@ -1,6 +1,7 @@
 import { legacyKfEvent } from './legacy-kfevent';
 
-const eventListenerStore: Record<number, Record<string, Array<((event: Event) => boolean | void) | undefined>>> = {};
+type KfEventHandler<T extends Event = Event> = (event: T) => boolean | void;
+const eventListenerStore: Record<number, Record<string, any[]>> = {};
 let eventId = 0;
 let beforeResult = true;
 
@@ -38,7 +39,7 @@ const eventHandler = function eventHandler(this: LegacyEventTarget, event: Event
   const target = event.target as EventTarget;
   const eid = getLegacyEventId(this) as number;
   const hasAutoTrigger = /^(?:before|after)/.test(type);
-  const handlerList = eventListenerStore[eid]?.[type] ?? [];
+  const handlerList: KfEventHandler[] = eventListenerStore[eid]?.[type] ?? [];
 
   if (!hasAutoTrigger) {
     legacyEventListener.trigger(target, `before${type}`);
@@ -50,10 +51,6 @@ const eventHandler = function eventHandler(this: LegacyEventTarget, event: Event
   }
 
   for (const handler of handlerList) {
-    if (!handler) {
-      continue;
-    }
-
     if (handler.call(target, event) === false) {
       beforeResult = false;
       break;
@@ -68,7 +65,7 @@ const eventHandler = function eventHandler(this: LegacyEventTarget, event: Event
 };
 
 export const legacyEventListener = {
-  addEvent(target: LegacyEventTarget, type: string, handler: (event: Event) => boolean | void) {
+  addEvent<T extends Event = Event>(target: LegacyEventTarget, type: string, handler: (event: T) => boolean | void) {
     let hasHandler = true;
 
     if (!getLegacyEventId(target)) {
