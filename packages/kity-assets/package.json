@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "Static assets for KityFormula legacy compatibility in FormulaX.",
+  "keywords": [
+    "formulax",
+    "kityformula",
+    "assets",
+    "legacy"
+  ],
   "files": [
     "public"
   ],

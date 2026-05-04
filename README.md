@@ -1,134 +1,78 @@
 # FormulaX
 
-FormulaX is a modern monorepo for building a web-based math formula editing platform with a Kity-inspired interaction model and a package-oriented architecture.
+English | [简体中文](./README.zh-CN.md)
 
-The long-term goal is to publish FormulaX as a family of reusable npm packages for:
+A modern formula editor workspace with legacy KityFormula compatibility, modular runtime loading, and pluggable renderers.
 
-- formula document modeling and commands
-- browser editing interactions
-- KaTeX rendering
-- host-editor integrations such as Tiptap and TinyMCE
-- reusable UI building blocks such as toolbars, symbol panels, and dialogs
+## What is FormulaX?
 
-The current repository focuses on Phase 1: a minimal but usable foundation.
+FormulaX is a modern formula editor project. The current implementation includes a compatibility runtime adapted from [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor, while progressively modularizing the legacy code for modern frontend tooling, npm packages, lazy loading, and editor integrations.
 
-## Status
+It is **not** an official KityFormula project. KityFormula-related code is kept as a legacy compatibility layer under the `@formulax/kity-runtime` package.
 
-Phase 1 currently includes:
+## Features
 
-- formula node model for text, fractions, superscript/subscript, square roots, and fenced groups
-- LaTeX parsing and serialization
-- KaTeX rendering adapter
-- Kity-style basic DOM interaction and path-based selection
-- minimal Tiptap and TinyMCE integration packages
-- example apps for standalone editing, Tiptap, and TinyMCE
-- unit tests for parser/serializer and adapters
-- DOM tests for the editor
+- Formula editing based on a legacy KityFormula-compatible runtime
+- LaTeX input and rendering support
+- Modular package structure with lazy-loaded chunks
+- SVG-based formula rendering
+- PNG/JPG export support loaded on demand (lazy-loaded canvg runtime)
+- Designed for future renderer and editor adapter extensions
+- Editor integrations: TipTap, TinyMCE
 
-Browser interaction tests are scaffolded with Playwright, but still require a local Chromium download.
+## Packages
 
-## Monorepo Layout
+Some packages are experimental and not yet published to npm.
 
-```text
-FormulaX/
-|- apps/
-|  |- playground/
-|  |- tiptap-demo/
-|  `- tinymce-demo/
-|- packages/
-|  |- core/
-|  |- editor/
-|  |- kity-assets/
-|  |- kity-runtime/
-|  |- renderer-katex/
-|  |- tiptap/
-|  `- tinymce/
-`- .changeset/
+| Package | Description |
+| --- | --- |
+| `@formulax/kity-runtime` | Legacy KityFormula runtime adapter for FormulaX |
+| `@formulax/core` | Core data model and shared utilities |
+| `@formulax/editor` | Modern formula editor foundation |
+| `@formulax/renderer-katex` | KaTeX-based renderer integration |
+| `@formulax/tiptap` | TipTap integration adapter |
+| `@formulax/tinymce` | TinyMCE integration adapter |
+| `@formulax/kity-assets` | Static assets for KityFormula legacy compatibility |
+
+## Playground
+
+Live demo: [https://vndmea.github.io/formulaX/playground/](https://vndmea.github.io/formulaX/playground/)
+
+## Architecture
+
+FormulaX keeps the legacy KityFormula runtime isolated in `@formulax/kity-runtime`. Large legacy modules are progressively split into lazy chunks:
+
+```
+FormulaX workspace
+├── @formulax/core (document model, LaTeX parser/serializer)
+├── @formulax/editor (DOM interaction, selection, keyboard handling)
+├── @formulax/kity-runtime (legacy compatibility layer)
+│   ├── KityFormula runtime (lazy-loaded chunk)
+│   ├── Parser runtime (lazy-loaded chunk)
+│   ├── Font maps & sprite position maps (embedded in lazy chunks)
+│   └── canvg export runtime (lazy-loaded, only when exporting to PNG/JPG)
+├── @formulax/renderer-katex (KaTeX rendering adapter)
+├── @formulax/tiptap (TipTap adapter)
+└── @formulax/tinymce (TinyMCE adapter)
 ```
 
-## Kity Migration
+This architecture allows:
+- Default entry remains lightweight without eagerly bundling the legacy runtime
+- Lazy loading of legacy runtime only when the formula editor is used
+- On-demand image export without shipping canvg in the main bundle
+- Future replacement of the KityFormula runtime with a modern renderer
 
-FormulaX is migrating toward the real `kityformula` source model to build a toolbar, layout, and interaction model that closely matches Kity and the equation ribbon in Word/WPS.
+## Legacy KityFormula Compatibility
 
-### Migration Packages
+The current editing runtime is based on a legacy compatibility layer adapted from Baidu FEX Team's [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor ecosystem.
 
-| Package | Purpose |
-|---------|---------|
-| `@formulax/kity-runtime` | Runtime bridge and editor bootstrap API |
-| `@formulax/kity-assets` | Static Kity assets served by workspace apps |
+FormulaX keeps this code under a dedicated runtime package (`@formulax/kity-runtime`) and treats it as a **compatibility backend** rather than the long-term public architecture.
 
-### Migration Status
-
-- Runtime package: Active editor bootstrap path
-- Asset package: Serves embedded Kity resources from the workspace
-- Playground: Loads Kity through `@formulax/kity-runtime`
-- Old adapter and toolbar experiments: Removed
-
-## Package Overview
-
-### `@formulax/core`
-
-The semantic heart of FormulaX.
-
-Responsibilities:
-
-- AST and document model
-- schema and node structure
-- selection and cursor state
-- command and transaction primitives
-- LaTeX import/export protocol
-
-This package is intended to remain host-agnostic.
-
-### `@formulax/editor`
-
-The generic browser editing layer.
-
-Responsibilities:
-
-- DOM rendering for formula nodes
-- keyboard handling
-- selection/path mapping
-- Kity-style minimal interaction surface
-
-This package should not contain Tiptap or TinyMCE-specific logic.
-
-### `@formulax/renderer-katex`
-
-Rendering adapter for KaTeX.
-
-Responsibilities:
-
-- convert FormulaX documents into KaTeX-friendly LaTeX
-- provide a thin rendering bridge around `katex.renderToString`
-
-### `@formulax/tiptap`
-
-Thin Tiptap integration layer.
-
-Responsibilities:
-
-- expose a FormulaX node extension
-- map host node attributes to FormulaX payloads
-
-### `@formulax/tinymce`
-
-Thin TinyMCE integration layer.
-
-Responsibilities:
-
-- generate and parse host-side formula markup
-- bridge TinyMCE content with FormulaX payloads
-
-### `@formulax/kity-runtime`
-
-Typed runtime bridge for loading the embedded Kity editor in modern apps.
-
-Responsibilities:
-
-- load Kity runtime assets
-- install compatibility shims
-- expose editor bootstrap APIs
+This approach:
+- Preserves existing formula rendering behavior
+- Modernizes packaging and lazy loading
+- Prepares for future renderer implementations
+- Enables integration with modern editors and frameworks
 
 ## Getting Started
 
@@ -143,7 +87,7 @@ Responsibilities:
 ```bash
 corepack enable
 corepack prepare pnpm@9.12.3 --activate
-corepack pnpm install
+pnpm install
 ```
 
 ### Development
@@ -151,65 +95,33 @@ corepack pnpm install
 Run the standalone playground:
 
 ```bash
-corepack pnpm dev
+pnpm dev
 ```
 
-Run the host-editor demos:
+Run editor integration demos:
 
 ```bash
-corepack pnpm dev:tiptap
-corepack pnpm dev:tinymce
+pnpm dev:tiptap
+pnpm dev:tinymce
 ```
 
-## GitHub Pages
+### Build
 
-The repository publishes a demo hub to GitHub Pages.
-
-Live URLs:
-
-- `https://vndmea.github.io/formulaX/`
-- `https://vndmea.github.io/formulaX/playground/`
-- `https://vndmea.github.io/formulaX/tiptap/`
-- `https://vndmea.github.io/formulaX/tinymce/`
-
-The deployment is driven by [`.github/workflows/deploy-pages.yml`](/e:/Code/formulaX/.github/workflows/deploy-pages.yml:1).
-
-## Workspace Scripts
-
-- `corepack pnpm dev`: start the standalone FormulaX playground
-- `corepack pnpm dev:tiptap`: start the Tiptap demo
-- `corepack pnpm dev:tinymce`: start the TinyMCE demo
-- `corepack pnpm build`: build all packages and demo apps
-- `corepack pnpm build:packages`: build workspace packages only
-- `corepack pnpm build:pages`: build the GitHub Pages demo hub into `.pages-dist`
-- `corepack pnpm test`: run Vitest
-- `corepack pnpm test:browser`: run Playwright browser tests
-- `corepack pnpm lint`: run ESLint
-- `corepack pnpm format`: run Prettier
-- `corepack pnpm typecheck`: run TypeScript type checking
+```bash
+pnpm build
+```
 
 ## Usage
 
+APIs are experimental and may change before the first stable npm release.
+
 ### Standalone Playground
 
-The simplest way to explore the current editor is the standalone playground app:
-
 ```bash
-corepack pnpm dev
+pnpm dev
 ```
 
-It includes:
-
-- the FormulaX editor surface
-- a LaTeX output preview
-- a KaTeX HTML preview
-- a toolbar and symbol panel
-
 ### Browser SDK (Vanilla JS)
-
-For projects without a bundler, use the browser bundles directly.
-
-Core only:
 
 ```html
 <script src="https://unpkg.com/@formulax/core/dist/browser/index.global.js"></script>
@@ -219,29 +131,7 @@ Core only:
 </script>
 ```
 
-Editor:
-
-```html
-<script src="https://unpkg.com/@formulax/editor/dist/browser/index.global.js"></script>
-<script>
-  const editor = new FormulaX.FormulaEditor({
-    root: document.getElementById('editor'),
-  });
-</script>
-```
-
-KaTeX adapter:
-
-```html
-<script src="https://unpkg.com/@formulax/renderer-katex/dist/browser/index.global.js"></script>
-<script>
-  const html = FormulaX.renderKatex(doc);
-</script>
-```
-
 ### Core Package
-
-Parse and serialize LaTeX:
 
 ```ts
 import { parseLatex, serializeLatex } from '@formulax/core';
@@ -249,43 +139,6 @@ import { parseLatex, serializeLatex } from '@formulax/core';
 const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
 ```
-
-Build editor state with commands:
-
-```ts
-import { createEmptyState, insertFraction, insertText } from '@formulax/core';
-
-let state = createEmptyState();
-state = insertText('x')(state);
-state = insertFraction()(state);
-```
-
-### Browser Editor Package
-
-```ts
-import { FormulaEditor } from '@formulax/editor';
-
-const root = document.getElementById('editor');
-
-if (!root) {
-  throw new Error('Editor root not found');
-}
-
-const editor = new FormulaEditor({
-  root,
-  onChange: (state) => {
-    console.log(state.doc);
-  },
-});
-```
-
-Current keyboard shortcuts:
-
-- `/`: insert fraction
-- `^`: insert superscript structure
-- `_`: insert subscript structure
-- `(`: insert fenced group
-- `Ctrl + R`: insert square root
 
 ### KaTeX Renderer
 
@@ -297,7 +150,7 @@ const doc = parseLatex('\\sqrt{x}');
 const html = renderKatex(doc);
 ```
 
-### Tiptap Integration
+### TipTap Integration
 
 ```ts
 import StarterKit from '@tiptap/starter-kit';
@@ -323,66 +176,43 @@ tinymce.init({
 const markup = createTinyMceFormulaMarkup('\\sqrt{x}');
 ```
 
-## Deployment
+## Workspace Scripts
 
-GitHub Pages deployment is driven by [`.github/workflows/deploy-pages.yml`](/e:/Code/formulaX/.github/workflows/deploy-pages.yml:1).
+- `pnpm dev` - Start the standalone FormulaX playground
+- `pnpm dev:tiptap` - Start the TipTap demo
+- `pnpm dev:tinymce` - Start the TinyMCE demo
+- `pnpm build` - Build all packages and demo apps
+- `pnpm build:packages` - Build workspace packages only
+- `pnpm build:pages` - Build GitHub Pages demo hub
+- `pnpm lint` - Run ESLint
+- `pnpm typecheck` - Run TypeScript type checking
+- `pnpm test` - Run Vitest unit tests
+- `pnpm test:browser` - Run Playwright browser tests
 
-Build the Pages artifact locally:
+## Acknowledgements / Attribution
 
-```bash
-corepack pnpm build:pages
-```
+FormulaX contains code adapted from Baidu FEX Team's [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor ecosystem.
 
-This generates:
+KityFormula-related code and assets retain their original copyright and license notices.
 
-- `.pages-dist/index.html`: demo hub landing page
-- `.pages-dist/playground/`: standalone playground
-- `.pages-dist/tiptap/`: Tiptap demo
-- `.pages-dist/tinymce/`: TinyMCE demo
+The original KityFormula project provided the foundational formula rendering engine and interaction model that powers the legacy compatibility runtime in `@formulax/kity-runtime`.
 
-## Testing
+KityFormula-related code in FormulaX is:
+- Kept isolated in `@formulax/kity-runtime` as a legacy compatibility layer
+- Not the long-term architecture of FormulaX
+- Intended to be replaced or significantly refactored in future versions
 
-The repository currently uses three test layers:
-
-- `packages/core/test`: parser, serializer, and command tests
-- `packages/editor/test`: DOM interaction tests
-- `packages/editor/test/browser`: Playwright browser interaction tests
-
-Commands:
-
-```bash
-corepack pnpm test
-corepack pnpm test:browser
-```
-
-Verified in this repository:
-
-- `corepack pnpm lint`
-- `corepack pnpm typecheck`
-- `corepack pnpm test`
-- `corepack pnpm build`
+FormulaX is not affiliated with Baidu or the original KityFormula project.
 
 ## Publishing Direction
 
-This repository is being shaped with future npm publishing in mind.
+Before public npm publishing, the following areas need further refinement:
 
-Expected publishing targets:
-
-- `@formulax/core`
-- `@formulax/editor`
-- `@formulax/kity-assets`
-- `@formulax/kity-runtime`
-- `@formulax/renderer-katex`
-- `@formulax/tiptap`
-- `@formulax/tinymce`
-
-Before publishing, the following areas still need tightening:
-
-- stable public APIs
-- package-level changelogs and release notes
-- declaration output cleanup and package export hardening
-- browser compatibility matrix
-- semver policy for document format changes
+- Stable public APIs for each package
+- Package-level changelogs and release notes
+- Declaration output cleanup and export hardening
+- Browser compatibility matrix
+- Semver policy for document format changes
 
 ## Design Principles
 
@@ -392,7 +222,11 @@ Before publishing, the following areas still need tightening:
 - Keep host integrations thin
 - Keep UI reusable and replaceable
 
-This separation keeps the formula model portable across editors, renderers, and products.
+## License
+
+**Note**: Before public npm publishing, license information for FormulaX and all included third-party components should be reviewed and finalized.
+
+KityFormula-related code and assets retain their original copyright and license notices.
 
 ## TODO
 
@@ -403,12 +237,6 @@ This separation keeps the formula model portable across editors, renderers, and 
 - Add richer command APIs for structural editing
 - Add better error recovery in the LaTeX parser
 - Add collaborative transaction hooks
-- Improve package build output for published type declarations
-- Add visual regression coverage for formula rendering
 - Complete Playwright browser test setup with downloaded browsers
-- Add docs for framework integrations beyond Tiptap and TinyMCE
+- Add docs for framework integrations beyond TipTap and TinyMCE
 - Prepare npm publishing workflow and release automation with Changesets
-
-## License
-
-MIT

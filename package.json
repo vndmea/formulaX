@@ -2,8 +2,26 @@
   "name": "formulax",
   "version": "0.1.0",
   "private": true,
-  "description": "FormulaX monorepo for a modern web formula editing platform.",
+  "description": "A modern formula editor workspace with legacy KityFormula compatibility and pluggable renderers.",
   "packageManager": "pnpm@9.12.3",
+  "keywords": [
+    "formula",
+    "math",
+    "math-editor",
+    "latex",
+    "svg",
+    "kityformula",
+    "editor",
+    "monorepo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vndmea/formulaX/issues"
+  },
+  "homepage": "https://vndmea.github.io/formulaX/",
   "scripts": {
     "build": "corepack pnpm -r --filter \"./packages/*\" --filter \"./apps/*\" build",
     "build:packages": "corepack pnpm -r --filter \"./packages/*\" build",

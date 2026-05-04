@@ -3,12 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "Legacy KityFormula runtime adapter for FormulaX.",
+  "keywords": [
+    "formulax",
+    "kityformula",
+    "kity",
+    "formula",
+    "math-editor",
+    "legacy-runtime",
+    "latex",
+    "svg"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
-  "types": "./src/index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
