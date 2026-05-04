@@ -1,4 +1,5 @@
 import { getLegacyKity } from '../vendor/runtime-interop';
+import { legacyBaseUtils } from '../vendor/legacy-utils';
 import type { LegacyEditorInstance } from './editor';
 
 type LegacyRectShape = {
@@ -57,10 +58,6 @@ type LocationComponentInstance = {
   getCursorLocation: () => { x: number; y: number };
   getIndex: (distance: number, groupInfo: GroupInfo) => number;
 };
-
-function getRect(node: Element) {
-  return node.getBoundingClientRect();
-}
 
 const kity = getLegacyKity() as LegacyKityWithRect;
 
@@ -185,8 +182,8 @@ const LocationComponent = kity.createClass('LocationComponent', {
     const isBefore = cursorInfo.endOffset === 0;
     const index = isBefore ? 0 : cursorInfo.endOffset - 1;
     const focusChild = groupInfo.content[index];
-    const paperContainerRect = getRect(this.paper.container.node);
-    const focusChildRect = getRect(focusChild);
+    const paperContainerRect = legacyBaseUtils.getRect(this.paper.container.node);
+    const focusChildRect = legacyBaseUtils.getRect(focusChild);
     const cursorTransform = this.cursorShape.getTransform(this.cursorShape);
     const canvasZoom = this.kfEditor.requestService('render.get.canvas.zoom') as number;
     const formulaZoom = this.paper.getZoom();
@@ -219,7 +216,7 @@ const LocationComponent = kity.createClass('LocationComponent', {
       index = i;
 
       const child = groupInfo.content[i];
-      const boundingRect = getRect(child);
+      const boundingRect = legacyBaseUtils.getRect(child);
 
       if (boundingRect.left < distance) {
         if (boundingRect.left + boundingRect.width / 2 < distance) {

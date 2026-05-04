@@ -74,10 +74,6 @@ function createElement(doc: Document, eleName: string, className: string) {
   return node;
 }
 
-function getRect(node: Element) {
-  return node.getBoundingClientRect();
-}
-
 function preventDefault(comp: ScrollbarInstance) {
   legacyBaseUtils.addEvent(comp.container, 'mousedown', (e: Event) => {
     e.preventDefault();
@@ -141,7 +137,7 @@ function thumbHandler(comp: ScrollbarInstance) {
 }
 
 function trackClickHandler(track: HTMLDivElement, comp: ScrollbarInstance, evt: MouseEvent) {
-  const trackRect = getRect(track);
+  const trackRect = legacyBaseUtils.getRect(track);
   const values = comp.values;
   const unitOffset = (values.viewWidth / (values.contentWidth - values.viewWidth)) * values.trackWidth;
   const clickOffset = evt.clientX - trackRect.left;
@@ -260,10 +256,10 @@ const Scrollbar = kity.createClass('Scrollbar', {
   },
 
   initSize(this: ScrollbarInstance) {
-    const leftBtnWidth = getRect(this.widgets!.leftButton).width;
-    const rightBtnWidth = getRect(this.widgets!.rightButton).width;
+    const leftBtnWidth = legacyBaseUtils.getRect(this.widgets!.leftButton).width;
+    const rightBtnWidth = legacyBaseUtils.getRect(this.widgets!.rightButton).width;
 
-    this.values.viewWidth = getRect(this.container).width;
+    this.values.viewWidth = legacyBaseUtils.getRect(this.container).width;
     this.values.trackWidth = this.values.viewWidth - leftBtnWidth - rightBtnWidth;
 
     this.widgets!.track.style.width = `${this.values.trackWidth}px`;
