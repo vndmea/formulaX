@@ -1,191 +1,102 @@
-const utils: Record<string, any> = {};
+import {
+  assign,
+  cloneDeep,
+  forEach,
+  isArray,
+  isBoolean,
+  isFunction,
+  isNumber,
+  isObject,
+  isRegExp,
+  isString,
+  flattenDeep,
+  get,
+  defaultTo,
+  merge,
+} from 'lodash-es';
 
-utils.each = function each(
-  obj: any,
-  iterator: (value: any, key: any, obj: any) => boolean | void,
-  context?: any,
-) {
-  if (obj === null || obj === undefined) {
-    return;
-  }
-  if (obj.length === +obj.length) {
-    for (let i = 0, l = obj.length; i < l; i++) {
-      if (iterator.call(context, obj[i], i, obj) === false) {
-        return false;
+export type KityUtils = {
+  each: typeof forEach;
+  extend: typeof assign;
+  deepExtend: typeof merge;
+  clone: typeof cloneDeep;
+  copy: typeof cloneDeep;
+  queryPath: typeof get;
+  getValue: typeof defaultTo;
+  flatten: typeof flattenDeep;
+  parallel: (v1: unknown, v2: unknown, op: (a: unknown, b: unknown) => unknown) => unknown;
+  paralle: (v1: unknown, v2: unknown, op: (a: unknown, b: unknown) => unknown) => unknown;
+  parallelize: (op: (a: unknown, b: unknown) => unknown) => (v1: unknown, v2: unknown) => unknown;
+  isString: typeof isString;
+  isFunction: typeof isFunction;
+  isArray: typeof isArray;
+  isNumber: typeof isNumber;
+  isRegExp: typeof isRegExp;
+  isObject: typeof isObject;
+  isBoolean: typeof isBoolean;
+};
+
+const utils: KityUtils = {
+  each: forEach,
+  extend: assign,
+  deepExtend: merge,
+  clone: cloneDeep,
+  copy: cloneDeep,
+  queryPath: get,
+  getValue: defaultTo,
+  flatten: flattenDeep,
+
+  parallel: function parallel(v1: unknown, v2: unknown, op: (a: unknown, b: unknown) => unknown): unknown {
+    if (isArray(v1) && isArray(v2)) {
+      return (v1 as unknown[]).map((item, i) => parallel(item, (v2 as unknown[])[i], op));
+    }
+
+    if (isObject(v1) && isObject(v1) && isObject(v2)) {
+      const Class = (v1 as { getClass?: () => { parse?: (val: unknown) => unknown } }).getClass?.();
+      if (Class?.parse) {
+        const v1Val = (v1 as { valueOf: () => unknown[] }).valueOf();
+        const v2Val = (v2 as { valueOf: () => unknown[] }).valueOf();
+        const result = parallel(v1Val, v2Val, op);
+        return Class.parse(result);
       }
-    }
-  } else {
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        if (iterator.call(context, obj[key], key, obj) === false) {
-          return false;
-        }
-      }
-    }
-  }
-};
-
-utils.extend = function extend(t: any) {
-  const a = arguments;
-  const notCover = utils.isBoolean(a[a.length - 1]) ? a[a.length - 1] : false;
-  const len = utils.isBoolean(a[a.length - 1]) ? a.length - 1 : a.length;
-
-  for (let i = 1; i < len; i++) {
-    const x = a[i];
-    for (const k in x) {
-      if (!notCover || !Object.prototype.hasOwnProperty.call(t, k)) {
-        t[k] = x[k];
-      }
-    }
-  }
-  return t;
-};
-
-utils.deepExtend = function deepExtend(t: any, _s: any) {
-  const a = arguments;
-  const notCover = utils.isBoolean(a[a.length - 1]) ? a[a.length - 1] : false;
-  const len = utils.isBoolean(a[a.length - 1]) ? a.length - 1 : a.length;
-
-  for (let i = 1; i < len; i++) {
-    const x = a[i];
-    for (const k in x) {
-      if (!notCover || !Object.prototype.hasOwnProperty.call(t, k)) {
-        if (utils.isObject(t[k]) && utils.isObject(x[k])) {
-          utils.deepExtend(t[k], x[k], notCover);
-        } else {
-          t[k] = x[k];
-        }
-      }
-    }
-  }
-  return t;
-};
-
-utils.clone = function clone(obj: any) {
-  const cloned: any = {};
-  for (const m in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, m)) {
-      cloned[m] = obj[m];
-    }
-  }
-  return cloned;
-};
-
-utils.copy = function copy(obj: any) {
-  if (typeof obj !== 'object') return obj;
-  if (typeof obj === 'function') return null;
-  return JSON.parse(JSON.stringify(obj));
-};
-
-utils.queryPath = function queryPath(path: string, obj: any) {
-  const arr = path.split('.');
-  let i = 0;
-  let tmp = obj;
-  const l = arr.length;
-  while (i < l) {
-    if (arr[i] in tmp) {
-      tmp = tmp[arr[i]];
-      i++;
-      if (i >= l || tmp === undefined) {
-        return tmp;
-      }
-    } else {
-      return undefined;
-    }
-  }
-};
-
-utils.getValue = function getValue(value: any, defaultValue: any) {
-  return value !== undefined ? value : defaultValue;
-};
-
-utils.flatten = function flatten(arr: any[]): any[] {
-  const result: any[] = [];
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] instanceof Array) {
-      result.push(...utils.flatten(arr[i]));
-    } else {
-      result.push(arr[i]);
-    }
-  }
-  return result;
-};
-
-const parallel = function parallel(v1: any, v2: any, op: (a: any, b: any) => any): any {
-  let value: any;
-
-  if (v1 instanceof Array) {
-    value = [];
-    for (let index = 0; index < v1.length; index++) {
-      value.push(parallel(v1[index], v2[index], op));
-    }
-    return value;
-  }
-
-  if (v1 instanceof Object) {
-    const Class = v1.getClass && v1.getClass();
-    if (Class && Class.parse) {
-      v1 = v1.valueOf();
-      v2 = v2.valueOf();
-      value = parallel(v1, v2, op);
-      value = Class.parse(value);
-    } else {
-      value = {};
-      for (const name in v1) {
+      const result: Record<string, unknown> = {};
+      for (const name in v1 as object) {
         if (
           Object.prototype.hasOwnProperty.call(v1, name) &&
           Object.prototype.hasOwnProperty.call(v2, name)
         ) {
-          value[name] = parallel(v1[name], v2[name], op);
+          result[name] = parallel(
+            (v1 as Record<string, unknown>)[name],
+            (v2 as Record<string, unknown>)[name],
+            op,
+          );
         }
       }
+      return result;
     }
-    return value;
-  }
 
-  if (isNaN(parseFloat(v1)) === false) {
-    return op(v1, v2);
-  }
+    if (!isNaN(Number(v1))) {
+      return op(v1, v2);
+    }
 
-  return value;
+    return undefined;
+  },
+
+  paralle: null as unknown as KityUtils['paralle'],
+
+  parallelize(op: (a: unknown, b: unknown) => unknown) {
+    return (v1: unknown, v2: unknown) => utils.parallel(v1, v2, op);
+  },
+
+  isString,
+  isFunction,
+  isArray,
+  isNumber,
+  isRegExp,
+  isObject,
+  isBoolean,
 };
 
-utils.parallel = parallel;
-utils.paralle = parallel;
+utils.paralle = utils.parallel;
 
-utils.parallelize = function parallelize(op: (a: any, b: any) => any) {
-  return function (v1: any, v2: any) {
-    return utils.parallel(v1, v2, op);
-  };
-};
-
-utils.isString = function isString(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object String]';
-};
-
-utils.isFunction = function isFunction(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object Function]';
-};
-
-utils.isArray = function isArray(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object Array]';
-};
-
-utils.isNumber = function isNumber(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object Number]';
-};
-
-utils.isRegExp = function isRegExp(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object RegExp]';
-};
-
-utils.isObject = function isObject(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object Object]';
-};
-
-utils.isBoolean = function isBoolean(obj: unknown) {
-  return Object.prototype.toString.call(obj) === '[object Boolean]';
-};
-
-export type KityUtils = typeof utils;
 export default utils;

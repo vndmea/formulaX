@@ -184,7 +184,7 @@ const Area = kity.createClass('Area', {
   },
 
   updateContent(this: AreaInstance) {
-    const items = this.boxObject.getOverlapContent();
+    const items = this.boxObject.getOverlapContent() as Array<{ content: Array<{ key: string; img: string; pos: { x: number; y: number } }> }>;
     let count = 0;
     let lineno = 0;
     let colno = 0;
@@ -193,7 +193,7 @@ const Area = kity.createClass('Area', {
 
     this.panel.innerHTML = '';
 
-    kity.Utils.each(items, (item: { content: Array<{ key: string; img: string; pos: { x: number; y: number } }> }) => {
+    kity.Utils.each(items, (item: any) => {
       const contents = item.content;
 
       kity.Utils.each(contents, (currentContent: { key: string; img?: string; pos?: { x: number; y: number }; unicode?: string }) => {

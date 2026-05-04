@@ -1,4 +1,3 @@
-import { legacyCommonUtils } from './legacy-common';
 import { legacyKfEvent } from './legacy-kfevent';
 
 const eventListenerStore: Record<number, Record<string, Array<((event: Event) => boolean | void) | undefined>>> = {};
@@ -50,16 +49,16 @@ const eventHandler = function eventHandler(this: LegacyEventTarget, event: Event
     }
   }
 
-  legacyCommonUtils.each(handlerList, (handler) => {
+  for (const handler of handlerList) {
     if (!handler) {
-      return;
+      continue;
     }
 
     if (handler.call(target, event) === false) {
       beforeResult = false;
-      return beforeResult;
+      break;
     }
-  });
+  }
 
   if (!hasAutoTrigger) {
     legacyEventListener.trigger(target, `after${type}`);
