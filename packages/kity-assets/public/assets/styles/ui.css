@@ -465,18 +465,21 @@
 }
 
 .kf-editor-ui-area-item-text {
-    font-size: 22px;
-    line-height: 1;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 20px;
     text-align: center;
     color: #000;
-    font-family: "KF AMS MAIN", "Times New Roman", serif;
+    border: 1px solid #808080;
+    font-family: "KF AMS MAIN", "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
     -webkit-transition: all 0.1s linear;
     -moz-transition: all 0.1s linear;
     transition: all 0.1s linear;
 }
 
 .kf-editor-ui-enabled .kf-editor-ui-area-item-inner:HOVER .kf-editor-ui-area-item-text {
-    color: #008000;
+    border-color: #6eb864;
 }
 
 /* unicode box items */
