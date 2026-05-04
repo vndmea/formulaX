@@ -196,15 +196,25 @@ const Area = kity.createClass('Area', {
     kity.Utils.each(items, (item: { content: Array<{ key: string; img: string; pos: { x: number; y: number } }> }) => {
       const contents = item.content;
 
-      kity.Utils.each(contents, (currentContent: { key: string; img: string; pos: { x: number; y: number } }) => {
+      kity.Utils.each(contents, (currentContent: { key: string; img?: string; pos?: { x: number; y: number }; unicode?: string }) => {
         lineno = Math.floor(count / lineMaxCount);
         colno = count % lineMaxCount;
         count += 1;
 
         const style = `top: ${lineno * 33 + 5}px; left: ${colno * 32 + 5}px;`;
-        newContent.push(
-          `<div class="${PREFIX}area-item" data-value="${currentContent.key}" style="${style}"><div class="${PREFIX}area-item-inner"><div class="${PREFIX}area-item-img" style="background: url(${currentContent.img}) no-repeat ${-currentContent.pos.x}px ${-currentContent.pos.y}px;"></div></div></div>`,
-        );
+
+        if (currentContent.unicode !== undefined) {
+          const fontStyle = (currentContent as any).unicodeFont
+            ? `font-family: ${(currentContent as any).unicodeFont};`
+            : '';
+          newContent.push(
+            `<div class="${PREFIX}area-item ${PREFIX}area-item-unicode" data-value="${currentContent.key}" style="${style}"><div class="${PREFIX}area-item-inner"><span class="${PREFIX}area-item-text" style="${fontStyle}">${currentContent.unicode}</span></div></div>`,
+          );
+        } else {
+          newContent.push(
+            `<div class="${PREFIX}area-item" data-value="${currentContent.key}" style="${style}"><div class="${PREFIX}area-item-inner"><div class="${PREFIX}area-item-img" style="background: url(${currentContent.img}) no-repeat ${-(currentContent.pos?.x ?? 0)}px ${-(currentContent.pos?.y ?? 0)}px;"></div></div></div>`,
+          );
+        }
       });
     });
 

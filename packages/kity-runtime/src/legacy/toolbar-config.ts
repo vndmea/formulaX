@@ -3,6 +3,7 @@ import { legacyBoxType } from '../vendor/legacy-box-type';
 import { legacyEleType } from '../vendor/legacy-ele-type';
 import { legacyCharPosition } from '../vendor/char-position';
 import { legacyOtherPosition } from '../vendor/other-position';
+import { resolveUnicode } from '../formula-symbols';
 
 type ToolbarConfig = Record<string, any>;
 
@@ -493,7 +494,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
         configList.push( {
             title: "基础数学",
-            content: getIconContents( list, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list )
         } );
 
     } )();
@@ -516,19 +517,19 @@ const ASSET_BASE = 'assets/images/toolbar/';
         // Lowercase handling
         greekConfigList.push( {
             title: greekList[ 0 ].title,
-            content: getIconContents( greekList[ 0 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( greekList[ 0 ].values )
         } );
 
         // Uppercase handling
         greekConfigList.push( {
             title: greekList[ 1 ].title,
-            content: getIconContents( greekList[ 1 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( greekList[ 1 ].values )
         } );
 
         // Variant handling
         greekConfigList.push( {
             title: greekList[ 2 ].title,
-            content: getIconContents( greekList[ 2 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( greekList[ 2 ].values )
         } );
 
     } )();
@@ -551,7 +552,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
         greekConfigList.push( {
             title: greekList[ 0 ].title,
-            content: getIconContents( greekList[ 0 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( greekList[ 0 ].values )
         } );
 
     } )();
@@ -568,7 +569,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
         configList.push( {
             title: "字母类符号",
-            content: getIconContents( list, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list )
         } );
 
     } )();
@@ -596,7 +597,7 @@ const ASSET_BASE = 'assets/images/toolbar/';
 
         configList.push( {
             title: "箭头",
-            content: getIconContents( list, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list )
         } );
 
     } )();
@@ -665,22 +666,22 @@ const ASSET_BASE = 'assets/images/toolbar/';
         // Script-style glyphs
         configList.push( {
             title: list[ 0 ].title,
-            content: getIconContents( list[ 0 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list[ 0 ].values )
         } );
 
         configList.push( {
             title: list[ 1 ].title,
-            content: getIconContents( list[ 1 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list[ 1 ].values )
         } );
 
         configList.push( {
             title: list[ 2 ].title,
-            content: getIconContents( list[ 2 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list[ 2 ].values )
         } );
 
         configList.push( {
             title: list[ 3 ].title,
-            content: getIconContents( list[ 3 ].values, ASSET_BASE + "char.png" )
+            content: getUnicodeContents( list[ 3 ].values )
         } );
 
     } )();
@@ -700,6 +701,43 @@ const ASSET_BASE = 'assets/images/toolbar/';
                 img: imgSrc,
                 pos: CHAR_POSITION[ key ]
             } );
+
+        } );
+
+        return result;
+
+    }
+
+    function getUnicodeContents ( keySet ) {
+
+        let result = [];
+
+        each( keySet, function ( key ) {
+
+            let displayKey = key;
+
+            if ( key.length > 1 ) {
+                displayKey = "\\" + key;
+            }
+
+            const resolved = resolveUnicode(displayKey);
+
+            if (resolved) {
+                const item: any = {
+                    key: displayKey,
+                    unicode: resolved.char
+                };
+                if (resolved.fontFamily) {
+                    item.unicodeFont = resolved.fontFamily;
+                }
+                result.push( item );
+            } else {
+                result.push( {
+                    key: displayKey,
+                    img: ASSET_BASE + "char.png",
+                    pos: CHAR_POSITION[ displayKey ]
+                } );
+            }
 
         } );
 

@@ -456,6 +456,36 @@
     border-color: #6eb864;
 }
 
+/* unicode text area items */
+.kf-editor-ui-area-item-unicode .kf-editor-ui-area-item-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kf-editor-ui-area-item-text {
+    font-size: 18px;
+    line-height: 1;
+    text-align: center;
+    color: #000;
+    font-family: "KF AMS MAIN", "Times New Roman", serif;
+    -webkit-transition: all 0.1s linear;
+    -moz-transition: all 0.1s linear;
+    transition: all 0.1s linear;
+}
+
+.kf-editor-ui-enabled .kf-editor-ui-area-item-inner:HOVER .kf-editor-ui-area-item-text {
+    color: #008000;
+}
+
+/* unicode box items */
+.kf-editor-ui-box-item-text {
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+    color: #000;
+}
+
 .kf-editor-ui-enabled {
     opacity: 1;
 }

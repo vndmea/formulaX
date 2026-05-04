@@ -221,6 +221,24 @@ const BoxItem = kity.createClass('BoxItem', {
     }) as HTMLDivElement;
     const cls = `${PREFIX}box-item-val`;
     const tmpContent = this.options;
+
+    if (tmpContent.unicode) {
+      const tmpNode = $$.ele(this.doc, 'span', {
+        className: `${cls} ${PREFIX}box-item-text`,
+        content: tmpContent.unicode,
+      }) as HTMLSpanElement;
+
+      if (tmpContent.unicodeFont) {
+        tmpNode.style.fontFamily = tmpContent.unicodeFont as string;
+      }
+
+      if (tmpContent.key) {
+        this.element.setAttribute('data-value', tmpContent.key);
+      }
+      contentNode.appendChild(tmpNode);
+      return contentNode;
+    }
+
     const tmpNode = $$.ele(this.doc, 'div', {
       className: cls,
     }) as HTMLDivElement;
