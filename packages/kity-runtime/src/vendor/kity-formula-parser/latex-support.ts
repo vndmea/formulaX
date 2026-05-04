@@ -2,9 +2,9 @@
 import type { LegacyParserModuleContext } from './runtime';
 
 export function registerLatexSupportModules(context: LegacyParserModuleContext) {
-  const { _p, window } = context;
+  const { _p } = context;
 _p[1] = {
-    value: function(require) {
+    value: function(_require) {
         return {
             toRPNExpression: _p.r(2),
             generateTree: _p.r(3)
@@ -13,7 +13,7 @@ _p[1] = {
 };
 
 _p[2] = {
-    value: function(require) {
+    value: function(_require) {
         let Utils = _p.r(4);
         function rpn(units) {
             let signStack = [], currentUnit = null;
@@ -60,7 +60,7 @@ _p[2] = {
  * Build tree from unit group
  */
 _p[3] = {
-    value: function(require) {
+    value: function(_require) {
         let mergeHandler = _p.r(13), Utils = _p.r(4);
         function generateTree(units) {
             let currentUnit = null, tree = [];
@@ -87,7 +87,7 @@ _p[3] = {
  * Common utility package
  */
 _p[4] = {
-    value: function(require) {
+    value: function(_require) {
         let OPERATOR_LIST = _p.r(7), FUNCTION_LIST = _p.r(6), FUNCTION_HANDLER = _p.r(15), Utils = {
             // Detect the kf type based on input latex string
             getLatexType: function(str) {
@@ -197,7 +197,7 @@ _p[6] = {
  * Operator list
  */
 _p[7] = {
-    value: function(require) {
+    value: function(_require) {
         let scriptHandler = _p.r(22), TYPE = _p.r(11);
         return {
             "^": {
@@ -271,7 +271,7 @@ _p[7] = {
  * Preprocessor list
  */
 _p[8] = {
-    value: function(require) {
+    value: function(_require) {
         return {
             // Integration preprocessor
             "int": _p.r(26),
@@ -285,7 +285,7 @@ _p[8] = {
  * Reverse parsing mapping table
  */
 _p[9] = {
-    value: function(require) {
+    value: function(_require) {
         return {
             combination: _p.r(29),
             fraction: _p.r(30),
@@ -340,7 +340,7 @@ _p[11] = {
  * Bracket processor
  */
 _p[12] = {
-    value: function(require) {
+    value: function(_require) {
         let BRACKETS_TYPE = _p.r(5);
         return function(info, processedStack, unprocessedStack) {
             // Bracket validation
@@ -396,7 +396,7 @@ _p[14] = {
  * Function expression processor
  */
 _p[15] = {
-    value: function(require) {
+    value: function(_require) {
         let ScriptExtractor = _p.r(17);
         // Process function interface
         return function(info, processedStack, unprocessedStack) {
@@ -413,7 +413,7 @@ _p[15] = {
  * Integration function processor
  */
 _p[16] = {
-    value: function(require) {
+    value: function(_require) {
         let ScriptExtractor = _p.r(17), FN_TYPE = _p.r(11).FN;
         return function(info, processedStack, unprocessedStack) {
             let count = unprocessedStack.shift(), params = ScriptExtractor.exec(unprocessedStack);
@@ -617,7 +617,7 @@ _p[22] = {
  * Square root function processor
  */
 _p[23] = {
-    value: function(require) {
+    value: function(_require) {
         let mergeHandler = _p.r(13);
         // Process function interface
         return function(info, processedStack, unprocessedStack) {
@@ -652,7 +652,7 @@ _p[23] = {
  * Summation function processor
  */
 _p[24] = {
-    value: function(require) {
+    value: function(_require) {
         let ScriptExtractor = _p.r(17);
         return function(info, processedStack, unprocessedStack) {
             let params = ScriptExtractor.exec(unprocessedStack);

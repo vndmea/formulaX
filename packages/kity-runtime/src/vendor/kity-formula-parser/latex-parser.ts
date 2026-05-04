@@ -2,9 +2,9 @@
 import type { LegacyParserModuleContext } from './runtime';
 
 export function registerLatexParserModules(context: LegacyParserModuleContext) {
-  const { _p, window } = context;
+  const { _p } = context;
 _p[25] = {
-    value: function(require) {
+    value: function(_require) {
         let Parser = _p.r(43).Parser, LatexUtils = _p.r(1), PRE_HANDLER = _p.r(8), serialization = _p.r(42), OP_DEFINE = _p.r(7), REVERSE_DEFINE = _p.r(9), SPECIAL_LIST = _p.r(10), Utils = _p.r(4);
         // data
         let leftChar = "\uFFF8", rightChar = "\uFFFC", clearCharPattern = new RegExp(leftChar + "|" + rightChar, "g"), leftCharPattern = new RegExp(leftChar, "g"), rightCharPattern = new RegExp(rightChar, "g");
@@ -482,7 +482,7 @@ _p[41] = {
  * Created by hn on 14-3-20.
  */
 _p[42] = {
-    value: function(require) {
+    value: function(_require) {
         let reverseHandlerTable = _p.r(9), SPECIAL_LIST = _p.r(10), specialCharPattern = /(\\(?:[\w]+)|(?:[^a-z]))\\/gi;
         return function(tree, options) {
             return reverseParse(tree, options);

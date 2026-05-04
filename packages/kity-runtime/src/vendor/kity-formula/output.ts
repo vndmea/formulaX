@@ -39,7 +39,7 @@ export class OutputModule {
         try {
           ctx?.drawImage(image, 0, 0);
           cb(canvas.toDataURL(type));
-        } catch (_error) {
+        } catch {
           drawToCanvas(doc, data, type, cb);
         }
       };
