@@ -47,7 +47,7 @@ _p[25] = {
             format: function(input) {
                 // Clear extra spaces
                 input = clearEmpty(input);
-                // 处理输入的“{”和“}�?
+                // Handle input braces
                 input = input.replace(clearCharPattern, "").replace(/\\{/gi, leftChar).replace(/\\}/gi, rightChar);
                 // Preprocessor processing
                 for (let key in PRE_HANDLER) {
@@ -217,7 +217,7 @@ _p[26] = {
 _p[27] = {
     value: function() {
         return function(input) {
-            return input.replace(/``/g, "�?);
+            return input.replace(/``/g, '"');
         };
     }
 };
@@ -331,6 +331,17 @@ _p[32] = {
                 result.push(" " + operands[0]);
             }
             return result.join("");
+        };
+    }
+};
+
+/*!
+ * Reverse parsing handler: mathbb
+ */
+_p[33] = {
+    value: function() {
+        return function(operands) {
+            return "\\mathbb{" + operands[0] + "}";
         };
     }
 };
