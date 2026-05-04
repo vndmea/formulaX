@@ -2,7 +2,7 @@ import { bind, isArray, isString } from 'lodash-es';
 import utils from '../kity/utils';
 import { legacyEventListener } from './legacy-event';
 
-type LegacyBaseUtils = {
+export type LegacyBaseUtils = {
   addEvent: typeof legacyEventListener.addEvent;
   trigger: typeof legacyEventListener.trigger;
   each: typeof utils.each;

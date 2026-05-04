@@ -3,7 +3,6 @@ import { createLegacyUiUtils } from '../vendor/legacy-ui-utils';
 import { legacyBaseUtils } from '../vendor/legacy-utils';
 import { getLegacyKity } from '../vendor/runtime-interop';
 import type { LegacyEditorInstance } from './editor';
-import ScrollZoom from './scroll-zoom';
 import Toolbar from './toolbar';
 import Scrollbar from './scrollbar';
 import ELEMENT_LIST from './toolbar-config';
@@ -81,13 +80,6 @@ const UIComponent = kity.createClass('UIComponent', {
 
   initComponents(this: UIComponentInstance) {
     this.components.toolbar = new (Toolbar as any)(this, this.kfEditor, ELEMENT_LIST);
-
-    if (false) {
-      this.components.scrollZoom = new ScrollZoom(this, this.kfEditor, this.canvasContainer, {
-        max: this.options.maxzoom,
-        min: this.options.minzoom,
-      });
-    }
 
     this.components.scrollbar = new (Scrollbar as any)(this, this.kfEditor);
   },

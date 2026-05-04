@@ -1,4 +1,4 @@
-import { legacyBaseUtils } from './legacy-utils';
+import type { LegacyBaseUtils } from './legacy-utils';
 
 type LegacyKityCreateClassDefinition = {
   base?: unknown;
@@ -7,10 +7,7 @@ type LegacyKityCreateClassDefinition = {
 };
 
 export type LegacyKity = {
-  Utils: typeof legacyBaseUtils & {
-    extend: typeof legacyBaseUtils.extend;
-    each: typeof legacyBaseUtils.each;
-  };
+  Utils: LegacyBaseUtils;
   createClass: (name: string, definition: LegacyKityCreateClassDefinition) => any;
 };
 
@@ -42,7 +39,7 @@ export function getLegacyRuntime() {
   return runtime;
 }
 
-export function getLegacyKity() {
+export function getLegacyKity(): LegacyKity {
   const runtime = getLegacyRuntime();
 
   if (!runtime.kity) {
@@ -52,7 +49,7 @@ export function getLegacyKity() {
   return runtime.kity as LegacyKity;
 }
 
-export function getLegacyKf() {
+export function getLegacyKf(): LegacyKf {
   const runtime = getLegacyRuntime();
 
   if (!runtime.kf) {
