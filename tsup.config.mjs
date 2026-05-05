@@ -1,21 +1,20 @@
 import { defineConfig } from 'tsup';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export default defineConfig([
-  {
-    entry: ['src/index.ts'],
-    format: ['esm', 'cjs'],
-    dts: false,
-    sourcemap: true,
-    clean: true,
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['esm', 'cjs', 'iife'],
+  dts: false,
+  sourcemap: true,
+  clean: true,
+  outDir: 'dist',
+  outName: 'index',
+  globalName: 'FormulaX',
+  minify: false,
+  alias: {
+    '@formulax/kity-runtime': path.resolve(__dirname, 'packages/kity-runtime/src/index.ts'),
   },
-  {
-    entry: ['src/index.ts'],
-    format: ['iife'],
-    dts: false,
-    sourcemap: true,
-    clean: false,
-    outDir: 'dist/browser',
-    globalName: 'FormulaX',
-    minify: true,
-  },
-]);
+});

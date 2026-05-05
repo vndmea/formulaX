@@ -7,7 +7,8 @@
     "rootDir": "src",
     "paths": {
       "@formulax/core": ["../core/src/index.d.ts"],
-      "@formulax/editor": ["../editor/src/index.d.ts"]
+      "@formulax/editor": ["../editor/src/index.d.ts"],
+      "@formulax/kity-runtime": ["../kity-runtime/src/index.d.ts"]
     }
   },
   "include": ["src"]

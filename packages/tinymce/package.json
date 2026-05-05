@@ -31,6 +31,17 @@
   "dependencies": {
     "@formulax/core": "workspace:*",
     "@formulax/editor": "workspace:*",
+    "@formulax/kity-runtime": "workspace:*"
+  },
+  "peerDependencies": {
+    "tinymce": ">=5 <9"
+  },
+  "peerDependenciesMeta": {
+    "tinymce": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
     "tinymce": "^7.7.1"
   }
 }

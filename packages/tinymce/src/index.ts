@@ -1,16 +1,36 @@
-import { parseLatex, serializeLatex, type FormulaDoc } from '@formulax/core';
+export {
+  DEFAULT_FORMULA_ATTRIBUTE,
+  DEFAULT_FORMULA_CLASS,
+  FORMULA_FLAG_ATTRIBUTE,
+  createTinyMceFormulaMarkup,
+  parseTinyMceFormulaMarkup,
+  serializeTinyMceFormulaMarkup,
+  getFormulaLatexFromElement,
+  findFormulaElement,
+  isFormulaElement,
+  replaceFormulaElement,
+} from './markup';
 
-export interface TinyMceFormulaXOptions {
-  attributeName?: string;
-}
+export {
+  getTinyMceMajorVersion,
+  createTinyMceCompat,
+  warnUnsupportedTinyMceVersion,
+} from './compat';
 
-export const createTinyMceFormulaMarkup = (latex: string, options: TinyMceFormulaXOptions = {}): string => {
-  const attributeName = options.attributeName ?? 'data-formulax';
-  return `<span ${attributeName}="${latex}"></span>`;
-};
+export {
+  registerFormulaXTinyMcePlugin,
+  resolveOptions,
+} from './plugin';
 
-export const parseTinyMceFormulaMarkup = (latex: string): FormulaDoc => parseLatex(latex);
+export {
+  openFormulaXOverlayModal,
+} from './modal';
 
-export const serializeTinyMceFormulaMarkup = (doc: FormulaDoc, options: TinyMceFormulaXOptions = {}): string => {
-  return createTinyMceFormulaMarkup(serializeLatex(doc), options);
-};
+export type {
+  FormulaXTinyMceOptions,
+  FormulaXModalOptions,
+  FormulaXModalOpenOptions,
+  RequiredFormulaXTinyMceOptions,
+  TinyMceEditorLike,
+  TinyMceLike,
+} from './types';

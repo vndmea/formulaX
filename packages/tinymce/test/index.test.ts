@@ -3,7 +3,9 @@ import { createTinyMceFormulaMarkup, parseTinyMceFormulaMarkup, serializeTinyMce
 
 describe('tinymce adapter', () => {
   it('creates host markup and parses latex back', () => {
-    expect(createTinyMceFormulaMarkup('x')).toContain('data-formulax="x"');
+    const markup = createTinyMceFormulaMarkup('x');
+    expect(markup).toContain('data-formulax-latex="x"');
+    expect(markup).toContain('data-formulax="true"');
     const doc = parseTinyMceFormulaMarkup('\\frac{a}{b}');
     expect(serializeTinyMceFormulaMarkup(doc)).toContain('\\frac{a}{b}');
   });
