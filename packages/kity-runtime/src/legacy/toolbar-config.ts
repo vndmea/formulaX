@@ -2,6 +2,7 @@
 import { legacyBoxType } from '../vendor/legacy-box-type';
 import { legacyEleType } from '../vendor/legacy-ele-type';
 import { legacyOtherPosition } from '../vendor/other-position';
+import { getToolbarAssetBase } from '../toolbar-assets';
 import { resolveUnicode } from '../formula-symbols';
 
 type ToolbarConfig = Record<string, any>;
@@ -21,7 +22,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
   Object.keys(list).forEach((key) => callback(list[key], key));
 }
 
-const ASSET_BASE = 'assets/images/toolbar/';
+const ASSET_BASE = getToolbarAssetBase();
 
     const config: ToolbarCollection = [ {
         type: UI_ELE_TYPE.DRAPDOWN_BOX,

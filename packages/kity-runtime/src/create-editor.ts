@@ -15,6 +15,7 @@ import { legacyUiDef } from './vendor/legacy-ui-def';
 import { createLegacyUiUtils } from './vendor/legacy-ui-utils';
 import { legacyBaseUtils } from './vendor/legacy-utils';
 import { installKityRuntime } from './kity/index';
+import { setToolbarAssetBase } from './toolbar-assets';
 
 const DEFAULT_ASSET_BASE = '';
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
@@ -231,6 +232,8 @@ export async function createKityEditor(
   const resourcePath = options.resource?.path ?? `${assetBase}/resource/`;
   const fontsize = options.render?.fontsize ?? 40;
   const editorHeight = normalizeCssSize(options.height, DEFAULT_EDITOR_HEIGHT);
+
+  setToolbarAssetBase(options.assetBase);
 
   await ensureKityRuntime({ assetBase });
 
