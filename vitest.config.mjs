@@ -21,6 +21,7 @@ export default defineConfig({
     },
     projects: [
       {
+        extends: true,
         test: {
           name: 'node',
           include: [
@@ -32,6 +33,7 @@ export default defineConfig({
         },
       },
       {
+        extends: true,
         test: {
           name: 'jsdom',
           include: [
