@@ -8,6 +8,7 @@ export default defineConfig({
     alias: {
       '@formulax/core': fromRoot('./packages/core/src/index.ts'),
       '@formulax/editor': fromRoot('./packages/editor/src/index.ts'),
+      '@formulax/kity-assets': fromRoot('./packages/kity-assets/src/index.ts'),
       '@formulax/renderer-katex': fromRoot('./packages/renderer-katex/src/index.ts'),
       '@formulax/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
       '@formulax/tinymce': fromRoot('./packages/tinymce/src/index.ts'),
@@ -15,10 +16,31 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['packages/*/test/**/*.test.ts'],
-    environmentMatchGlobs: [['packages/editor/test/**/*.test.ts', 'jsdom']],
     coverage: {
       reporter: ['text', 'html'],
     },
+    projects: [
+      {
+        test: {
+          name: 'node',
+          include: [
+            'packages/core/test/**/*.test.ts',
+            'packages/renderer-katex/test/**/*.test.ts',
+            'packages/tiptap/test/**/*.test.ts',
+          ],
+          environment: 'node',
+        },
+      },
+      {
+        test: {
+          name: 'jsdom',
+          include: [
+            'packages/editor/test/**/*.test.ts',
+            'packages/tinymce/test/**/*.test.ts',
+          ],
+          environment: 'jsdom',
+        },
+      },
+    ],
   },
 });
