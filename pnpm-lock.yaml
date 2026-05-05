@@ -129,6 +129,9 @@ importers:
       '@formulax/editor':
         specifier: workspace:*
         version: link:../editor
+      '@formulax/kity-runtime':
+        specifier: workspace:*
+        version: link:../kity-runtime
     devDependencies:
       tinymce:
         specifier: ^7.7.1
