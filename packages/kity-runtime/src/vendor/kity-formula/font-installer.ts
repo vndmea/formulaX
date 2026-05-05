@@ -34,7 +34,7 @@ export class FontInstallerModule {
 
         kity.Utils.each(fontList, (fontInfo: FontInfo) => {
           count += 1;
-          fontInfo.meta.src = this.fonts[fontInfo.meta.src] || (this.resource + fontInfo.meta.src);
+          fontInfo.meta.src = resolveFontSource(this.fonts, this.resource, fontInfo.meta.src);
           this.createFontStyle(fontInfo);
           preloadFont(this.doc, fontInfo)
             .then(() => {
@@ -67,6 +67,25 @@ export class FontInstallerModule {
         return view.fetch(fontInfo.meta.src, { method: "GET" }).then(() => undefined);
       }
       return Promise.resolve();
+    }
+
+    function resolveFontSource(
+      fonts: Record<string, string>,
+      resourceBase: string,
+      originalSrc: string,
+    ): string {
+      const directMatch = fonts[originalSrc];
+      if (directMatch) {
+        return directMatch;
+      }
+
+      const logicalName = originalSrc.replace(/\.woff$/i, '');
+      const logicalMatch = fonts[logicalName];
+      if (logicalMatch) {
+        return logicalMatch;
+      }
+
+      return resourceBase + originalSrc;
     }
 
     function waitForFontsReady(doc: Document, fontList: FontInfo[]): Promise<void> {
