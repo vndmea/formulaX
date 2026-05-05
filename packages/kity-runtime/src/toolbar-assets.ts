@@ -1,19 +1,10 @@
-export const KITY_TOOLBAR_ASSET_BASE = 'assets/images/toolbar/';
+let toolbarAssetFileMap: Record<string, string> = {};
 
-let toolbarAssetBase = 'assets/images/toolbar/';
-
-function normalizeAssetBase(value: string): string {
-  if (!value) return '';
-  return value.endsWith('/') ? value : `${value}/`;
-}
-
-export function setToolbarAssetBase(assetBase?: string): void {
-  const normalized = normalizeAssetBase(assetBase ?? '');
-  toolbarAssetBase = `${normalized}assets/images/toolbar/`;
-}
-
-export function getToolbarAssetBase(): string {
-  return toolbarAssetBase;
+export function setToolbarAssetUrls(assets: { btn: string; other: string }): void {
+  toolbarAssetFileMap = {
+    'btn.png': assets.btn,
+    'other.png': assets.other,
+  };
 }
 
 export function resolveToolbarAssetPath(fileName: string, preferSvg = false): string {
@@ -22,5 +13,10 @@ export function resolveToolbarAssetPath(fileName: string, preferSvg = false): st
       ? `${fileName.slice(0, -4)}.svg`
       : fileName;
 
-  return `${toolbarAssetBase}${normalizedFileName}`;
+  const mapped = toolbarAssetFileMap[normalizedFileName];
+  if (mapped) {
+    return mapped;
+  }
+
+  throw new Error(`Missing Kity toolbar asset URL for "${normalizedFileName}".`);
 }

@@ -14,7 +14,13 @@ export default defineConfig({
   outName: 'index',
   globalName: 'FormulaX',
   minify: false,
+  loader: {
+    '.png': 'file',
+    '.woff': 'file',
+    '.css': 'file',
+  },
   alias: {
+    '@formulax/kity-assets': path.resolve(__dirname, 'packages/kity-assets/src/index.ts'),
     '@formulax/kity-runtime': path.resolve(__dirname, 'packages/kity-runtime/src/index.ts'),
   },
 });

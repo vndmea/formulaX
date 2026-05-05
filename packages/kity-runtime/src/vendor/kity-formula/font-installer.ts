@@ -6,13 +6,26 @@ type FontInfo = {
   data: Record<string, unknown>;
 };
 
+type FontInstallerOptions =
+  | string
+  | {
+      path?: string;
+      fonts?: Record<string, string>;
+    };
+
 export class FontInstallerModule {
   static create(kity: any, FontManager: any, fontConfig: any, checkerTemplate: string[]) {
     let nodeList: HTMLElement[] = [];
 
     return kity.createClass("FontInstaller", {
-      constructor: function (doc: Document, resource?: string) {
-        this.resource = resource || "../src/resource/";
+      constructor: function (doc: Document, resource?: FontInstallerOptions) {
+        const normalized =
+          typeof resource === 'string'
+            ? { path: resource }
+            : resource ?? {};
+
+        this.resource = normalized.path || "";
+        this.fonts = normalized.fonts || {};
         this.doc = doc;
       },
       mount: function (callback: () => void) {
@@ -21,7 +34,7 @@ export class FontInstallerModule {
 
         kity.Utils.each(fontList, (fontInfo: FontInfo) => {
           count += 1;
-          fontInfo.meta.src = this.resource + fontInfo.meta.src;
+          fontInfo.meta.src = this.fonts[fontInfo.meta.src] || (this.resource + fontInfo.meta.src);
           this.createFontStyle(fontInfo);
           preloadFont(this.doc, fontInfo)
             .then(() => {

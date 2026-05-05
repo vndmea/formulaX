@@ -1,13 +1,33 @@
+export type KityFontAssetMap = {
+  KF_AMS_BB: string;
+  KF_AMS_CAL: string;
+  KF_AMS_FRAK: string;
+  KF_AMS_MAIN: string;
+  KF_AMS_ROMAN: string;
+};
+
+export type KityToolbarAssetMap = {
+  btn: string;
+  other: string;
+};
+
+export type KityStyleAssetMap = {
+  editor: string;
+};
+
+export type KityEditorAssets = {
+  fonts: KityFontAssetMap;
+  toolbar: KityToolbarAssetMap;
+  styles: KityStyleAssetMap;
+};
+
 export type KityEditorOptions = {
-  assetBase?: string;
   height?: number | string;
   initialLatex?: string;
   autofocus?: boolean;
+  assets?: Partial<KityEditorAssets>;
   render?: {
     fontsize?: number;
-  };
-  resource?: {
-    path?: string;
   };
 };
 
@@ -24,7 +44,7 @@ export type KityEditorHandle = {
   raw: unknown;
 };
 
-export function ensureKityRuntime(options?: Pick<KityEditorOptions, 'assetBase'>): Promise<void>;
+export function ensureKityRuntime(): Promise<void>;
 export function createKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
 export function mountKityEditor(container: HTMLElement, options?: KityEditorOptions): Promise<KityEditorHandle>;
 export class FormulaXEditor {
@@ -43,7 +63,6 @@ declare global {
 }
 
 export * from './dom-utils';
-export * from './toolbar-assets';
 export * from './vendor/char-position';
 export * from './vendor/legacy-box-type';
 export * from './vendor/legacy-common';

@@ -93,17 +93,10 @@ if (!versionSelect || !status || !textarea) {
   throw new Error('TinyMCE demo DOM missing');
 }
 
-function resolveFormulaXSiteBase(): string {
-  const meta = import.meta as ImportMeta & { env?: { BASE_URL?: string } };
-  const base = meta.env?.BASE_URL ?? '/';
-  return base.replace(/\/tinymce\/?$/, '/');
-}
-
 async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
   status!.textContent = `Loading TinyMCE ${version}...`;
 
   const tinymce = await loadTinyMceRuntime(version);
-  const siteBase = resolveFormulaXSiteBase();
 
   registerFormulaXTinyMcePlugin(tinymce, {
     toolbarText: 'FormulaX',
@@ -113,8 +106,6 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
     },
     editor: {
       mode: 'kity',
-      assetBase: siteBase,
-      resourcePath: `${siteBase}resource/`,
       height: '100%',
       autofocus: true,
       render: { fontsize: 40 },

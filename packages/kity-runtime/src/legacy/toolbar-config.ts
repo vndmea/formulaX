@@ -2,7 +2,7 @@
 import { legacyBoxType } from '../vendor/legacy-box-type';
 import { legacyEleType } from '../vendor/legacy-ele-type';
 import { legacyOtherPosition } from '../vendor/other-position';
-import { getToolbarAssetBase } from '../toolbar-assets';
+import { resolveToolbarAssetPath } from '../toolbar-assets';
 import { resolveUnicode } from '../formula-symbols';
 
 type ToolbarConfig = Record<string, any>;
@@ -22,8 +22,6 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
   Object.keys(list).forEach((key) => callback(list[key], key));
 }
 
-const ASSET_BASE = getToolbarAssetBase();
-
     const config: ToolbarCollection = [ {
         type: UI_ELE_TYPE.DRAPDOWN_BOX,
         options: {
@@ -31,7 +29,7 @@ const ASSET_BASE = getToolbarAssetBase();
                 label: '预设<br/>',
                 className: 'yushe-btn',
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 0,
                     y: 0
                 },
@@ -103,7 +101,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "分数<br/>",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 45,
                     y: 0
                 }
@@ -152,7 +150,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "上下标<br/>",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 82,
                     y: 0
                 }
@@ -205,7 +203,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "根式<br/>",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 119,
                     y: 0
                 }
@@ -254,7 +252,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "积分<br/>",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 156,
                     y: 0
                 }
@@ -300,7 +298,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "大型<br/>运算符",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 193,
                     y: 0
                 }
@@ -334,7 +332,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "括号<br/>",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 230,
                     y: 0
                 }
@@ -372,7 +370,7 @@ const ASSET_BASE = getToolbarAssetBase();
             button: {
                 label: "函数<br/>",
                 icon: {
-                    src: ASSET_BASE + "btn.png",
+                    src: resolveToolbarAssetPath("btn.png"),
                     x: 267,
                     y: 0
                 }
@@ -433,7 +431,7 @@ const ASSET_BASE = getToolbarAssetBase();
     ( function () {
 
         let tmp = [],
-            otherImageSrc = ASSET_BASE + "other.png",
+            otherImageSrc = resolveToolbarAssetPath("other.png"),
             currentConf = [];
 
         each( config, function ( conf ) {

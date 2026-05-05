@@ -1,7 +1,7 @@
 {
   "name": "@formulax/kity-runtime",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Legacy KityFormula runtime adapter for FormulaX.",
   "keywords": [
@@ -30,6 +30,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@formulax/kity-assets": "workspace:*",
     "lodash-es": "^4.18.1"
   },
   "devDependencies": {

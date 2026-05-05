@@ -31,10 +31,9 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     },
     editor: {
       mode: 'kity',
-      assetBase: options.editor?.assetBase ?? '',
-      resourcePath: options.editor?.resourcePath ?? '',
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
+      assets: options.editor?.assets ?? {},
       render: {
         fontsize: options.editor?.render?.fontsize ?? 40,
       },

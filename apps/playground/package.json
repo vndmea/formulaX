@@ -7,5 +7,8 @@
     "build": "vite build",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
     "dev": "vite"
+  },
+  "dependencies": {
+    "@formulax/kity-runtime": "workspace:*"
   }
 }

@@ -1,6 +1,5 @@
 export * from './create-editor';
 export * from './dom-utils';
-export * from './toolbar-assets';
 export * from './vendor/legacy-box-type';
 export * from './vendor/legacy-common';
 export * from './vendor/legacy-component';

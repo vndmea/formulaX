@@ -1,4 +1,5 @@
 import type { FormulaState } from '@formulax/core';
+import type { KityEditorAssets } from '@formulax/kity-runtime';
 
 export interface TinyMceLike {
   PluginManager?: {
@@ -54,10 +55,9 @@ export interface FormulaXTinyMceOptions {
 
 export interface FormulaXEditorOptions {
   mode?: 'kity';
-  assetBase?: string;
-  resourcePath?: string;
   height?: number | string;
   autofocus?: boolean;
+  assets?: Partial<KityEditorAssets>;
   render?: {
     fontsize?: number;
   };

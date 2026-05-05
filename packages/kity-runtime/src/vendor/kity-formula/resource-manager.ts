@@ -21,7 +21,7 @@ export function createResourceManager(kity: any, resourceConfig: any, FontInstal
 
   function init(options?: any) {
     const resolvedOptions = kity.Utils.extend({}, resourceConfig, options);
-    new FontInstaller(document, resolvedOptions.path).mount(complete);
+    new FontInstaller(document, resolvedOptions).mount(complete);
   }
 
   function complete() {

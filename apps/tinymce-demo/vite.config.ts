@@ -12,6 +12,7 @@ export default defineConfig({
       '@formulax/editor': path.resolve(rootDir, 'packages/editor/src/index.ts'),
       '@formulax/kity-assets': path.resolve(rootDir, 'packages/kity-assets/src/index.ts'),
       '@formulax/kity-runtime': path.resolve(rootDir, 'packages/kity-runtime/src/index.ts'),
+      '@formulax/tinymce': path.resolve(rootDir, 'packages/tinymce/src/index.ts'),
     },
   },
 });

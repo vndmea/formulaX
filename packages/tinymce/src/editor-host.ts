@@ -21,15 +21,12 @@ export function mountFormulaXEditorInModal(
   const readyPromise = mountKityEditor(root, {
     initialLatex:
       latestLatex || 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
-    assetBase: input.options.editor.assetBase,
     height: input.options.editor.height ?? '100%',
     autofocus: input.options.editor.autofocus ?? true,
+    assets: input.options.editor.assets,
     render: {
       fontsize: input.options.editor.render?.fontsize ?? 40,
     },
-    resource: input.options.editor.resourcePath
-      ? { path: input.options.editor.resourcePath }
-      : undefined,
   })
     .then((nextHandle) => {
       if (destroyed) {

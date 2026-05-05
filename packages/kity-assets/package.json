@@ -1,7 +1,7 @@
 {
   "name": "@formulax/kity-assets",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Static assets for KityFormula legacy compatibility in FormulaX.",
   "keywords": [
@@ -10,10 +10,27 @@
     "assets",
     "legacy"
   ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles/*": "./public/assets/styles/*",
+    "./theme/*": "./public/assets/theme/*",
+    "./resource/*": "./public/resource/*",
+    "./images/*": "./public/assets/images/*"
+  },
   "files": [
-    "public"
+    "public",
+    "dist",
+    "index.d.ts"
   ],
   "scripts": {
-    "clean": "echo kity-assets has no build output"
+    "build": "tsup --config ../../tsup.config.mjs",
+    "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue"
   }
 }

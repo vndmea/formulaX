@@ -1,3 +1,4 @@
+import { kityAssetManifest, type KityAssetManifest } from '@formulax/kity-assets';
 import { legacyBoxType } from './vendor/legacy-box-type';
 import { legacyCharPosition } from './vendor/char-position';
 import { legacyOtherPosition } from './vendor/other-position';
@@ -15,11 +16,11 @@ import { legacyUiDef } from './vendor/legacy-ui-def';
 import { createLegacyUiUtils } from './vendor/legacy-ui-utils';
 import { legacyBaseUtils } from './vendor/legacy-utils';
 import { installKityRuntime } from './kity/index';
-import { setToolbarAssetBase } from './toolbar-assets';
+import { setToolbarAssetUrls } from './toolbar-assets';
 
-const DEFAULT_ASSET_BASE = '';
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
 const DEFAULT_EDITOR_HEIGHT = 'auto';
+const KITY_STYLE_ID = 'formulax-kity-editor-styles';
 
 type EditorRuntimeFactory = {
   ready: (
@@ -32,9 +33,18 @@ type EditorFactory = {
     container: HTMLElement,
     options: {
       render: { fontsize: number };
-      resource: { path: string };
+      resource: { path: string; fonts?: KityFontAssetMap };
     },
   ) => EditorRuntimeFactory;
+};
+
+export type KityFontAssetMap = KityAssetManifest['fonts'];
+export type KityToolbarAssetMap = KityAssetManifest['toolbar'];
+export type KityStyleAssetMap = KityAssetManifest['styles'];
+export type KityEditorAssets = {
+  fonts: KityFontAssetMap;
+  toolbar: KityToolbarAssetMap;
+  styles: KityStyleAssetMap;
 };
 
 type KityWindow = Window &
@@ -65,21 +75,21 @@ type KityWindow = Window &
     kf?: Record<string, unknown> & {
       EditorFactory?: EditorFactory;
       ResourceManager?: {
-        ready: (callback: (formula: unknown) => void, options?: { path?: string }) => void;
+        ready: (
+          callback: (formula: unknown) => void,
+          options?: { path?: string; fonts?: KityFontAssetMap },
+        ) => void;
       };
     };
   };
 
 export type KityEditorOptions = {
-  assetBase?: string;
   height?: number | string;
   initialLatex?: string;
   autofocus?: boolean;
+  assets?: Partial<KityEditorAssets>;
   render?: {
     fontsize?: number;
-  };
-  resource?: {
-    path?: string;
   };
 };
 
@@ -112,31 +122,41 @@ function resolveContainer(el: string | HTMLElement) {
   return el;
 }
 
-function resolveDefaultAssetBase() {
-  if (typeof document === 'undefined') {
-    return DEFAULT_ASSET_BASE;
-  }
-
-  const baseUrl = new URL('.', document.baseURI);
-  return baseUrl.pathname;
-}
-
-function normalizeAssetBase(assetBase?: string) {
-  const resolvedAssetBase = assetBase ?? resolveDefaultAssetBase();
-
-  if (resolvedAssetBase === '/') {
-    return '';
-  }
-
-  return resolvedAssetBase.endsWith('/') ? resolvedAssetBase.slice(0, -1) : resolvedAssetBase;
-}
-
 function normalizeCssSize(value: number | string | undefined, fallback: string) {
   if (typeof value === 'number') {
     return `${value}px`;
   }
 
   return value ?? fallback;
+}
+
+function resolveEditorAssets(assets?: Partial<KityEditorAssets>): KityEditorAssets {
+  return {
+    fonts: {
+      ...kityAssetManifest.fonts,
+      ...assets?.fonts,
+    },
+    toolbar: {
+      ...kityAssetManifest.toolbar,
+      ...assets?.toolbar,
+    },
+    styles: {
+      ...kityAssetManifest.styles,
+      ...assets?.styles,
+    },
+  };
+}
+
+function ensureKityStylesheet(doc: Document, href: string): void {
+  if (doc.getElementById(KITY_STYLE_ID)) {
+    return;
+  }
+
+  const link = doc.createElement('link');
+  link.id = KITY_STYLE_ID;
+  link.rel = 'stylesheet';
+  link.href = href;
+  doc.head.appendChild(link);
 }
 
 function hydrateLegacyKf(runtimeWindow: KityWindow) {
@@ -196,7 +216,7 @@ function installLegacyRuntime(runtimeWindow: KityWindow) {
   };
 }
 
-export async function ensureKityRuntime(_options: Pick<KityEditorOptions, 'assetBase'> = {}) {
+export async function ensureKityRuntime() {
   if (runtimePromise) {
     return runtimePromise;
   }
@@ -228,14 +248,14 @@ export async function createKityEditor(
   container: HTMLElement,
   options: KityEditorOptions = {},
 ): Promise<KityEditorHandle> {
-  const assetBase = normalizeAssetBase(options.assetBase);
-  const resourcePath = options.resource?.path ?? `${assetBase}/resource/`;
   const fontsize = options.render?.fontsize ?? 40;
   const editorHeight = normalizeCssSize(options.height, DEFAULT_EDITOR_HEIGHT);
+  const assets = resolveEditorAssets(options.assets);
 
-  setToolbarAssetBase(options.assetBase);
+  ensureKityStylesheet(document, assets.styles.editor);
+  setToolbarAssetUrls(assets.toolbar);
 
-  await ensureKityRuntime({ assetBase });
+  await ensureKityRuntime();
 
   const runtimeWindow = window as KityWindow;
 
@@ -257,7 +277,8 @@ export async function createKityEditor(
       fontsize,
     },
     resource: {
-      path: resourcePath,
+      path: '',
+      fonts: assets.fonts,
     },
   });
 
