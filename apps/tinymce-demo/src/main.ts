@@ -21,11 +21,7 @@ style.textContent = `
 }
 
 .fx-demo-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
 }
 
 .fx-demo-header h1 {
@@ -37,26 +33,13 @@ style.textContent = `
   color: #4b5563;
 }
 
-.fx-demo-version {
-  display: grid;
-  gap: 6px;
-  min-width: 200px;
-}
-
-.fx-demo-version span {
-  font-size: 13px;
-  color: #4b5563;
-}
-
-.fx-demo-version select {
+#tinymce-version {
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
-}
-
-.fx-demo-status {
-  color: #4b5563;
-  font-size: 14px;
+  min-width: 180px;
+  margin: 0 0 4px;
+  display: block;
 }
 `;
 document.head.appendChild(style);
@@ -68,16 +51,11 @@ app.innerHTML = `
         <h1>TinyMCE + FormulaX</h1>
         <p>Minimal TinyMCE plugin integration demo. Choose a TinyMCE major version and click the FormulaX toolbar button.</p>
       </div>
-
-      <label class="fx-demo-version">
-        <span>TinyMCE version</span>
-        <select id="tinymce-version">
-          ${TINYMCE_VERSION_OPTIONS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
-        </select>
-      </label>
     </header>
 
-    <p id="tinymce-status" class="fx-demo-status">Loading TinyMCE...</p>
+    <select id="tinymce-version" aria-label="TinyMCE version">
+      ${TINYMCE_VERSION_OPTIONS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
+    </select>
 
     <textarea id="tiny-host">
       <p>Click the <strong>FormulaX</strong> toolbar button to insert a formula.</p>
@@ -86,15 +64,16 @@ app.innerHTML = `
 `;
 
 const versionSelect = document.querySelector<HTMLSelectElement>('#tinymce-version');
-const status = document.querySelector<HTMLElement>('#tinymce-status');
 const textarea = document.querySelector<HTMLTextAreaElement>('#tiny-host');
 
-if (!versionSelect || !status || !textarea) {
+if (!versionSelect || !textarea) {
   throw new Error('TinyMCE demo DOM missing');
 }
 
+const versionControl = versionSelect;
+
 async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
-  status!.textContent = `Loading TinyMCE ${version}...`;
+  versionControl.disabled = true;
 
   const tinymce = await loadTinyMceRuntime(version);
 
@@ -124,18 +103,17 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
     `,
   });
 
-  const major = tinymce.majorVersion ?? version;
-  status!.textContent = `Loaded TinyMCE ${major}.`;
+  versionControl.disabled = false;
 }
 
 versionSelect.addEventListener('change', () => {
   void initTinyMce(versionSelect.value as TinyMceDemoVersion).catch((error) => {
     console.error(error);
-    status.textContent = error instanceof Error ? error.message : String(error);
+    versionControl.disabled = false;
   });
 });
 
 void initTinyMce(versionSelect.value as TinyMceDemoVersion).catch((error) => {
   console.error(error);
-  status.textContent = error instanceof Error ? error.message : String(error);
+  versionControl.disabled = false;
 });
