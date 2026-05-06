@@ -22,9 +22,11 @@ export const tinymceStyles = `
 }
 
 .fx-tinymce-modal {
+  --fx-tinymce-editor-body-height: 264px;
+  --fx-tinymce-workspace-height: 168px;
   position: relative;
-  width: min(1180px, calc(100vw - 32px));
-  height: min(820px, calc(100vh - 32px));
+  width: min(860px, calc(100vw - 32px));
+  height: auto;
   max-height: calc(100vh - 32px);
   background: #fff;
   border-radius: 14px;
@@ -61,24 +63,39 @@ export const tinymceStyles = `
 }
 
 .fx-tinymce-modal__body {
-  flex: 1;
+  flex: 0 0 auto;
+  height: var(--fx-tinymce-editor-body-height);
   padding: 0;
   overflow: hidden;
-  min-height: 0;
+  min-height: var(--fx-tinymce-editor-body-height);
 }
 
 .fx-tinymce-editor-host {
   width: 100%;
-  height: 100%;
-  min-height: 0;
+  height: var(--fx-tinymce-editor-body-height);
+  min-height: var(--fx-tinymce-editor-body-height);
   overflow: hidden;
 }
 
 .fx-tinymce-kity-host {
   width: 100%;
-  height: 100%;
-  min-height: 0;
+  height: var(--fx-tinymce-editor-body-height);
+  min-height: var(--fx-tinymce-editor-body-height);
   overflow: hidden;
+}
+
+.fx-tinymce-kity-host .kf-editor {
+  height: var(--fx-tinymce-editor-body-height) !important;
+}
+
+.fx-tinymce-kity-host .kf-editor-edit-area,
+.fx-tinymce-kity-host .kf-editor-canvas-container {
+  min-height: var(--fx-tinymce-workspace-height);
+  height: var(--fx-tinymce-workspace-height);
+}
+
+.fx-tinymce-kity-host .kf-editor-edit-area {
+  flex: 0 0 auto;
 }
 
 .fx-tinymce-editor-loading {
