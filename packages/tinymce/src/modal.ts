@@ -72,16 +72,19 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
 
   const submit = async (): Promise<void> => {
     const latex = await mounted.getLatex();
+    const renderHtml = mounted.getRenderHtml ? await mounted.getRenderHtml() : undefined;
 
     if (target) {
       replaceFormulaElement(target, latex, {
         attributeName: options.formulaAttributeName,
         className: options.formulaClassName,
+        renderHtml,
       });
     } else {
       const html = createTinyMceFormulaMarkup(latex, {
         attributeName: options.formulaAttributeName,
         className: options.formulaClassName,
+        renderHtml,
       });
       editor.insertContent(html);
     }
