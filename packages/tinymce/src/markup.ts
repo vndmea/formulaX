@@ -34,7 +34,7 @@ export function createTinyMceFormulaMarkup(
   const className = options.className ?? DEFAULT_FORMULA_CLASS;
   const displayClass = options.displayMode ? `${className} ${className}--block` : className;
   const safeLatex = escapeAttribute(latex);
-  const content = options.renderHtml ?? escapeHtml(latex || '\\square');
+  const content = options.renderHtml ?? `<span class="${escapeAttribute(className)}__render">${escapeHtml(latex || '\\square')}</span>`;
 
   return [
     '<span',
@@ -46,7 +46,7 @@ export function createTinyMceFormulaMarkup(
     ' role="button"',
     ' tabindex="0"',
     '>',
-    `<span class="${escapeAttribute(className)}__render">${content}</span>`,
+    content,
     '</span>',
   ].join('');
 }
