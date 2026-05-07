@@ -83,8 +83,7 @@ export function mountFormulaXEditorInModal(
 
     async getRenderHtml(): Promise<string> {
       await readyPromise;
-      const latex = await getCurrentLatex();
-      return renderCurrentFormulaAsSvgImageHtml(root, latex);
+      return renderCurrentFormulaAsSvgHtml(root);
     },
 
     destroy(): void {
@@ -140,16 +139,14 @@ async function tryReadLatexFromKityHandle(
   return null;
 }
 
-function renderCurrentFormulaAsSvgImageHtml(root: HTMLElement, latex: string): string {
+function renderCurrentFormulaAsSvgHtml(root: HTMLElement): string {
   const svg = findFormulaSvg(root);
 
   if (!svg) {
-    return escapeHtml(latex);
+    return '';
   }
 
-  const src = svgToSvgDataUrl(svg);
-
-  return `<img class="formulax-math__image" src="${escapeAttribute(src)}" alt="${escapeAttribute(latex)}" draggable="false" />`;
+  return serializeSvgForInsertion(svg);
 }
 
 function findFormulaSvg(root: HTMLElement): SVGSVGElement | null {
@@ -158,7 +155,7 @@ function findFormulaSvg(root: HTMLElement): SVGSVGElement | null {
   );
 }
 
-function svgToSvgDataUrl(svg: SVGSVGElement): string {
+function serializeSvgForInsertion(svg: SVGSVGElement): string {
   const clone = svg.cloneNode(true) as SVGSVGElement;
 
   if (!clone.getAttribute('xmlns')) {
@@ -169,22 +166,14 @@ function svgToSvgDataUrl(svg: SVGSVGElement): string {
     clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
   }
 
-  const serialized = new XMLSerializer().serializeToString(clone);
+  clone.removeAttribute('id');
 
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+  return new XMLSerializer().serializeToString(clone);
 }
 
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
-}
-
-function escapeAttribute(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 }
