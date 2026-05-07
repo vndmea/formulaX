@@ -35,18 +35,6 @@ export function createTinyMceFormulaMarkup(
   const displayClass = options.displayMode ? `${className} ${className}--block` : className;
   const safeLatex = escapeAttribute(latex);
 
-  if (options.renderHtml) {
-    const svgMarkup = createSvgFormulaMarkup(options.renderHtml, {
-      attributeName,
-      className: displayClass,
-      latex: safeLatex,
-    });
-
-    if (svgMarkup) {
-      return svgMarkup;
-    }
-  }
-
   return [
     '<span',
     ` class="${escapeAttribute(displayClass)}"`,
@@ -54,45 +42,13 @@ export function createTinyMceFormulaMarkup(
     ` ${attributeName}="${safeLatex}"`,
     ` data-latex="${safeLatex}"`,
     ' contenteditable="false"',
+    ' data-mce-contenteditable="false"',
     ' role="button"',
     ' tabindex="0"',
     '>',
-    `<span class="${escapeAttribute(className)}__render">${escapeHtml(latex || '\\square')}</span>`,
+    options.renderHtml ?? `<span class="${escapeAttribute(className)}__render">${escapeHtml(latex || '\\square')}</span>`,
     '</span>',
   ].join('');
-}
-
-function createSvgFormulaMarkup(
-  renderHtml: string,
-  options: {
-    attributeName: string;
-    className: string;
-    latex: string;
-  },
-): string | null {
-  const template = document.createElement('template');
-  template.innerHTML = renderHtml.trim();
-  const svg = template.content.querySelector('svg');
-
-  if (!svg) {
-    return null;
-  }
-
-  const existingClass = svg.getAttribute('class');
-  const className = existingClass
-    ? `${options.className} ${existingClass}`
-    : options.className;
-
-  svg.setAttribute('class', className);
-  svg.setAttribute(FORMULA_FLAG_ATTRIBUTE, 'true');
-  svg.setAttribute(options.attributeName, options.latex);
-  svg.setAttribute('data-latex', options.latex);
-  svg.setAttribute('contenteditable', 'false');
-  svg.setAttribute('role', 'button');
-  svg.setAttribute('tabindex', '0');
-  svg.setAttribute('focusable', 'false');
-
-  return svg.outerHTML;
 }
 
 export function parseTinyMceFormulaMarkup(latex: string): FormulaDoc {
