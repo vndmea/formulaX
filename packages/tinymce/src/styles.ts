@@ -12,7 +12,6 @@ export const tinymceStyles = `
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .fx-tinymce-modal-backdrop {
@@ -44,6 +43,16 @@ export const tinymceStyles = `
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+}
+
+.fx-tinymce-modal__header,
+.fx-tinymce-modal__footer,
+.fx-tinymce-modal__title,
+.fx-tinymce-modal__close,
+.fx-tinymce-modal__button,
+.fx-tinymce-editor-loading,
+.fx-tinymce-editor-error {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .fx-tinymce-modal__title {
@@ -153,18 +162,25 @@ export const tinymceStyles = `
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
-  min-height: 1.6em;
-  padding: 0 4px;
+  padding: 0 2px;
   margin: 0 1px;
-  border-radius: 4px;
-  background: rgba(37, 99, 235, 0.08);
-  color: #1d4ed8;
+  border-radius: 3px;
+  background: transparent;
   cursor: pointer;
   user-select: none;
 }
 
 .formulax-math:hover {
-  background: rgba(37, 99, 235, 0.16);
+  outline: 1px solid rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.formulax-math__image {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+  pointer-events: none;
 }
 
 .formulax-math__render {
