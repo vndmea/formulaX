@@ -116,7 +116,6 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
     toolbar: 'undo redo | formulax',
     license_key: 'gpl',
     extended_valid_elements: svgExtendedValidElements,
-    valid_children: '+body[svg],+svg[defs|style|g|path|use|text|tspan|line|rect|circle|ellipse|polygon|polyline],+defs[style],+g[g|path|use|text|tspan|line|rect|circle|ellipse|polygon|polyline],+text[tspan]',
     content_style: `
       body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     `,
