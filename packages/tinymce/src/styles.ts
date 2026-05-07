@@ -162,6 +162,7 @@ export const tinymceStyles = `
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
+  line-height: 1;
   padding: 0 2px;
   margin: 0 1px;
   border-radius: 3px;
@@ -173,6 +174,14 @@ export const tinymceStyles = `
 .formulax-math:hover {
   outline: 1px solid rgba(37, 99, 235, 0.35);
   background: rgba(37, 99, 235, 0.06);
+}
+
+.formulax-math__svg {
+  display: inline-block;
+  flex: 0 0 auto;
+  max-width: 100%;
+  vertical-align: -0.35em;
+  pointer-events: none;
 }
 
 .formulax-math__image {
