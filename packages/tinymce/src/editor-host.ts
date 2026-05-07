@@ -7,6 +7,13 @@ export interface MountFormulaXEditorOptions {
   options: RequiredFormulaXTinyMceOptions;
 }
 
+interface SvgBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export function mountFormulaXEditorInModal(
   root: HTMLElement,
   input: MountFormulaXEditorOptions,
@@ -157,6 +164,7 @@ function findFormulaSvg(root: HTMLElement): SVGSVGElement | null {
 
 function serializeSvgForInsertion(svg: SVGSVGElement): string {
   const clone = svg.cloneNode(true) as SVGSVGElement;
+  const contentBox = getSvgContentBox(svg);
 
   if (!clone.getAttribute('xmlns')) {
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -167,7 +175,8 @@ function serializeSvgForInsertion(svg: SVGSVGElement): string {
   }
 
   uniquifySvgIds(clone);
-  sizeSvgForInlineDisplay(clone, svg);
+  cropSvgToContent(clone, contentBox);
+  sizeSvgForInlineDisplay(clone, svg, contentBox);
 
   clone.removeAttribute('id');
   clone.setAttribute('class', mergeClassNames(clone.getAttribute('class'), 'formulax-math__svg'));
@@ -178,11 +187,51 @@ function serializeSvgForInsertion(svg: SVGSVGElement): string {
   return new XMLSerializer().serializeToString(clone);
 }
 
-function sizeSvgForInlineDisplay(clone: SVGSVGElement, source: SVGSVGElement): void {
+function getSvgContentBox(svg: SVGSVGElement): SvgBox | null {
+  const content = svg.querySelector<SVGGraphicsElement>('svg > g, g');
+
+  if (!content || typeof content.getBBox !== 'function') {
+    return null;
+  }
+
+  try {
+    const box = content.getBBox();
+    if (!Number.isFinite(box.width) || !Number.isFinite(box.height) || box.width <= 0 || box.height <= 0) {
+      return null;
+    }
+
+    return {
+      x: box.x,
+      y: box.y,
+      width: box.width,
+      height: box.height,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function cropSvgToContent(clone: SVGSVGElement, contentBox: SvgBox | null): void {
+  if (!contentBox) return;
+
+  const padding = Math.max(1, Math.min(contentBox.width, contentBox.height) * 0.03);
+  const x = contentBox.x - padding;
+  const y = contentBox.y - padding;
+  const width = contentBox.width + padding * 2;
+  const height = contentBox.height + padding * 2;
+
+  clone.setAttribute('viewBox', `${roundLength(x)} ${roundLength(y)} ${roundLength(width)} ${roundLength(height)}`);
+}
+
+function sizeSvgForInlineDisplay(
+  clone: SVGSVGElement,
+  source: SVGSVGElement,
+  contentBox: SvgBox | null,
+): void {
   const viewBox = clone.viewBox?.baseVal;
   const rect = source.getBoundingClientRect();
-  const width = viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
-  const height = viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
+  const width = contentBox?.width || viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
+  const height = contentBox?.height || viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
   const ratio = Math.max(0.1, width / Math.max(1, height));
   const inlineHeightEm = 1.65;
   const inlineWidthEm = Math.min(40, Math.max(0.75, ratio * inlineHeightEm));
