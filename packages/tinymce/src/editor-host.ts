@@ -166,9 +166,80 @@ function serializeSvgForInsertion(svg: SVGSVGElement): string {
     clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
   }
 
+  uniquifySvgIds(clone);
+  sizeSvgForInlineDisplay(clone, svg);
+
   clone.removeAttribute('id');
+  clone.setAttribute('class', mergeClassNames(clone.getAttribute('class'), 'formulax-math__svg'));
+  clone.setAttribute('focusable', 'false');
+  clone.setAttribute('aria-hidden', 'true');
+  clone.setAttribute('preserveAspectRatio', clone.getAttribute('preserveAspectRatio') || 'xMidYMid meet');
 
   return new XMLSerializer().serializeToString(clone);
+}
+
+function sizeSvgForInlineDisplay(clone: SVGSVGElement, source: SVGSVGElement): void {
+  const viewBox = clone.viewBox?.baseVal;
+  const rect = source.getBoundingClientRect();
+  const width = viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
+  const height = viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
+  const ratio = Math.max(0.1, width / Math.max(1, height));
+  const inlineHeightEm = 1.65;
+  const inlineWidthEm = Math.min(40, Math.max(0.75, ratio * inlineHeightEm));
+
+  clone.setAttribute('width', `${roundLength(inlineWidthEm)}em`);
+  clone.setAttribute('height', `${inlineHeightEm}em`);
+}
+
+function roundLength(value: number): string {
+  return String(Math.round(value * 1000) / 1000);
+}
+
+function uniquifySvgIds(svg: SVGSVGElement): void {
+  const idMap = new Map<string, string>();
+  const prefix = `fx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-`;
+  const elementsWithId = svg.querySelectorAll<Element>('[id]');
+
+  elementsWithId.forEach((element) => {
+    const id = element.getAttribute('id');
+    if (!id) return;
+
+    const nextId = `${prefix}${id}`;
+    idMap.set(id, nextId);
+    element.setAttribute('id', nextId);
+  });
+
+  if (!idMap.size) return;
+
+  svg.querySelectorAll<Element>('*').forEach((element) => {
+    Array.from(element.attributes).forEach((attribute) => {
+      const nextValue = rewriteSvgReferences(attribute.value, idMap);
+      if (nextValue !== attribute.value) {
+        element.setAttribute(attribute.name, nextValue);
+      }
+    });
+  });
+}
+
+function rewriteSvgReferences(value: string, idMap: Map<string, string>): string {
+  let nextValue = value;
+
+  idMap.forEach((nextId, id) => {
+    nextValue = nextValue
+      .replaceAll(`#${id}`, `#${nextId}`)
+      .replaceAll(`url(${id})`, `url(${nextId})`)
+      .replaceAll(`url(#${id})`, `url(#${nextId})`);
+  });
+
+  return nextValue;
+}
+
+function mergeClassNames(...values: Array<string | null | undefined>): string {
+  return values
+    .flatMap((value) => value?.split(/\s+/) ?? [])
+    .filter(Boolean)
+    .filter((value, index, list) => list.indexOf(value) === index)
+    .join(' ');
 }
 
 function escapeHtml(value: string): string {
