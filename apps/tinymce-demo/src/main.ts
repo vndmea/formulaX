@@ -72,6 +72,23 @@ if (!versionSelect || !textarea) {
 
 const versionControl = versionSelect;
 
+const svgExtendedValidElements = [
+  'svg[class|style|id|xmlns|xmlns:xlink|version|width|height|viewBox|font-size|focusable|role|tabindex|contenteditable|data-formulax|data-formulax-latex|data-latex]',
+  'defs[id|class|style]',
+  'style[type|media]',
+  'g[id|class|style|transform|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|opacity|font-family|font-size|font-style|font-weight]',
+  'path[id|class|style|d|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|opacity|transform]',
+  'use[id|class|style|x|y|width|height|href|xlink:href|transform|fill|stroke|opacity]',
+  'text[id|class|style|x|y|dx|dy|fill|stroke|transform|font-family|font-size|font-style|font-weight|text-anchor]',
+  'tspan[id|class|style|x|y|dx|dy|fill|stroke|transform|font-family|font-size|font-style|font-weight|text-anchor]',
+  'line[id|class|style|x1|y1|x2|y2|fill|stroke|stroke-width|stroke-linecap|opacity|transform]',
+  'rect[id|class|style|x|y|width|height|rx|ry|fill|stroke|stroke-width|opacity|transform]',
+  'circle[id|class|style|cx|cy|r|fill|stroke|stroke-width|opacity|transform]',
+  'ellipse[id|class|style|cx|cy|rx|ry|fill|stroke|stroke-width|opacity|transform]',
+  'polygon[id|class|style|points|fill|stroke|stroke-width|opacity|transform]',
+  'polyline[id|class|style|points|fill|stroke|stroke-width|opacity|transform]',
+].join(',');
+
 async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
   versionControl.disabled = true;
 
@@ -98,6 +115,8 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
     plugins: 'formulax',
     toolbar: 'undo redo | formulax',
     license_key: 'gpl',
+    extended_valid_elements: svgExtendedValidElements,
+    valid_children: '+body[svg],+svg[defs|style|g|path|use|text|tspan|line|rect|circle|ellipse|polygon|polyline],+defs[style],+g[g|path|use|text|tspan|line|rect|circle|ellipse|polygon|polyline],+text[tspan]',
     content_style: `
       body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     `,
