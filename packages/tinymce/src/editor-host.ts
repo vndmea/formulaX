@@ -162,37 +162,130 @@ function findFormulaSvg(root: HTMLElement): SVGSVGElement | null {
   );
 }
 
-function serializeSvgForInsertion(svg: SVGSVGElement): string {
-  const clone = svg.cloneNode(true) as SVGSVGElement;
+export function serializeSvgForInsertion(svg: SVGSVGElement): string {
   const contentBox = getSvgContentBox(svg);
-
-  if (!clone.getAttribute('xmlns')) {
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  }
-
-  if (!clone.getAttribute('xmlns:xlink')) {
-    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-  }
+  const inlineViewport = contentBox ? createInlineSvgViewport(contentBox) : null;
+  const clone = inlineViewport
+    ? createInlineSvgClone(svg, inlineViewport)
+    : (svg.cloneNode(true) as SVGSVGElement);
 
   uniquifySvgIds(clone);
-  cropSvgToContent(clone, contentBox);
-  sizeSvgForInlineDisplay(clone, svg, contentBox);
+  sizeSvgForInlineDisplay(clone, svg, inlineViewport);
 
   clone.removeAttribute('id');
+  clone.removeAttribute('xmlns');
+  clone.removeAttribute('xmlns:xlink');
   clone.setAttribute('class', mergeClassNames(clone.getAttribute('class'), 'formulax-math__svg'));
   clone.setAttribute('focusable', 'false');
   clone.setAttribute('aria-hidden', 'true');
-  clone.setAttribute('preserveAspectRatio', clone.getAttribute('preserveAspectRatio') || 'xMidYMid meet');
+  clone.setAttribute('preserveAspectRatio', clone.getAttribute('preserveAspectRatio') || 'xMinYMin meet');
 
   return new XMLSerializer().serializeToString(clone);
 }
 
 function getSvgContentBox(svg: SVGSVGElement): SvgBox | null {
-  const svgBox = readSvgBox(svg);
-  if (svgBox) return svgBox;
+  const candidates = [
+    '[data-root="true"] > g[data-type="kf-editor-exp-content-box"]',
+    'g[data-type="kf-editor-exp-content-box"]',
+    'g[data-type="kf-container"]',
+    'svg > g, g',
+  ];
 
-  const content = svg.querySelector<SVGGraphicsElement>('svg > g, g');
-  return content ? readSvgBox(content) : null;
+  for (const selector of candidates) {
+    const content = svg.querySelector<SVGGraphicsElement>(selector);
+    const box = content ? readSvgBoxInRootSpace(content) : null;
+    if (box) {
+      return box;
+    }
+  }
+
+  return readSvgBox(svg);
+}
+
+function readSvgBoxInRootSpace(element: SVGGraphicsElement): SvgBox | null {
+  const box = readSvgBox(element);
+  const elementMatrix = typeof element.getCTM === 'function' ? element.getCTM() : null;
+  const rootMatrix = typeof element.ownerSVGElement?.getCTM === 'function'
+    ? element.ownerSVGElement.getCTM()
+    : null;
+
+  if (!box || !elementMatrix) {
+    return box;
+  }
+
+  const matrix = rootMatrix
+    ? multiplySvgMatrices(invertSvgMatrix(rootMatrix), elementMatrix)
+    : elementMatrix;
+
+  const points = [
+    { x: box.x, y: box.y },
+    { x: box.x + box.width, y: box.y },
+    { x: box.x, y: box.y + box.height },
+    { x: box.x + box.width, y: box.y + box.height },
+  ].map((point) => ({
+    x: matrix.a * point.x + matrix.c * point.y + matrix.e,
+    y: matrix.b * point.x + matrix.d * point.y + matrix.f,
+  }));
+
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  const width = Math.max(...xs) - x;
+  const height = Math.max(...ys) - y;
+
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { x, y, width, height };
+}
+
+function invertSvgMatrix(matrix: DOMMatrix | SVGMatrix): SVGMatrixLike {
+  const determinant = matrix.a * matrix.d - matrix.b * matrix.c;
+
+  if (!Number.isFinite(determinant) || determinant === 0) {
+    return {
+      a: 1,
+      b: 0,
+      c: 0,
+      d: 1,
+      e: 0,
+      f: 0,
+    };
+  }
+
+  return {
+    a: matrix.d / determinant,
+    b: -matrix.b / determinant,
+    c: -matrix.c / determinant,
+    d: matrix.a / determinant,
+    e: (matrix.c * matrix.f - matrix.d * matrix.e) / determinant,
+    f: (matrix.b * matrix.e - matrix.a * matrix.f) / determinant,
+  };
+}
+
+function multiplySvgMatrices(
+  left: DOMMatrix | SVGMatrixLike,
+  right: DOMMatrix | SVGMatrixLike,
+): SVGMatrixLike {
+  return {
+    a: left.a * right.a + left.c * right.b,
+    b: left.b * right.a + left.d * right.b,
+    c: left.a * right.c + left.c * right.d,
+    d: left.b * right.c + left.d * right.d,
+    e: left.a * right.e + left.c * right.f + left.e,
+    f: left.b * right.e + left.d * right.f + left.f,
+  };
+}
+
+interface SVGMatrixLike {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
 }
 
 function readSvgBox(element: SVGGraphicsElement): SvgBox | null {
@@ -217,33 +310,105 @@ function readSvgBox(element: SVGGraphicsElement): SvgBox | null {
   }
 }
 
-function cropSvgToContent(clone: SVGSVGElement, contentBox: SvgBox | null): void {
-  if (!contentBox) return;
+function createInlineSvgViewport(contentBox: SvgBox): SvgBox {
+  const edgePadding = Math.max(0.5, Math.min(contentBox.width, contentBox.height) * 0.006);
 
-  const padding = Math.max(1, Math.min(contentBox.width, contentBox.height) * 0.03);
-  const x = contentBox.x - padding;
-  const y = contentBox.y - padding;
-  const width = contentBox.width + padding * 2;
-  const height = contentBox.height + padding * 2;
+  return {
+    x: contentBox.x,
+    y: contentBox.y,
+    width: contentBox.width + edgePadding,
+    height: contentBox.height + edgePadding,
+  };
+}
 
-  clone.setAttribute('viewBox', `${roundLength(x)} ${roundLength(y)} ${roundLength(width)} ${roundLength(height)}`);
+function createInlineSvgClone(source: SVGSVGElement, viewport: SvgBox): SVGSVGElement {
+  const clone = source.cloneNode(false) as SVGSVGElement;
+  const ownerDocument = source.ownerDocument;
+
+  copySvgRootAttributes(source, clone);
+  clone.setAttribute(
+    'viewBox',
+    `0 0 ${roundLength(viewport.width)} ${roundLength(viewport.height)}`,
+  );
+
+  Array.from(source.children).forEach((child) => {
+    if (child.tagName.toLowerCase() === 'defs') {
+      clone.appendChild(child.cloneNode(true));
+    }
+  });
+
+  const contentRoot = findSvgContentRoot(source);
+  if (!contentRoot) {
+    return clone;
+  }
+
+  const wrapper = ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
+  wrapper.setAttribute(
+    'transform',
+    `translate(${roundLength(-viewport.x)} ${roundLength(-viewport.y)})`,
+  );
+  wrapper.appendChild(contentRoot.cloneNode(true));
+  clone.appendChild(wrapper);
+
+  return clone;
+}
+
+function copySvgRootAttributes(source: SVGSVGElement, target: SVGSVGElement): void {
+  const excluded = new Set([
+    'id',
+    'width',
+    'height',
+    'viewBox',
+    'class',
+    'focusable',
+    'aria-hidden',
+    'xmlns',
+    'xmlns:xlink',
+  ]);
+
+  Array.from(source.attributes).forEach((attribute) => {
+    if (excluded.has(attribute.name)) return;
+    target.setAttribute(attribute.name, attribute.value);
+  });
+}
+
+function findSvgContentRoot(svg: SVGSVGElement): SVGGElement | null {
+  const directContainer = Array.from(svg.children).find((child) => {
+    return child.tagName.toLowerCase() === 'g'
+      && child.getAttribute('data-type') === 'kf-container';
+  });
+
+  if (directContainer instanceof SVGGElement) {
+    return directContainer;
+  }
+
+  const firstGroup = Array.from(svg.children).find((child) => child.tagName.toLowerCase() === 'g');
+  return firstGroup instanceof SVGGElement ? firstGroup : null;
 }
 
 function sizeSvgForInlineDisplay(
   clone: SVGSVGElement,
   source: SVGSVGElement,
-  contentBox: SvgBox | null,
+  viewport: SvgBox | null,
 ): void {
   const viewBox = clone.viewBox?.baseVal;
   const rect = source.getBoundingClientRect();
-  const width = contentBox?.width || viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
-  const height = contentBox?.height || viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
+  const width = viewport?.width || viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
+  const height = viewport?.height || viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
   const ratio = Math.max(0.1, width / Math.max(1, height));
   const inlineHeightEm = 1.65;
   const inlineWidthEm = Math.min(40, Math.max(0.75, ratio * inlineHeightEm));
 
-  clone.setAttribute('width', `${roundLength(inlineWidthEm)}em`);
-  clone.setAttribute('height', `${inlineHeightEm}em`);
+  clone.setAttribute('width', roundLength(width));
+  clone.setAttribute('height', roundLength(height));
+  clone.setAttribute(
+    'style',
+    mergeInlineStyles(
+      clone.getAttribute('style'),
+      `width:${roundLength(inlineWidthEm)}em`,
+      `height:${inlineHeightEm}em`,
+    ),
+  );
 }
 
 function roundLength(value: number): string {
@@ -299,6 +464,14 @@ function mergeClassNames(...values: Array<string | null | undefined>): string {
     .filter(Boolean)
     .filter((value, index, list) => list.indexOf(value) === index)
     .join(' ');
+}
+
+function mergeInlineStyles(...values: Array<string | null | undefined>): string {
+  return values
+    .flatMap((value) => value?.split(';') ?? [])
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .join('; ');
 }
 
 function escapeHtml(value: string): string {

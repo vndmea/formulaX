@@ -56,11 +56,35 @@ describe('registerFormulaXTinyMcePlugin', () => {
 
     expect(buttons.has('formulax')).toBe(true);
   });
+
+  it('extends schema to preserve inline svg formula attributes', () => {
+    const events = new Map<string, Function>();
+    const addValidElements = vi.fn();
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(new Map(), new Map(), events, addValidElements);
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any);
+
+    expect(addValidElements).toHaveBeenCalledTimes(1);
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('svg[');
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('viewbox');
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('preserveaspectratio');
+  });
 });
 
 function createFakeEditor(
   commands = new Map<string, Function>(),
   buttons = new Map<string, unknown>(),
+  events = new Map<string, Function>(),
+  addValidElements = vi.fn(),
 ) {
   return {
     addCommand(name: string, callback: Function) {
@@ -70,8 +94,13 @@ function createFakeEditor(
       commands.get(name)?.();
     },
     insertContent: vi.fn(),
-    on: vi.fn(),
+    on(name: string, callback: Function) {
+      events.set(name, callback);
+    },
     focus: vi.fn(),
+    schema: {
+      addValidElements,
+    },
     getDoc: () => document,
     getBody: () => document.body,
     ui: {

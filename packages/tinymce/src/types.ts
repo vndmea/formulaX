@@ -31,6 +31,9 @@ export interface TinyMceEditorLike {
     encode?: (value: string) => string;
     decode?: (value: string) => string;
   };
+  schema?: {
+    addValidElements?: (validElements: string) => void;
+  };
   getDoc?: () => Document;
   getWin?: () => Window;
   getBody?: () => HTMLElement;
