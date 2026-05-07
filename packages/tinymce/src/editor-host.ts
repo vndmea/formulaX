@@ -188,14 +188,20 @@ function serializeSvgForInsertion(svg: SVGSVGElement): string {
 }
 
 function getSvgContentBox(svg: SVGSVGElement): SvgBox | null {
-  const content = svg.querySelector<SVGGraphicsElement>('svg > g, g');
+  const svgBox = readSvgBox(svg);
+  if (svgBox) return svgBox;
 
-  if (!content || typeof content.getBBox !== 'function') {
+  const content = svg.querySelector<SVGGraphicsElement>('svg > g, g');
+  return content ? readSvgBox(content) : null;
+}
+
+function readSvgBox(element: SVGGraphicsElement): SvgBox | null {
+  if (typeof element.getBBox !== 'function') {
     return null;
   }
 
   try {
-    const box = content.getBBox();
+    const box = element.getBBox();
     if (!Number.isFinite(box.width) || !Number.isFinite(box.height) || box.width <= 0 || box.height <= 0) {
       return null;
     }
@@ -246,7 +252,7 @@ function roundLength(value: number): string {
 
 function uniquifySvgIds(svg: SVGSVGElement): void {
   const idMap = new Map<string, string>();
-  const prefix = `fx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-`;
+  const prefix = `fx-${randomIdPrefix()}-`;
   const elementsWithId = svg.querySelectorAll<Element>('[id]');
 
   elementsWithId.forEach((element) => {
@@ -268,6 +274,10 @@ function uniquifySvgIds(svg: SVGSVGElement): void {
       }
     });
   });
+}
+
+function randomIdPrefix(): string {
+  return Math.random().toString(36).slice(2, 5).padEnd(3, '0');
 }
 
 function rewriteSvgReferences(value: string, idMap: Map<string, string>): string {
