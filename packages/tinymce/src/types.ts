@@ -98,5 +98,6 @@ export interface MountedFormulaXEditor {
   root: HTMLElement;
   getLatex: () => string | Promise<string>;
   getState: () => FormulaState | Promise<FormulaState>;
+  getRenderHtml?: () => string | Promise<string>;
   destroy: () => void;
 }
