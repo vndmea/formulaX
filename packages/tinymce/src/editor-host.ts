@@ -52,22 +52,24 @@ export function mountFormulaXEditorInModal(
       throw error;
     });
 
+  const getCurrentLatex = async (): Promise<string> => {
+    const readyHandle = handle ?? await readyPromise;
+    const latex = await tryReadLatexFromKityHandle(readyHandle);
+
+    if (latex) {
+      latestLatex = latex;
+    }
+
+    return latestLatex;
+  };
+
   return {
     root,
 
-    async getLatex(): Promise<string> {
-      const readyHandle = handle ?? await readyPromise;
-      const latex = await tryReadLatexFromKityHandle(readyHandle);
-
-      if (latex) {
-        latestLatex = latex;
-      }
-
-      return latestLatex;
-    },
+    getLatex: getCurrentLatex,
 
     async getState(): Promise<FormulaState> {
-      const latex = await this.getLatex();
+      const latex = await getCurrentLatex();
 
       try {
         return {
@@ -77,6 +79,12 @@ export function mountFormulaXEditorInModal(
       } catch {
         return createEmptyState();
       }
+    },
+
+    async getRenderHtml(): Promise<string> {
+      await readyPromise;
+      const latex = await getCurrentLatex();
+      return renderCurrentFormulaAsSvgImageHtml(root, latex);
     },
 
     destroy(): void {
@@ -132,9 +140,51 @@ async function tryReadLatexFromKityHandle(
   return null;
 }
 
+function renderCurrentFormulaAsSvgImageHtml(root: HTMLElement, latex: string): string {
+  const svg = findFormulaSvg(root);
+
+  if (!svg) {
+    return escapeHtml(latex);
+  }
+
+  const src = svgToSvgDataUrl(svg);
+
+  return `<img class="formulax-math__image" src="${escapeAttribute(src)}" alt="${escapeAttribute(latex)}" draggable="false" />`;
+}
+
+function findFormulaSvg(root: HTMLElement): SVGSVGElement | null {
+  return root.querySelector<SVGSVGElement>(
+    '.kf-editor-edit-area svg, .kf-editor-canvas-container svg, svg',
+  );
+}
+
+function svgToSvgDataUrl(svg: SVGSVGElement): string {
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+
+  if (!clone.getAttribute('xmlns')) {
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  }
+
+  if (!clone.getAttribute('xmlns:xlink')) {
+    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+  }
+
+  const serialized = new XMLSerializer().serializeToString(clone);
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 }
