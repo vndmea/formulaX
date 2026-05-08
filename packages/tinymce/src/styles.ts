@@ -32,7 +32,8 @@ export const tinymceStyles = `
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  isolation: isolate;
 }
 
 .fx-tinymce-modal__header {
@@ -43,6 +44,10 @@ export const tinymceStyles = `
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  position: relative;
+  z-index: 3;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
 }
 
 .fx-tinymce-modal__header,
@@ -75,26 +80,44 @@ export const tinymceStyles = `
   flex: 0 0 auto;
   height: var(--fx-tinymce-editor-body-height);
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   min-height: var(--fx-tinymce-editor-body-height);
+  position: relative;
+  z-index: 2;
 }
 
 .fx-tinymce-editor-host {
   width: 100%;
   height: var(--fx-tinymce-editor-body-height);
   min-height: var(--fx-tinymce-editor-body-height);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .fx-tinymce-kity-host {
   width: 100%;
   height: var(--fx-tinymce-editor-body-height);
   min-height: var(--fx-tinymce-editor-body-height);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .fx-tinymce-kity-host .kf-editor {
   height: var(--fx-tinymce-editor-body-height) !important;
+  overflow: visible !important;
+}
+
+.fx-tinymce-kity-host .kf-editor-toolbar {
+  overflow: visible;
+  position: relative;
+  z-index: 20;
+}
+
+.fx-tinymce-kity-host .kf-editor-ui-button-mount-point,
+.fx-tinymce-kity-host .kf-editor-ui-area-mount,
+.fx-tinymce-kity-host .kf-editor-ui-box,
+.fx-tinymce-kity-host .kf-editor-ui-list {
+  z-index: 1000;
 }
 
 .fx-tinymce-kity-host .kf-editor-edit-area,
@@ -105,6 +128,7 @@ export const tinymceStyles = `
 
 .fx-tinymce-kity-host .kf-editor-edit-area {
   flex: 0 0 auto;
+  overflow: hidden;
 }
 
 .fx-tinymce-editor-loading {
@@ -139,6 +163,10 @@ export const tinymceStyles = `
   justify-content: flex-end;
   gap: 12px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-radius: 0 0 14px 14px;
 }
 
 .fx-tinymce-modal__button {
