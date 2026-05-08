@@ -120,8 +120,8 @@ function getViewportBox(doc: Document) {
 
 function getStyleByData(data: BoxItemImage & { size: { width: number; height: number } }) {
   let style = `background: url( ${data.img} ) no-repeat `;
-  style += `${-data.x}px `;
-  style += `${-data.y}px;`;
+  style += `${-data.pos.x}px `;
+  style += `${-data.pos.y}px;`;
   style += ` width: ${data.size.width}px;`;
   style += ` height: ${data.size.height}px;`;
   return style;
