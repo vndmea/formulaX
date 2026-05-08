@@ -95,11 +95,18 @@ export function replaceFormulaElement(
   latex: string,
   options: CreateFormulaMarkupOptions = {},
 ): HTMLElement | null {
-  const ownerDocument = target.ownerDocument ?? document;
-  const wrapper = ownerDocument.createElement('span');
-  wrapper.innerHTML = createTinyMceFormulaMarkup(latex, options);
-  const next = wrapper.firstElementChild as HTMLElement | null;
+  const next = createTinyMceFormulaElement(target.ownerDocument ?? document, latex, options);
   if (!next) return null;
   target.replaceWith(next);
   return next;
+}
+
+export function createTinyMceFormulaElement(
+  ownerDocument: Document,
+  latex: string,
+  options: CreateFormulaMarkupOptions = {},
+): HTMLElement | null {
+  const wrapper = ownerDocument.createElement('span');
+  wrapper.innerHTML = createTinyMceFormulaMarkup(latex, options);
+  return wrapper.firstElementChild as HTMLElement | null;
 }

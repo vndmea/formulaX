@@ -2,6 +2,7 @@ import type { FormulaXModalOpenOptions } from './types';
 import { ensureTinyMceStyles } from './styles';
 import { mountFormulaXEditorInModal } from './editor-host';
 import {
+  createTinyMceFormulaElement,
   createTinyMceFormulaMarkup,
   escapeAttribute,
   escapeHtml,
@@ -81,12 +82,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
         renderHtml,
       });
     } else {
-      const html = createTinyMceFormulaMarkup(latex, {
-        attributeName: options.formulaAttributeName,
-        className: options.formulaClassName,
-        renderHtml,
-      });
-      editor.insertContent(html);
+      insertFormulaElementIntoEditor(editor, latex, options.formulaAttributeName, options.formulaClassName, renderHtml);
     }
 
     close();
@@ -126,4 +122,40 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
   });
 
   return { close };
+}
+
+function insertFormulaElementIntoEditor(
+  editor: FormulaXModalOpenOptions['editor'],
+  latex: string,
+  attributeName: string,
+  className: string,
+  renderHtml?: string,
+): void {
+  const editorDoc = editor.getDoc?.() ?? document;
+  const marker = `fx-pending-${Math.random().toString(36).slice(2, 10)}`;
+  editor.insertContent(`<span data-formulax-pending="${escapeAttribute(marker)}">&#xfeff;</span>`);
+
+  const placeholder = editorDoc.querySelector<HTMLElement>(`[data-formulax-pending="${marker}"]`);
+  if (!placeholder) {
+    const html = createTinyMceFormulaMarkup(latex, {
+      attributeName,
+      className,
+      renderHtml,
+    });
+    editor.insertContent(html);
+    return;
+  }
+
+  const next = createTinyMceFormulaElement(editorDoc, latex, {
+    attributeName,
+    className,
+    renderHtml,
+  });
+
+  if (!next) {
+    placeholder.remove();
+    return;
+  }
+
+  placeholder.replaceWith(next);
 }
