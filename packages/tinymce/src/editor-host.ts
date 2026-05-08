@@ -14,6 +14,12 @@ interface SvgBox {
   height: number;
 }
 
+interface InlineSvgContent {
+  box: SvgBox;
+  matrix: SVGMatrixLike;
+  root: SVGGraphicsElement;
+}
+
 export function mountFormulaXEditorInModal(
   root: HTMLElement,
   input: MountFormulaXEditorOptions,
@@ -90,6 +96,7 @@ export function mountFormulaXEditorInModal(
 
     async getRenderHtml(): Promise<string> {
       await readyPromise;
+      await waitForFormulaSvgLayout(root);
       return renderCurrentFormulaAsSvgHtml(root);
     },
 
@@ -156,17 +163,71 @@ function renderCurrentFormulaAsSvgHtml(root: HTMLElement): string {
   return serializeSvgForInsertion(svg);
 }
 
+async function waitForFormulaSvgLayout(root: HTMLElement): Promise<void> {
+  const doc = root.ownerDocument ?? document;
+  const view = doc.defaultView ?? window;
+
+  await waitForDocumentFonts(doc);
+
+  let previous = readRenderedFormulaBox(root);
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await waitForAnimationFrame(view);
+    const current = readRenderedFormulaBox(root);
+
+    if (previous && current && areSvgBoxesClose(previous, current)) {
+      return;
+    }
+
+    previous = current;
+  }
+}
+
 function findFormulaSvg(root: HTMLElement): SVGSVGElement | null {
   return root.querySelector<SVGSVGElement>(
     '.kf-editor-edit-area svg, .kf-editor-canvas-container svg, svg',
   );
 }
 
+function readRenderedFormulaBox(root: HTMLElement): SvgBox | null {
+  const svg = findFormulaSvg(root);
+  if (!svg) {
+    return null;
+  }
+
+  return getInlineSvgContent(svg)?.box ?? readSvgBox(svg);
+}
+
+function areSvgBoxesClose(left: SvgBox, right: SvgBox): boolean {
+  return Math.abs(left.x - right.x) < 0.01
+    && Math.abs(left.y - right.y) < 0.01
+    && Math.abs(left.width - right.width) < 0.01
+    && Math.abs(left.height - right.height) < 0.01;
+}
+
+async function waitForDocumentFonts(doc: Document): Promise<void> {
+  if (!doc.fonts?.ready) {
+    return;
+  }
+
+  try {
+    await doc.fonts.ready;
+  } catch {
+    // ignore font readiness errors and fall back to frame-based settling
+  }
+}
+
+function waitForAnimationFrame(view: Window): Promise<void> {
+  return new Promise((resolve) => {
+    view.requestAnimationFrame(() => resolve());
+  });
+}
+
 export function serializeSvgForInsertion(svg: SVGSVGElement): string {
-  const contentBox = getSvgContentBox(svg);
-  const inlineViewport = contentBox ? createInlineSvgViewport(contentBox) : null;
-  const clone = inlineViewport
-    ? createInlineSvgClone(svg, inlineViewport)
+  const content = getInlineSvgContent(svg);
+  const inlineViewport = content ? createInlineSvgViewport(content.box) : null;
+  const clone = content && inlineViewport
+    ? createInlineSvgClone(svg, content, inlineViewport)
     : (svg.cloneNode(true) as SVGSVGElement);
 
   uniquifySvgIds(clone);
@@ -183,7 +244,7 @@ export function serializeSvgForInsertion(svg: SVGSVGElement): string {
   return new XMLSerializer().serializeToString(clone);
 }
 
-function getSvgContentBox(svg: SVGSVGElement): SvgBox | null {
+function getInlineSvgContent(svg: SVGSVGElement): InlineSvgContent | null {
   const candidates = [
     '[data-root="true"] > g[data-type="kf-editor-exp-content-box"]',
     'g[data-type="kf-editor-exp-content-box"]',
@@ -193,29 +254,28 @@ function getSvgContentBox(svg: SVGSVGElement): SvgBox | null {
 
   for (const selector of candidates) {
     const content = svg.querySelector<SVGGraphicsElement>(selector);
-    const box = content ? readSvgBoxInRootSpace(content) : null;
-    if (box) {
-      return box;
+    const rootSpace = content ? readSvgBoxInRootSpace(content) : null;
+    if (content && rootSpace) {
+      return {
+        root: content,
+        box: rootSpace.box,
+        matrix: rootSpace.matrix,
+      };
     }
   }
 
-  return readSvgBox(svg);
+  return null;
 }
 
-function readSvgBoxInRootSpace(element: SVGGraphicsElement): SvgBox | null {
+function readSvgBoxInRootSpace(
+  element: SVGGraphicsElement,
+): Pick<InlineSvgContent, 'box' | 'matrix'> | null {
   const box = readSvgBox(element);
-  const elementMatrix = typeof element.getCTM === 'function' ? element.getCTM() : null;
-  const rootMatrix = typeof element.ownerSVGElement?.getCTM === 'function'
-    ? element.ownerSVGElement.getCTM()
-    : null;
+  const matrix = getSvgRootSpaceMatrix(element);
 
-  if (!box || !elementMatrix) {
-    return box;
+  if (!box || !matrix) {
+    return null;
   }
-
-  const matrix = rootMatrix
-    ? multiplySvgMatrices(invertSvgMatrix(rootMatrix), elementMatrix)
-    : elementMatrix;
 
   const points = [
     { x: box.x, y: box.y },
@@ -238,7 +298,25 @@ function readSvgBoxInRootSpace(element: SVGGraphicsElement): SvgBox | null {
     return null;
   }
 
-  return { x, y, width, height };
+  return {
+    box: { x, y, width, height },
+    matrix,
+  };
+}
+
+function getSvgRootSpaceMatrix(element: SVGGraphicsElement): SVGMatrixLike | null {
+  const elementMatrix = typeof element.getCTM === 'function' ? element.getCTM() : null;
+  const rootMatrix = typeof element.ownerSVGElement?.getCTM === 'function'
+    ? element.ownerSVGElement.getCTM()
+    : null;
+
+  if (!elementMatrix) {
+    return null;
+  }
+
+  return rootMatrix
+    ? multiplySvgMatrices(invertSvgMatrix(rootMatrix), elementMatrix)
+    : toSvgMatrixLike(elementMatrix);
 }
 
 function invertSvgMatrix(matrix: DOMMatrix | SVGMatrix): SVGMatrixLike {
@@ -279,6 +357,17 @@ function multiplySvgMatrices(
   };
 }
 
+function toSvgMatrixLike(matrix: DOMMatrix | SVGMatrix): SVGMatrixLike {
+  return {
+    a: matrix.a,
+    b: matrix.b,
+    c: matrix.c,
+    d: matrix.d,
+    e: matrix.e,
+    f: matrix.f,
+  };
+}
+
 interface SVGMatrixLike {
   a: number;
   b: number;
@@ -312,16 +401,21 @@ function readSvgBox(element: SVGGraphicsElement): SvgBox | null {
 
 function createInlineSvgViewport(contentBox: SvgBox): SvgBox {
   const edgePadding = Math.max(0.5, Math.min(contentBox.width, contentBox.height) * 0.006);
+  const inset = edgePadding / 2;
 
   return {
-    x: contentBox.x,
-    y: contentBox.y,
+    x: contentBox.x - inset,
+    y: contentBox.y - inset,
     width: contentBox.width + edgePadding,
     height: contentBox.height + edgePadding,
   };
 }
 
-function createInlineSvgClone(source: SVGSVGElement, viewport: SvgBox): SVGSVGElement {
+function createInlineSvgClone(
+  source: SVGSVGElement,
+  content: InlineSvgContent,
+  viewport: SvgBox,
+): SVGSVGElement {
   const clone = source.cloneNode(false) as SVGSVGElement;
   const ownerDocument = source.ownerDocument;
 
@@ -337,17 +431,18 @@ function createInlineSvgClone(source: SVGSVGElement, viewport: SvgBox): SVGSVGEl
     }
   });
 
-  const contentRoot = findSvgContentRoot(source);
-  if (!contentRoot) {
-    return clone;
-  }
-
   const wrapper = ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
   wrapper.setAttribute(
     'transform',
     `translate(${roundLength(-viewport.x)} ${roundLength(-viewport.y)})`,
   );
-  wrapper.appendChild(contentRoot.cloneNode(true));
+  const flattened = ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
+  flattened.setAttribute(
+    'transform',
+    `matrix(${roundLength(content.matrix.a)} ${roundLength(content.matrix.b)} ${roundLength(content.matrix.c)} ${roundLength(content.matrix.d)} ${roundLength(content.matrix.e)} ${roundLength(content.matrix.f)})`,
+  );
+  flattened.appendChild(content.root.cloneNode(true));
+  wrapper.appendChild(flattened);
   clone.appendChild(wrapper);
 
   return clone;
@@ -370,20 +465,6 @@ function copySvgRootAttributes(source: SVGSVGElement, target: SVGSVGElement): vo
     if (excluded.has(attribute.name)) return;
     target.setAttribute(attribute.name, attribute.value);
   });
-}
-
-function findSvgContentRoot(svg: SVGSVGElement): SVGGElement | null {
-  const directContainer = Array.from(svg.children).find((child) => {
-    return child.tagName.toLowerCase() === 'g'
-      && child.getAttribute('data-type') === 'kf-container';
-  });
-
-  if (directContainer instanceof SVGGElement) {
-    return directContainer;
-  }
-
-  const firstGroup = Array.from(svg.children).find((child) => child.tagName.toLowerCase() === 'g');
-  return firstGroup instanceof SVGGElement ? firstGroup : null;
 }
 
 function sizeSvgForInlineDisplay(
