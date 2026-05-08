@@ -120,8 +120,8 @@ function getViewportBox(doc: Document) {
 
 function getStyleByData(data: BoxItemImage & { size: { width: number; height: number } }) {
   let style = `background: url( ${data.img} ) no-repeat `;
-  style += `${-data.pos.x}px `;
-  style += `${-data.pos.y}px;`;
+  style += `${-data.x}px `;
+  style += `${-data.y}px;`;
   style += ` width: ${data.size.width}px;`;
   style += ` height: ${data.size.height}px;`;
   return style;
@@ -346,10 +346,10 @@ const Box = kity.createClass('Box', {
       e.preventDefault();
     });
 
-    $$.on(this.element, 'mousewheel', (e: Event & { originalEvent?: { wheelDelta?: number } }) => {
+    $$.on(this.element, 'mousewheel', (e: Event & { wheelDelta?: number }) => {
       e.preventDefault();
       e.stopPropagation();
-      this.scroll(e.originalEvent?.wheelDelta ?? 0);
+      this.scroll(e.wheelDelta ?? 0);
     });
   },
 
@@ -364,9 +364,11 @@ const Box = kity.createClass('Box', {
   scroll(this: BoxInstance, delta: number) {
     if (delta < 0) {
       this.scrollDown();
-    } else {
+      return;
+    }
+
+    if (delta > 0) {
       this.scrollUp();
-      this.element.scrollTop -= 20;
     }
   },
 
