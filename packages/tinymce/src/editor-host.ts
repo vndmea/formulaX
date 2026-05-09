@@ -2,6 +2,8 @@ import { createEmptyState, parseLatex, type FormulaState } from '@formulax/core'
 import { mountKityEditor, type KityEditorHandle } from '@formulax/kity-runtime';
 import type { MountedFormulaXEditor, RequiredFormulaXTinyMceOptions } from './types';
 
+const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
+
 export interface MountFormulaXEditorOptions {
   initialLatex?: string;
   options: RequiredFormulaXTinyMceOptions;
@@ -27,6 +29,7 @@ export function mountFormulaXEditorInModal(
   let destroyed = false;
   let latestLatex = input.initialLatex ?? '';
   let handle: KityEditorHandle | null = null;
+  const initialLatex = latestLatex.trim() ? latestLatex : EMPTY_FORMULA_PLACEHOLDER;
 
   root.classList.add('fx-tinymce-kity-host');
   root.innerHTML = `
@@ -36,7 +39,7 @@ export function mountFormulaXEditorInModal(
   `;
 
   const readyPromise = mountKityEditor(root, {
-    initialLatex: latestLatex,
+    initialLatex,
     height: input.options.editor.height ?? '100%',
     autofocus: input.options.editor.autofocus ?? true,
     assets: input.options.editor.assets,
@@ -72,7 +75,7 @@ export function mountFormulaXEditorInModal(
     const readyHandle = handle ?? await readyPromise;
     const latex = await tryReadLatexFromKityHandle(readyHandle);
 
-    if (latex) {
+    if (latex !== null) {
       latestLatex = latex;
     }
 
@@ -121,6 +124,20 @@ export function mountFormulaXEditorInModal(
 async function tryReadLatexFromKityHandle(
   handle: KityEditorHandle,
 ): Promise<string | null> {
+  try {
+    let isEmpty = false;
+
+    handle.ready(function ready() {
+      isEmpty = this.execCommand('content.is.empty') === true;
+    });
+
+    if (isEmpty) {
+      return '';
+    }
+  } catch {
+    // Fall back to source commands for runtimes without content.is.empty.
+  }
+
   const candidates = [
     'get.source',
     'getSource',
