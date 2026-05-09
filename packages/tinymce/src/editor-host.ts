@@ -28,12 +28,15 @@ export function mountFormulaXEditorInModal(
   let latestLatex = input.initialLatex ?? '';
   let handle: KityEditorHandle | null = null;
 
-  root.innerHTML = '';
   root.classList.add('fx-tinymce-kity-host');
+  root.innerHTML = `
+    <div class="fx-tinymce-editor-loading" role="status" aria-live="polite">
+      Loading FormulaX editor...
+    </div>
+  `;
 
   const readyPromise = mountKityEditor(root, {
-    initialLatex:
-      latestLatex || 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
+    initialLatex: latestLatex,
     height: input.options.editor.height ?? '100%',
     autofocus: input.options.editor.autofocus ?? true,
     assets: input.options.editor.assets,
