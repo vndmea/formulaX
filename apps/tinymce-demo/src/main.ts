@@ -4,6 +4,7 @@ import {
   TINYMCE_VERSION_OPTIONS,
   type TinyMceDemoVersion,
 } from './tinymce-loader';
+import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -11,46 +12,11 @@ if (!app) {
   throw new Error('App root not found');
 }
 
-const style = document.createElement('style');
-style.textContent = `
-.fx-demo-shell {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 32px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.fx-demo-header {
-  margin-bottom: 6px;
-}
-
-.fx-demo-header h1 {
-  margin: 0 0 8px;
-}
-
-.fx-demo-header p {
-  margin: 0;
-  color: #4b5563;
-}
-
-#tinymce-version {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  min-width: 180px;
-  margin: 0 0 4px;
-  display: block;
-}
-`;
-document.head.appendChild(style);
-
 app.innerHTML = `
   <main class="fx-demo-shell">
     <header class="fx-demo-header">
-      <div>
-        <h1>TinyMCE + FormulaX</h1>
-        <p>Minimal TinyMCE plugin integration demo. Choose a TinyMCE major version and click the FormulaX toolbar button.</p>
-      </div>
+      <h1>TinyMCE + FormulaX</h1>
+      <p>Minimal TinyMCE plugin integration demo. Choose a TinyMCE major version and click the FormulaX toolbar button.</p>
     </header>
 
     <select id="tinymce-version" aria-label="TinyMCE version">
@@ -70,68 +36,39 @@ if (!versionSelect || !textarea) {
   throw new Error('TinyMCE demo DOM missing');
 }
 
-const versionControl = versionSelect;
-
-const svgExtendedValidElements = [
-  'svg[class|style|id|xmlns|xmlns:xlink|version|width|height|viewBox|font-size|focusable|role|tabindex|contenteditable|data-formulax|data-formulax-latex|data-latex]',
-  'defs[id|class|style]',
-  'style[type|media]',
-  'g[id|class|style|transform|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|opacity|font-family|font-size|font-style|font-weight]',
-  'path[id|class|style|d|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|opacity|transform]',
-  'use[id|class|style|x|y|width|height|href|xlink:href|transform|fill|stroke|opacity]',
-  'text[id|class|style|x|y|dx|dy|fill|stroke|transform|font-family|font-size|font-style|font-weight|text-anchor]',
-  'tspan[id|class|style|x|y|dx|dy|fill|stroke|transform|font-family|font-size|font-style|font-weight|text-anchor]',
-  'line[id|class|style|x1|y1|x2|y2|fill|stroke|stroke-width|stroke-linecap|opacity|transform]',
-  'rect[id|class|style|x|y|width|height|rx|ry|fill|stroke|stroke-width|opacity|transform]',
-  'circle[id|class|style|cx|cy|r|fill|stroke|stroke-width|opacity|transform]',
-  'ellipse[id|class|style|cx|cy|rx|ry|fill|stroke|stroke-width|opacity|transform]',
-  'polygon[id|class|style|points|fill|stroke|stroke-width|opacity|transform]',
-  'polyline[id|class|style|points|fill|stroke|stroke-width|opacity|transform]',
-].join(',');
-
 async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
-  versionControl.disabled = true;
+  versionSelect.disabled = true;
 
-  const tinymce = await loadTinyMceRuntime(version);
+  try {
+    const tinymce = await loadTinyMceRuntime(version);
 
-  registerFormulaXTinyMcePlugin(tinymce, {
-    toolbarText: 'FormulaX',
-    tooltip: 'Insert or edit formula',
-    modal: {
-      title: 'FormulaX Editor',
-    },
-    editor: {
-      mode: 'kity',
-      height: '100%',
-      autofocus: true,
-      render: { fontsize: 40 },
-    },
-  });
+    registerFormulaXTinyMcePlugin(tinymce, {
+      tooltip: 'Insert or edit formula',
+      modal: {
+        title: 'FormulaX Editor',
+      },
+    });
 
-  await tinymce.init({
-    target: textarea,
-    height: 420,
-    menubar: false,
-    plugins: 'formulax',
-    toolbar: 'undo redo | formulax',
-    license_key: 'gpl',
-    extended_valid_elements: svgExtendedValidElements,
-    content_style: `
-      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    `,
-  });
-
-  versionControl.disabled = false;
+    await tinymce.init({
+      target: textarea,
+      height: 420,
+      menubar: false,
+      plugins: 'formulax',
+      toolbar: 'undo redo | formulax',
+      license_key: 'gpl',
+      content_style: `
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      `,
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    versionSelect.disabled = false;
+  }
 }
 
 versionSelect.addEventListener('change', () => {
-  void initTinyMce(versionSelect.value as TinyMceDemoVersion).catch((error) => {
-    console.error(error);
-    versionControl.disabled = false;
-  });
+  void initTinyMce(versionSelect.value as TinyMceDemoVersion);
 });
 
-void initTinyMce(versionSelect.value as TinyMceDemoVersion).catch((error) => {
-  console.error(error);
-  versionControl.disabled = false;
-});
+void initTinyMce(versionSelect.value as TinyMceDemoVersion);
