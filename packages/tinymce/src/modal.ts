@@ -77,11 +77,14 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
 
     runEditorTransaction(editor, () => {
       if (target) {
-        replaceFormulaElement(target, latex, {
+        const next = replaceFormulaElement(target, latex, {
           attributeName: options.formulaAttributeName,
           className: options.formulaClassName,
           renderHtml,
         });
+        if (next) {
+          moveSelectionAfterNode(editor, next);
+        }
       } else {
         insertFormulaElementIntoEditor(editor, latex, options.formulaAttributeName, options.formulaClassName, renderHtml);
       }
@@ -199,7 +202,7 @@ function isRangeInsideEditor(editor: TinyMceEditorLike, range: Range): boolean {
 }
 
 function getRangeContainerElement(node: Node): Node {
-  return node.nodeType === Node.ELEMENT_NODE ? node : node.parentNode ?? node;
+  return node.nodeType === 1 ? node : node.parentNode ?? node;
 }
 
 function moveSelectionAfterNode(editor: TinyMceEditorLike, node: HTMLElement): void {
@@ -255,6 +258,11 @@ function insertFormulaElementWithPlaceholder(
 
 function notifyEditorChanged(editor: TinyMceEditorLike): void {
   editor.nodeChanged?.();
-  editor.dispatch?.('change');
+
+  if (typeof editor.dispatch === 'function') {
+    editor.dispatch('change');
+    return;
+  }
+
   editor.fire?.('change');
 }
