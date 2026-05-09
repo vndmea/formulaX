@@ -1,0 +1,46 @@
+{
+  "name": "@formulax/ckeditor5",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "CKEditor 5 integration adapter for FormulaX.",
+  "keywords": [
+    "formulax",
+    "formula",
+    "ckeditor5",
+    "editor",
+    "adapter"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "unpkg": "./dist/browser/index.global.js",
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.mjs",
+    "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@formulax/core": "workspace:*",
+    "@formulax/kity-runtime": "workspace:*",
+    "@formulax/kity-assets": "workspace:*"
+  },
+  "peerDependencies": {
+    "ckeditor5": ">=42 <49"
+  },
+  "peerDependenciesMeta": {
+    "ckeditor5": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "ckeditor5": "^46.1.1"
+  }
+}
