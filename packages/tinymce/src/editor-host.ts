@@ -477,7 +477,7 @@ function sizeSvgForInlineDisplay(
   const width = viewport?.width || viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
   const height = viewport?.height || viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
   const ratio = Math.max(0.1, width / Math.max(1, height));
-  const inlineHeightEm = 1.65;
+  const inlineHeightEm = 0.875;
   const inlineWidthEm = Math.min(40, Math.max(0.75, ratio * inlineHeightEm));
 
   clone.setAttribute('width', roundLength(width));
