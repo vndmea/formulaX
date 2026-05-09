@@ -1,4 +1,4 @@
-import type { FormulaXModalOpenOptions } from './types';
+import type { FormulaXModalOpenOptions, TinyMceEditorLike } from './types';
 import { ensureTinyMceStyles } from './styles';
 import { mountFormulaXEditorInModal } from './editor-host';
 import {
@@ -75,15 +75,19 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
     const latex = await mounted.getLatex();
     const renderHtml = mounted.getRenderHtml ? await mounted.getRenderHtml() : undefined;
 
-    if (target) {
-      replaceFormulaElement(target, latex, {
-        attributeName: options.formulaAttributeName,
-        className: options.formulaClassName,
-        renderHtml,
-      });
-    } else {
-      insertFormulaElementIntoEditor(editor, latex, options.formulaAttributeName, options.formulaClassName, renderHtml);
-    }
+    runEditorTransaction(editor, () => {
+      if (target) {
+        replaceFormulaElement(target, latex, {
+          attributeName: options.formulaAttributeName,
+          className: options.formulaClassName,
+          renderHtml,
+        });
+      } else {
+        insertFormulaElementIntoEditor(editor, latex, options.formulaAttributeName, options.formulaClassName, renderHtml);
+      }
+
+      notifyEditorChanged(editor);
+    });
 
     close();
   };
@@ -124,8 +128,96 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
   return { close };
 }
 
+function runEditorTransaction(editor: TinyMceEditorLike, mutation: () => void): void {
+  if (typeof editor.undoManager?.transact === 'function') {
+    editor.undoManager.transact(mutation);
+    return;
+  }
+
+  mutation();
+  editor.undoManager?.add?.();
+}
+
 function insertFormulaElementIntoEditor(
-  editor: FormulaXModalOpenOptions['editor'],
+  editor: TinyMceEditorLike,
+  latex: string,
+  attributeName: string,
+  className: string,
+  renderHtml?: string,
+): void {
+  const editorDoc = editor.getDoc?.() ?? document;
+  const next = createTinyMceFormulaElement(editorDoc, latex, {
+    attributeName,
+    className,
+    renderHtml,
+  });
+
+  if (next && insertNodeAtEditorSelection(editor, next)) {
+    return;
+  }
+
+  insertFormulaElementWithPlaceholder(editor, latex, attributeName, className, renderHtml);
+}
+
+function insertNodeAtEditorSelection(editor: TinyMceEditorLike, node: HTMLElement): boolean {
+  const range = getEditorRange(editor);
+  if (!range || !isRangeInsideEditor(editor, range)) {
+    return false;
+  }
+
+  try {
+    range.deleteContents();
+    range.insertNode(node);
+    moveSelectionAfterNode(editor, node);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getEditorRange(editor: TinyMceEditorLike): Range | null {
+  try {
+    return editor.selection?.getRng?.() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function isRangeInsideEditor(editor: TinyMceEditorLike, range: Range): boolean {
+  const editorDoc = editor.getDoc?.() ?? document;
+  if (range.startContainer.ownerDocument !== editorDoc || range.endContainer.ownerDocument !== editorDoc) {
+    return false;
+  }
+
+  const body = editor.getBody?.();
+  if (!body) {
+    return true;
+  }
+
+  return body.contains(getRangeContainerElement(range.startContainer))
+    && body.contains(getRangeContainerElement(range.endContainer));
+}
+
+function getRangeContainerElement(node: Node): Node {
+  return node.nodeType === Node.ELEMENT_NODE ? node : node.parentNode ?? node;
+}
+
+function moveSelectionAfterNode(editor: TinyMceEditorLike, node: HTMLElement): void {
+  const doc = node.ownerDocument;
+  const range = doc.createRange();
+  range.setStartAfter(node);
+  range.collapse(true);
+
+  try {
+    editor.selection?.setRng?.(range);
+    editor.selection?.collapse?.(false);
+  } catch {
+    // Ignore selection restoration failures across TinyMCE versions.
+  }
+}
+
+function insertFormulaElementWithPlaceholder(
+  editor: TinyMceEditorLike,
   latex: string,
   attributeName: string,
   className: string,
@@ -158,4 +250,11 @@ function insertFormulaElementIntoEditor(
   }
 
   placeholder.replaceWith(next);
+  moveSelectionAfterNode(editor, next);
+}
+
+function notifyEditorChanged(editor: TinyMceEditorLike): void {
+  editor.nodeChanged?.();
+  editor.dispatch?.('change');
+  editor.fire?.('change');
 }
