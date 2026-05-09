@@ -132,9 +132,13 @@ export const tinymceStyles = `
 }
 
 .fx-tinymce-editor-loading {
+  height: var(--fx-tinymce-editor-body-height);
   padding: 24px;
   color: #4b5563;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fx-tinymce-editor-error {
