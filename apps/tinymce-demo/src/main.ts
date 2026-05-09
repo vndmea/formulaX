@@ -6,11 +6,17 @@ import {
 } from './tinymce-loader';
 import './style.css';
 
-const app = document.querySelector<HTMLDivElement>('#app');
+function queryRequiredElement<T extends Element>(selector: string): T {
+  const element = document.querySelector<T>(selector);
 
-if (!app) {
-  throw new Error('App root not found');
+  if (!element) {
+    throw new Error(`Required element not found: ${selector}`);
+  }
+
+  return element;
 }
+
+const app = queryRequiredElement<HTMLDivElement>('#app');
 
 app.innerHTML = `
   <main class="fx-demo-shell">
@@ -29,12 +35,8 @@ app.innerHTML = `
   </main>
 `;
 
-const versionSelect = document.querySelector<HTMLSelectElement>('#tinymce-version');
-const textarea = document.querySelector<HTMLTextAreaElement>('#tiny-host');
-
-if (!versionSelect || !textarea) {
-  throw new Error('TinyMCE demo DOM missing');
-}
+const versionSelect = queryRequiredElement<HTMLSelectElement>('#tinymce-version');
+const textarea = queryRequiredElement<HTMLTextAreaElement>('#tiny-host');
 
 async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
   versionSelect.disabled = true;
