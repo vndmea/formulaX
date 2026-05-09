@@ -21,3 +21,24 @@
 .ck-editor__editable {
   min-height: 320px;
 }
+
+.fx-ckeditor5-editor-host .kf-editor,
+.fx-ckeditor5-editor-host .kf-editor svg text,
+.fx-ckeditor5-editor-host .kf-editor-ui-area-item-text,
+.fx-ckeditor5-editor-host .kf-editor-ui-box-item-text,
+.formulax-math__render {
+  font-family: "KF AMS MAIN", "Cambria Math", "Latin Modern Math", "Times New Roman", serif !important;
+}
+
+.fx-ckeditor5-editor-host .kf-editor-ui-box-item-content,
+.fx-ckeditor5-editor-host .kf-editor-ui-box-item-val {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.fx-ckeditor5-editor-host .kf-editor-ui-box-item-val svg,
+.fx-ckeditor5-editor-host .kf-editor-ui-box-item-val img,
+.fx-ckeditor5-editor-host .kf-editor-ui-area-item-img,
+.fx-ckeditor5-editor-host .kf-editor-ui-area-item-text {
+  display: block;
+}
