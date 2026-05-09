@@ -65,7 +65,7 @@ describe('editor-host svg serialization', () => {
     expect(markup).toContain('matrix(0.8 0 0 0.8 -114.669 -33.6)');
     expect(markup).toContain('width="229.838"');
     expect(markup).toContain('height="67.7"');
-    expect(markup).toContain('style="width:5.602em; height:1.65em"');
+    expect(markup).toContain('style="width:2.971em; height:0.875em"');
     expect(markup).not.toContain('outer-wrap');
     expect(markup).not.toContain('data-type="kf-container"');
   });
@@ -84,6 +84,6 @@ describe('editor-host svg serialization', () => {
     expect(markup).toContain('viewBox="0 0 100 20"');
     expect(markup).toContain('width="100"');
     expect(markup).toContain('height="20"');
-    expect(markup).toContain('style="width:8.25em; height:1.65em"');
+    expect(markup).toContain('style="width:4.375em; height:0.875em"');
   });
 });
