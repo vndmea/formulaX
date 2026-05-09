@@ -1,0 +1,28 @@
+.fx-demo-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.fx-demo-header {
+  margin-bottom: 6px;
+}
+
+.fx-demo-header h1 {
+  margin: 0 0 8px;
+}
+
+.fx-demo-header p {
+  margin: 0;
+  color: #4b5563;
+}
+
+#tinymce-version {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  min-width: 180px;
+  margin: 0 0 4px;
+  display: block;
+}
