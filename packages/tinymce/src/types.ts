@@ -25,7 +25,14 @@ export interface TinyMceEditorLike {
   };
   selection?: {
     getNode?: () => HTMLElement;
+    getRng?: () => Range;
+    setRng?: (range: Range) => void;
     select?: (node: HTMLElement) => void;
+    collapse?: (toStart?: boolean) => void;
+  };
+  undoManager?: {
+    transact?: (callback: () => void) => void;
+    add?: () => void;
   };
   dom?: {
     encode?: (value: string) => string;
@@ -38,6 +45,7 @@ export interface TinyMceEditorLike {
   getWin?: () => Window;
   getBody?: () => HTMLElement;
   focus?: () => void;
+  nodeChanged?: () => void;
   dispatch?: (name: string, args?: Record<string, unknown>) => void;
   fire?: (name: string, args?: Record<string, unknown>) => void;
 }
