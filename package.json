@@ -28,6 +28,7 @@
     "build:pages": "node scripts/build-pages.mjs",
     "clean": "corepack pnpm -r clean",
     "dev": "corepack pnpm --filter @formulax/playground dev",
+    "dev:ckeditor5": "corepack pnpm --filter @formulax/ckeditor5-demo dev",
     "dev:tiptap": "corepack pnpm --filter @formulax/tiptap-demo dev",
     "dev:tinymce": "corepack pnpm --filter @formulax/tinymce-demo dev",
     "format": "prettier . --write",

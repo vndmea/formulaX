@@ -36,7 +36,7 @@ export type KityEditorConstructorOptions = KityEditorOptions & {
 };
 
 export type KityEditorHandle = {
-  ready: (callback: (this: { execCommand: (name: string, value?: string) => void }) => void) => void;
+  ready: (callback: (this: { execCommand: (name: string, value?: string) => unknown }) => void) => void;
   execCommand: (name: string, value?: string) => void;
   focus: () => void;
   destroy: () => void;

@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@formulax/ckeditor5": ["packages/ckeditor5/src/index.ts"],
       "@formulax/core": ["packages/core/src/index.ts"],
       "@formulax/editor": ["packages/editor/src/index.ts"],
       "@formulax/kity-assets": ["packages/kity-assets/src/index.ts"],

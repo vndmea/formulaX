@@ -128,7 +128,8 @@ async function tryReadLatexFromKityHandle(
     let isEmpty = false;
 
     handle.ready(function ready() {
-      isEmpty = this.execCommand('content.is.empty') === true;
+      const result = this.execCommand('content.is.empty');
+      isEmpty = result === true;
     });
 
     if (isEmpty) {

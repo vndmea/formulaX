@@ -7,7 +7,8 @@
     "rootDir": "src",
     "paths": {
       "@formulax/core": ["../core/src/index.d.ts"],
-      "@formulax/kity-runtime": ["../kity-runtime/src/index.d.ts"]
+      "@formulax/kity-assets": ["../kity-assets/src/index.ts"],
+      "@formulax/kity-runtime": ["src/shims/kity-runtime.d.ts"]
     }
   },
   "include": ["src"]

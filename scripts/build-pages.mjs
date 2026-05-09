@@ -17,6 +17,14 @@ const apps = [
     description: 'Standalone FormulaX editor surface with live LaTeX and KaTeX preview.',
   },
   {
+    name: 'ckeditor5',
+    dir: 'apps/ckeditor5-demo',
+    basePath: `${basePrefix}/ckeditor5/`,
+    outputSubdir: 'ckeditor5',
+    title: 'CKEditor 5 Demo',
+    description: 'Minimal CKEditor 5 integration showing FormulaX as an inline formula widget.',
+  },
+  {
     name: 'tiptap',
     dir: 'apps/tiptap-demo',
     basePath: `${basePrefix}/tiptap/`,

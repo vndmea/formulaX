@@ -1,5 +1,12 @@
-import { Plugin, Command, ButtonView, Widget, toWidget } from 'ckeditor5';
-import { mountKityEditor, type KityEditorHandle } from '@formulax/kity-runtime';
+import {
+  ButtonView,
+  Command,
+  Plugin,
+  Widget,
+  toWidget,
+  viewToModelPositionOutsideModelElement,
+} from 'ckeditor5';
+import { mountKityEditor } from '@formulax/kity-runtime';
 import type {
   FormulaXCKEditor5Options,
   FormulaXPayload,
@@ -106,17 +113,21 @@ export class FormulaX extends Plugin {
     return 'FormulaX';
   }
 
-  static get requires(): Array<typeof Plugin> {
-    return [Widget as unknown as typeof Plugin];
+  static get requires(): readonly [typeof Widget] {
+    return [Widget];
   }
 
-  override init(): void {
+  init(): void {
     const editor = this.editor as any;
     const options = resolveOptions(editor.config.get('formulaX') as FormulaXCKEditor5Options | undefined);
 
     ensureFormulaXStyles(document);
     defineFormulaSchema(editor);
     defineFormulaConverters(editor, options);
+    editor.editing.mapper.on(
+      'viewToModelPosition',
+      viewToModelPositionOutsideModelElement(editor.model, isFormulaWidgetView),
+    );
 
     const command = new FormulaXCommand(editor, options);
     editor.commands.add(options.buttonName, command);
@@ -223,7 +234,7 @@ function findFormulaViewElement(viewNode: any): any | null {
   let node = viewNode;
 
   while (node) {
-    if (node.is?.('element') && node.hasAttribute?.(FORMULA_FLAG_ATTRIBUTE)) {
+    if (isFormulaWidgetView(node)) {
       return node;
     }
 
@@ -231,6 +242,10 @@ function findFormulaViewElement(viewNode: any): any | null {
   }
 
   return null;
+}
+
+function isFormulaWidgetView(node: any): boolean {
+  return Boolean(node?.is?.('element') && node.hasAttribute?.(FORMULA_FLAG_ATTRIBUTE));
 }
 
 function readFormulaLatexFromView(viewElement: any, options: RequiredFormulaXCKEditor5Options): string {
@@ -295,7 +310,7 @@ function openFormulaXModal(input: OpenFormulaXModalInput): Promise<FormulaXPaylo
   }
 
   let destroyed = false;
-  let handle: KityEditorHandle | null = null;
+  let handle: KityEditorHandleLike | null = null;
   const initialLatex = input.initialLatex.trim() ? input.initialLatex : EMPTY_FORMULA_PLACEHOLDER;
   const readyPromise = mountKityEditor(host, {
     initialLatex,
@@ -338,10 +353,19 @@ function openFormulaXModal(input: OpenFormulaXModalInput): Promise<FormulaXPaylo
     };
 
     const submit = async (): Promise<void> => {
-      const readyHandle = handle ?? await readyPromise;
-      const latex = await readLatexFromKityHandle(readyHandle);
-      const html = latex.trim() ? await renderCurrentFormulaAsSvgHtml(host) : '';
-      close({ latex, html });
+      try {
+        const readyHandle = handle ?? await readyPromise;
+        const latex = await readLatexFromKityHandle(readyHandle);
+        const html = latex.trim() ? await renderCurrentFormulaAsSvgHtml(host) : '';
+        close({ latex, html });
+      } catch (error) {
+        host.innerHTML = `
+          <div class="fx-ckeditor5-editor-error">
+            Failed to read FormulaX editor content.
+            <pre>${escapeHtml(error instanceof Error ? error.message : String(error))}</pre>
+          </div>
+        `;
+      }
     };
 
     function onClick(event: MouseEvent): void {
@@ -375,11 +399,20 @@ function openFormulaXModal(input: OpenFormulaXModalInput): Promise<FormulaXPaylo
   });
 }
 
-async function readLatexFromKityHandle(handle: KityEditorHandle): Promise<string> {
+type KityCommandHost = {
+  execCommand: (name: string, value?: string) => unknown;
+};
+
+type KityEditorHandleLike = {
+  ready: (callback: (this: KityCommandHost) => void) => void;
+};
+
+async function readLatexFromKityHandle(handle: KityEditorHandleLike): Promise<string> {
   try {
     let isEmpty = false;
     handle.ready(function ready() {
-      isEmpty = this.execCommand('content.is.empty') === true;
+      const result = this.execCommand('content.is.empty');
+      isEmpty = result === true;
     });
     if (isEmpty) return '';
   } catch {
@@ -395,10 +428,10 @@ async function readLatexFromKityHandle(handle: KityEditorHandle): Promise<string
         value = this.execCommand(command);
       });
 
-      if (typeof value === 'string' && value.trim()) return value;
+      if (typeof value === 'string') return normalizeFormulaLatex(value);
       if (value && typeof value === 'object' && 'latex' in value) {
         const latex = (value as { latex?: unknown }).latex;
-        if (typeof latex === 'string' && latex.trim()) return latex;
+        if (typeof latex === 'string') return normalizeFormulaLatex(latex);
       }
     } catch {
       // try next command
@@ -406,6 +439,16 @@ async function readLatexFromKityHandle(handle: KityEditorHandle): Promise<string
   }
 
   return '';
+}
+
+function normalizeFormulaLatex(value: string): string {
+  const normalized = value.trim();
+
+  if (!normalized || normalized === EMPTY_FORMULA_PLACEHOLDER.trim()) {
+    return '';
+  }
+
+  return value;
 }
 
 async function renderCurrentFormulaAsSvgHtml(root: HTMLElement): Promise<string> {

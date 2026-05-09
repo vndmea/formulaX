@@ -1,0 +1,15 @@
+{
+  "name": "@formulax/ckeditor5-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@formulax/ckeditor5": "workspace:*",
+    "ckeditor5": "^46.1.1"
+  }
+}

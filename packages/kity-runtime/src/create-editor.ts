@@ -24,7 +24,7 @@ const KITY_STYLE_ID = 'formulax-kity-editor-styles';
 
 type EditorRuntimeFactory = {
   ready: (
-    callback: (this: { execCommand: (name: string, value?: string) => void }) => void,
+    callback: (this: { execCommand: (name: string, value?: string) => unknown }) => void,
   ) => void;
 };
 
