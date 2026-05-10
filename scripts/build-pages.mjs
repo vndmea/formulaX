@@ -116,27 +116,45 @@ const renderIndex = () => `<!doctype html>
         font-size: 18px;
         line-height: 1.7;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
-      }
-      .card {
-        padding: 24px;
+      .table-shell {
+        overflow-x: auto;
         border-radius: 24px;
         border: 1px solid var(--border);
         background: var(--panel);
         backdrop-filter: blur(10px);
         box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
       }
-      .card h2 {
-        margin: 0 0 12px;
-        font-size: 24px;
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
       }
-      .card p {
-        margin: 0 0 20px;
+      thead th {
+        padding: 18px 20px;
+        text-align: left;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: var(--muted);
-        line-height: 1.6;
+        background: rgba(255, 255, 255, 0.72);
+      }
+      tbody td {
+        padding: 22px 20px;
+        vertical-align: top;
+        border-top: 1px solid var(--border);
+      }
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.44);
+      }
+      .demo-name {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .demo-desc {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
       }
       a.button {
         display: inline-flex;
@@ -154,6 +172,18 @@ const renderIndex = () => `<!doctype html>
         margin-top: 28px;
         color: var(--muted);
       }
+      @media (max-width: 760px) {
+        main {
+          padding: 32px 16px 56px;
+        }
+        thead th,
+        tbody td {
+          padding: 16px;
+        }
+        .demo-name {
+          font-size: 18px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -166,17 +196,34 @@ const renderIndex = () => `<!doctype html>
           Each demo is published as a static site and can be shared independently.
         </p>
       </header>
-      <section class="grid">
-        ${apps
-          .map(
-            (app) => `
-          <article class="card">
-            <h2>${app.title}</h2>
-            <p>${app.description}</p>
-            <a class="button" href="${basePrefix}/${app.outputSubdir}/">Open demo</a>
-          </article>`,
-          )
-          .join('')}
+      <section class="table-shell">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Demo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${apps
+              .map(
+                (app) => `
+            <tr>
+              <td>
+                <p class="demo-name">${app.title}</p>
+              </td>
+              <td>
+                <p class="demo-desc">${app.description}</p>
+              </td>
+              <td>
+                <a class="button" href="${basePrefix}/${app.outputSubdir}/">Open demo</a>
+              </td>
+            </tr>`,
+              )
+              .join('')}
+          </tbody>
+        </table>
       </section>
       <footer>
         Built from the FormulaX monorepo.
