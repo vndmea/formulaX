@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@formulax/ckeditor5": "workspace:*",
+    "@formulax/kity-assets": "workspace:*",
     "ckeditor5": "^46.1.1"
   }
 }
