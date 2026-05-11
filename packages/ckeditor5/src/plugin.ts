@@ -190,8 +190,8 @@ function defineFormulaConverters(editor: any, options: RequiredFormulaXCKEditor5
   editor.conversion.for('editingDowncast').elementToElement({
     model: 'formulaX',
     view: (modelElement: any, { writer }: any) => {
-      const rawElement = createFormulaRawElement(writer, modelElement, options);
-      return toWidget(rawElement, writer, { label: 'FormulaX formula' });
+      const widgetElement = createFormulaWidgetElement(writer, modelElement, options);
+      return toWidget(widgetElement, writer, { label: 'FormulaX formula' });
     },
   });
 }
@@ -206,19 +206,53 @@ function createFormulaRawElement(
 
   return writer.createRawElement(
     'span',
+    createFormulaViewAttributes(latex, options),
+    (domElement: HTMLElement) => {
+      domElement.innerHTML = html || createFormulaFallbackMarkup(latex, options);
+    },
+  );
+}
+
+function createFormulaWidgetElement(
+  writer: any,
+  modelElement: any,
+  options: RequiredFormulaXCKEditor5Options,
+): any {
+  const latex = String(modelElement.getAttribute('latex') ?? '');
+  const html = String(modelElement.getAttribute('html') ?? '');
+  const widgetElement = writer.createContainerElement(
+    'span',
+    createFormulaViewAttributes(latex, options),
+  );
+  const contentElement = writer.createRawElement(
+    'span',
     {
-      class: options.formulaClassName,
-      [FORMULA_FLAG_ATTRIBUTE]: 'true',
-      [options.formulaAttributeName]: latex,
-      'data-latex': latex,
-      contenteditable: 'false',
-      role: 'button',
-      tabindex: '0',
+      class: `${options.formulaClassName}__content`,
+      'aria-hidden': 'true',
     },
     (domElement: HTMLElement) => {
       domElement.innerHTML = html || createFormulaFallbackMarkup(latex, options);
     },
   );
+
+  writer.insert(writer.createPositionAt(widgetElement, 0), contentElement);
+
+  return widgetElement;
+}
+
+function createFormulaViewAttributes(
+  latex: string,
+  options: RequiredFormulaXCKEditor5Options,
+): Record<string, string> {
+  return {
+    class: options.formulaClassName,
+    [FORMULA_FLAG_ATTRIBUTE]: 'true',
+    [options.formulaAttributeName]: latex,
+    'data-latex': latex,
+    contenteditable: 'false',
+    role: 'button',
+    tabindex: '0',
+  };
 }
 
 function createFormulaFallbackMarkup(
