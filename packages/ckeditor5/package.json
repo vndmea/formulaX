@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@formulax/core": "workspace:*",
+    "@formulax/editor": "workspace:*",
     "@formulax/kity-runtime": "workspace:*",
     "@formulax/kity-assets": "workspace:*"
   },

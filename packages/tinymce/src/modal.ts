@@ -23,7 +23,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
     : input.initialLatex ?? options.initialLatex ?? '';
 
   const root = document.createElement('div');
-  root.className = 'fx-tinymce-modal-root';
+  root.className = 'fx-formula-modal-root';
   root.setAttribute('data-formulax-modal', 'true');
 
   const isUpdate = Boolean(target);
@@ -31,26 +31,26 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
   const title = options.modal.title || (isUpdate ? 'Edit Formula' : 'Insert Formula');
 
   root.innerHTML = `
-    <div class="fx-tinymce-modal-backdrop" data-action="backdrop"></div>
-    <div class="fx-tinymce-modal" role="dialog" aria-modal="true" aria-label="${escapeAttribute(title)}">
-      <header class="fx-tinymce-modal__header">
-        <h2 class="fx-tinymce-modal__title">${escapeHtml(title)}</h2>
-        <button class="fx-tinymce-modal__close" type="button" data-action="close" aria-label="Close">×</button>
+    <div class="fx-formula-modal-backdrop" data-action="backdrop"></div>
+    <div class="fx-formula-modal" role="dialog" aria-modal="true" aria-label="${escapeAttribute(title)}">
+      <header class="fx-formula-modal__header">
+        <h2 class="fx-formula-modal__title">${escapeHtml(title)}</h2>
+        <button class="fx-formula-modal__close" type="button" data-action="close" aria-label="Close">×</button>
       </header>
-      <section class="fx-tinymce-modal__body">
-        <div class="fx-tinymce-editor-host"></div>
+      <section class="fx-formula-modal__body">
+        <div class="fx-formula-editor-host"></div>
       </section>
-      <footer class="fx-tinymce-modal__footer">
-        <button class="fx-tinymce-modal__button" type="button" data-action="cancel">${escapeHtml(options.modal.cancelText)}</button>
-        <button class="fx-tinymce-modal__button fx-tinymce-modal__button--primary" type="button" data-action="submit">${escapeHtml(submitText)}</button>
+      <footer class="fx-formula-modal__footer">
+        <button class="fx-formula-modal__button" type="button" data-action="cancel">${escapeHtml(options.modal.cancelText)}</button>
+        <button class="fx-formula-modal__button fx-formula-modal__button--primary" type="button" data-action="submit">${escapeHtml(submitText)}</button>
       </footer>
     </div>
   `;
 
   document.body.appendChild(root);
-  document.body.classList.add('fx-tinymce-modal-open');
+  document.body.classList.add('fx-formula-modal-open');
 
-  const host = root.querySelector<HTMLElement>('.fx-tinymce-editor-host');
+  const host = root.querySelector<HTMLElement>('.fx-formula-editor-host');
   if (!host) {
     root.remove();
     throw new Error('[FormulaX] Modal editor host not found.');
@@ -67,7 +67,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
     root.removeEventListener('click', onClick);
     document.removeEventListener('keydown', onKeydown, true);
     root.remove();
-    document.body.classList.remove('fx-tinymce-modal-open');
+    document.body.classList.remove('fx-formula-modal-open');
     editor.focus?.();
   };
 

@@ -29,6 +29,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulax/core": "workspace:*"
+    "@formulax/core": "workspace:*",
+    "@formulax/kity-runtime": "workspace:*"
   }
 }

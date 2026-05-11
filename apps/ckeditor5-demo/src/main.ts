@@ -7,9 +7,6 @@ import {
   Undo,
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
-import '../../../packages/kity-assets/public/assets/styles/base.css';
-import '../../../packages/kity-assets/public/assets/styles/ui.css';
-import '../../../packages/kity-assets/public/assets/styles/scrollbar.css';
 
 import { FormulaX } from '@formulax/ckeditor5';
 import './style.css';

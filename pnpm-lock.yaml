@@ -71,9 +71,6 @@ importers:
       '@formulax/ckeditor5':
         specifier: workspace:*
         version: link:../../packages/ckeditor5
-      '@formulax/kity-assets':
-        specifier: workspace:*
-        version: link:../../packages/kity-assets
       ckeditor5:
         specifier: ^46.1.1
         version: 46.1.1
@@ -113,6 +110,9 @@ importers:
       '@formulax/core':
         specifier: workspace:*
         version: link:../core
+      '@formulax/editor':
+        specifier: workspace:*
+        version: link:../editor
       '@formulax/kity-assets':
         specifier: workspace:*
         version: link:../kity-assets
@@ -131,6 +131,9 @@ importers:
       '@formulax/core':
         specifier: workspace:*
         version: link:../core
+      '@formulax/kity-runtime':
+        specifier: workspace:*
+        version: link:../kity-runtime
 
   packages/kity-assets: {}
 
@@ -3771,6 +3774,8 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-link@46.1.1':
     dependencies:
@@ -3888,8 +3893,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-restricted-editing@46.1.1':
     dependencies:

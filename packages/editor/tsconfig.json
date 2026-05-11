@@ -6,7 +6,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@formulax/core": ["../core/src/index.d.ts"]
+      "@formulax/core": ["../core/src/index.ts"],
+      "@formulax/kity-runtime": ["../kity-runtime/src/index.ts"]
     }
   },
   "include": ["src"]
