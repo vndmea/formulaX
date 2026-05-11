@@ -116,20 +116,6 @@ export class FormulaX extends Plugin {
 
       return button;
     });
-
-    this.listenTo(editor.editing.view.document, 'dblclick', (_event: unknown, data: any) => {
-      const viewElement = findFormulaViewElement(data.target);
-      if (!viewElement) return;
-
-      const modelElement = editor.editing.mapper.toModelElement(viewElement);
-      if (!modelElement?.is?.('element', 'formulaX')) return;
-
-      editor.model.change((writer: any) => {
-        writer.setSelection(modelElement, 'on');
-      });
-
-      editor.execute(options.buttonName);
-    });
   }
 }
 
@@ -183,17 +169,27 @@ function defineFormulaConverters(editor: any, options: RequiredFormulaXCKEditor5
   });
 
   editor.conversion.for('dataDowncast').elementToElement({
-    model: 'formulaX',
+    model: createFormulaConverterModelDefinition(),
     view: (modelElement: any, { writer }: any) => createFormulaRawElement(writer, modelElement, options),
   });
 
   editor.conversion.for('editingDowncast').elementToElement({
-    model: 'formulaX',
+    model: createFormulaConverterModelDefinition(),
     view: (modelElement: any, { writer }: any) => {
-      const widgetElement = createFormulaWidgetElement(writer, modelElement, options);
+      const widgetElement = createFormulaWidgetElement(writer, modelElement, options, editor);
       return toWidget(widgetElement, writer, { label: 'FormulaX formula' });
     },
   });
+}
+
+function createFormulaConverterModelDefinition(): {
+  name: string;
+  attributes: string[];
+} {
+  return {
+    name: 'formulaX',
+    attributes: ['latex', 'html'],
+  };
 }
 
 function createFormulaRawElement(
@@ -217,6 +213,7 @@ function createFormulaWidgetElement(
   writer: any,
   modelElement: any,
   options: RequiredFormulaXCKEditor5Options,
+  editor: any,
 ): any {
   const latex = String(modelElement.getAttribute('latex') ?? '');
   const html = String(modelElement.getAttribute('html') ?? '');
@@ -232,6 +229,7 @@ function createFormulaWidgetElement(
     },
     (domElement: HTMLElement) => {
       domElement.innerHTML = html || createFormulaFallbackMarkup(latex, options);
+      bindFormulaWidgetDomEvents(domElement, editor, modelElement, options.buttonName);
     },
   );
 
@@ -255,6 +253,36 @@ function createFormulaViewAttributes(
   };
 }
 
+function bindFormulaWidgetDomEvents(
+  domElement: HTMLElement,
+  editor: any,
+  modelElement: any,
+  commandName: string,
+): void {
+  domElement.onclick = (event) => {
+    event.preventDefault();
+    selectFormulaModelElement(editor, modelElement);
+  };
+
+  domElement.ondblclick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    selectFormulaModelElement(editor, modelElement);
+    editor.execute(commandName);
+  };
+}
+
+function selectFormulaModelElement(editor: any, modelElement: any): void {
+  if (!modelElement?.is?.('element', 'formulaX')) {
+    return;
+  }
+
+  editor.editing.view.focus();
+  editor.model.change((writer: any) => {
+    writer.setSelection(modelElement, 'on');
+  });
+}
+
 function createFormulaFallbackMarkup(
   latex: string,
   options: RequiredFormulaXCKEditor5Options,
@@ -275,20 +303,6 @@ function extractInnerHtml(markup: string): string {
 function getSelectedFormulaModelElement(editor: any): any | null {
   const selectedElement = editor.model.document.selection.getSelectedElement();
   return selectedElement?.is?.('element', 'formulaX') ? selectedElement : null;
-}
-
-function findFormulaViewElement(viewNode: any): any | null {
-  let node = viewNode;
-
-  while (node) {
-    if (isFormulaWidgetView(node)) {
-      return node;
-    }
-
-    node = node.parent;
-  }
-
-  return null;
 }
 
 function isFormulaWidgetView(node: any): boolean {
