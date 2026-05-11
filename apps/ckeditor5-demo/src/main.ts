@@ -1,10 +1,7 @@
 import {
-  Bold,
   ClassicEditor,
   Essentials,
-  Italic,
   Paragraph,
-  Undo,
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
 
@@ -44,20 +41,9 @@ void ClassicEditor
     plugins: [
       Essentials,
       Paragraph,
-      Bold,
-      Italic,
-      Undo,
       FormulaX,
     ],
-    toolbar: [
-      'undo',
-      'redo',
-      '|',
-      'bold',
-      'italic',
-      '|',
-      'formulaX',
-    ],
+    toolbar: ['formulaX'],
     formulaX: {
       toolbarText: 'FormulaX',
       tooltip: 'Insert or edit formula',
