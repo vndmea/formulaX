@@ -129,6 +129,7 @@ Generated formula nodes are marked with `data-formulax="true"` and store the sou
   data-latex="\\sqrt{x}"
   contenteditable="false"
   role="button"
+  style="cursor: pointer"
   tabindex="0"
 ></span>
 ```
@@ -142,6 +143,7 @@ interface FormulaXCKEditor5Options {
   buttonName?: string;
   toolbarText?: string;
   tooltip?: string;
+  cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   modal?: {
@@ -167,6 +169,7 @@ interface FormulaXCKEditor5Options {
 | `buttonName` | `formulaX` | CKEditor 5 toolbar button name and command name. |
 | `toolbarText` | `FormulaX` | Toolbar button label. |
 | `tooltip` | `Insert or edit formula` | Toolbar button tooltip. |
+| `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `modal` | see below | Modal labels and closing behavior. |

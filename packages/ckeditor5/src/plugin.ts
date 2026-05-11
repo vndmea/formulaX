@@ -29,6 +29,7 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
     buttonName: options.buttonName ?? DEFAULT_BUTTON_NAME,
     toolbarText: options.toolbarText ?? 'FormulaX',
     tooltip: options.tooltip ?? 'Insert or edit formula',
+    cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? DEFAULT_FORMULA_CLASS,
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
     modal: {
@@ -249,6 +250,7 @@ function createFormulaViewAttributes(
     'data-latex': latex,
     contenteditable: 'false',
     role: 'button',
+    style: `cursor: ${options.cursorStyle}`,
     tabindex: '0',
   };
 }

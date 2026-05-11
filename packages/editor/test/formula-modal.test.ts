@@ -32,6 +32,7 @@ describe('formula integration markup', () => {
     expect(markup).toContain('data-formulax-latex="\\sqrt{x}"');
     expect(markup).toContain('data-mce-contenteditable="false"');
     expect(markup).toContain('role="button"');
+    expect(markup).toContain('style="cursor: pointer"');
     expect(markup).toContain('tabindex="0"');
   });
 });

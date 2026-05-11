@@ -33,6 +33,7 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     menuItemName: options.menuItemName ?? 'formulax',
     toolbarText: options.toolbarText ?? 'FormulaX',
     tooltip: options.tooltip ?? 'Insert formula',
+    cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? 'formulax-math',
     formulaAttributeName: options.formulaAttributeName ?? 'data-formulax-latex',
     renderMode: options.renderMode ?? 'text',

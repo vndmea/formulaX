@@ -56,6 +56,7 @@ export interface FormulaXTinyMceOptions {
   menuItemName?: string;
   toolbarText?: string;
   tooltip?: string;
+  cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderMode?: 'text' | 'html';
@@ -90,6 +91,7 @@ export interface RequiredFormulaXTinyMceOptions {
   menuItemName: string;
   toolbarText: string;
   tooltip: string;
+  cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;
   renderMode: 'text' | 'html';

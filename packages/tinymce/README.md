@@ -142,6 +142,7 @@ A generated formula node stores the source LaTeX in `data-formulax-latex` and is
   data-latex="\\sqrt{x}"
   contenteditable="false"
   data-mce-contenteditable="false"
+  style="cursor: pointer"
 ></span>
 ```
 
@@ -156,6 +157,7 @@ interface FormulaXTinyMceOptions {
   menuItemName?: string;
   toolbarText?: string;
   tooltip?: string;
+  cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderMode?: 'text' | 'html';
@@ -172,6 +174,7 @@ interface FormulaXTinyMceOptions {
 | `menuItemName` | `formulax` | Menu item name. |
 | `toolbarText` | `FormulaX` | Toolbar and menu item label. |
 | `tooltip` | `Insert formula` | Toolbar button tooltip. |
+| `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `renderMode` | `text` | Experimental render mode option. |

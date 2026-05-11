@@ -11,6 +11,7 @@ describe('tinymce adapter', () => {
     const markup = createTinyMceFormulaMarkup('x');
     expect(markup).toContain('data-formulax-latex="x"');
     expect(markup).toContain('data-formulax="true"');
+    expect(markup).toContain('style="cursor: pointer"');
     const doc = parseTinyMceFormulaMarkup('\\frac{a}{b}');
     expect(serializeTinyMceFormulaMarkup(doc)).toContain('\\frac{a}{b}');
   });

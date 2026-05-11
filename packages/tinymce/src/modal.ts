@@ -80,13 +80,21 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
         const next = replaceFormulaElement(target, latex, {
           attributeName: options.formulaAttributeName,
           className: options.formulaClassName,
+          cursorStyle: options.cursorStyle,
           renderHtml,
         });
         if (next) {
           moveSelectionAfterNode(editor, next);
         }
       } else {
-        insertFormulaElementIntoEditor(editor, latex, options.formulaAttributeName, options.formulaClassName, renderHtml);
+        insertFormulaElementIntoEditor(
+          editor,
+          latex,
+          options.formulaAttributeName,
+          options.formulaClassName,
+          options.cursorStyle,
+          renderHtml,
+        );
       }
 
       notifyEditorChanged(editor);
@@ -146,12 +154,14 @@ function insertFormulaElementIntoEditor(
   latex: string,
   attributeName: string,
   className: string,
+  cursorStyle: string,
   renderHtml?: string,
 ): void {
   const editorDoc = editor.getDoc?.() ?? document;
   const next = createTinyMceFormulaElement(editorDoc, latex, {
     attributeName,
     className,
+    cursorStyle,
     renderHtml,
   });
 
@@ -159,7 +169,7 @@ function insertFormulaElementIntoEditor(
     return;
   }
 
-  insertFormulaElementWithPlaceholder(editor, latex, attributeName, className, renderHtml);
+  insertFormulaElementWithPlaceholder(editor, latex, attributeName, className, cursorStyle, renderHtml);
 }
 
 function insertNodeAtEditorSelection(editor: TinyMceEditorLike, node: HTMLElement): boolean {
@@ -224,6 +234,7 @@ function insertFormulaElementWithPlaceholder(
   latex: string,
   attributeName: string,
   className: string,
+  cursorStyle: string,
   renderHtml?: string,
 ): void {
   const editorDoc = editor.getDoc?.() ?? document;
@@ -235,6 +246,7 @@ function insertFormulaElementWithPlaceholder(
     const html = createTinyMceFormulaMarkup(latex, {
       attributeName,
       className,
+      cursorStyle,
       renderHtml,
     });
     editor.insertContent(html);
@@ -244,6 +256,7 @@ function insertFormulaElementWithPlaceholder(
   const next = createTinyMceFormulaElement(editorDoc, latex, {
     attributeName,
     className,
+    cursorStyle,
     renderHtml,
   });
 

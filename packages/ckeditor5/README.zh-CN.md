@@ -129,6 +129,7 @@ editor.execute('myFormulaX');
   data-latex="\\sqrt{x}"
   contenteditable="false"
   role="button"
+  style="cursor: pointer"
   tabindex="0"
 ></span>
 ```
@@ -142,6 +143,7 @@ interface FormulaXCKEditor5Options {
   buttonName?: string;
   toolbarText?: string;
   tooltip?: string;
+  cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   modal?: {
@@ -167,6 +169,7 @@ interface FormulaXCKEditor5Options {
 | `buttonName` | `formulaX` | CKEditor 5 的工具栏按钮名，同时也是命令名。 |
 | `toolbarText` | `FormulaX` | 工具栏按钮显示文本。 |
 | `tooltip` | `Insert or edit formula` | 工具栏按钮 tooltip。 |
+| `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |

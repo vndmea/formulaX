@@ -9,6 +9,7 @@ export interface FormulaXCKEditor5Options {
   buttonName?: string;
   toolbarText?: string;
   tooltip?: string;
+  cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   modal?: {
@@ -32,6 +33,7 @@ export interface RequiredFormulaXCKEditor5Options {
   buttonName: string;
   toolbarText: string;
   tooltip: string;
+  cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;
   modal: {

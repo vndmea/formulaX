@@ -7,6 +7,7 @@ export interface CreateFormulaMarkupOptions {
   className?: string;
   displayMode?: boolean;
   renderHtml?: string;
+  cursorStyle?: string;
   extraAttributes?: Record<string, string | boolean | null | undefined>;
 }
 
@@ -33,7 +34,15 @@ export function createFormulaMarkup(
   const className = options.className ?? DEFAULT_FORMULA_CLASS;
   const displayClass = options.displayMode ? `${className} ${className}--block` : className;
   const safeLatex = escapeAttribute(latex);
-  const extraAttributes = Object.entries(options.extraAttributes ?? {})
+  const cursorStyle = options.cursorStyle?.trim() || 'pointer';
+  const extraAttributes: Record<string, string | boolean | null | undefined> = {
+    ...(options.extraAttributes ?? {}),
+    style: mergeInlineStyles(
+      typeof options.extraAttributes?.style === 'string' ? options.extraAttributes.style : '',
+      cursorStyle ? `cursor: ${cursorStyle}` : '',
+    ),
+  };
+  const serializedAttributes = Object.entries(extraAttributes)
     .filter(([, value]) => value !== null && value !== undefined && value !== false)
     .map(([key, value]) => value === true ? key : `${key}="${escapeAttribute(String(value))}"`);
 
@@ -46,11 +55,21 @@ export function createFormulaMarkup(
     ' contenteditable="false"',
     ' role="button"',
     ' tabindex="0"',
-    extraAttributes.length ? ` ${extraAttributes.join(' ')}` : '',
+    serializedAttributes.length ? ` ${serializedAttributes.join(' ')}` : '',
     '>',
     options.renderHtml ?? `<span class="${escapeAttribute(className)}__render">${escapeHtml(latex || '\\square')}</span>`,
     '</span>',
   ].join('');
+}
+
+function mergeInlineStyles(existingStyle: string, nextStyle: string): string {
+  const existing = existingStyle.trim().replace(/;+\s*$/, '');
+  const next = nextStyle.trim().replace(/;+\s*$/, '');
+
+  if (!existing) return next;
+  if (!next) return existing;
+
+  return `${existing}; ${next}`;
 }
 
 export function createFormulaElement(

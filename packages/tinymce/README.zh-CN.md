@@ -142,6 +142,7 @@ if (isFormulaElement(element)) {
   data-latex="\\sqrt{x}"
   contenteditable="false"
   data-mce-contenteditable="false"
+  style="cursor: pointer"
 ></span>
 ```
 
@@ -156,6 +157,7 @@ interface FormulaXTinyMceOptions {
   menuItemName?: string;
   toolbarText?: string;
   tooltip?: string;
+  cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderMode?: 'text' | 'html';
@@ -172,6 +174,7 @@ interface FormulaXTinyMceOptions {
 | `menuItemName` | `formulax` | 菜单项名。 |
 | `toolbarText` | `FormulaX` | 工具栏按钮和菜单项显示文本。 |
 | `tooltip` | `Insert formula` | 工具栏按钮 tooltip。 |
+| `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
 | `renderMode` | `text` | 实验性的渲染模式配置。 |
