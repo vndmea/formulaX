@@ -2,7 +2,7 @@
 
 English | [简体中文](./README.zh-CN.md)
 
-A modern formula editor workspace with legacy KityFormula compatibility, modular runtime loading, and pluggable renderers.
+A modern formula editor workspace with legacy KityFormula compatibility, modular runtime loading, static renderers, and editor integrations.
 
 ## What is FormulaX?
 
@@ -28,8 +28,8 @@ Some packages are experimental and not yet published to npm.
 | --- | --- |
 | `@formulax/kity-runtime` | Legacy KityFormula runtime adapter for FormulaX |
 | `@formulax/core` | Core data model and shared utilities |
+| `@formulax/renderer` | Static formula renderers for rich-text adapters |
 | `@formulax/editor` | Modern formula editor foundation |
-| `@formulax/renderer-katex` | KaTeX-based renderer integration |
 | `@formulax/tiptap` | TipTap integration adapter |
 | `@formulax/tinymce` | TinyMCE integration adapter |
 | `@formulax/kity-assets` | Static assets for KityFormula legacy compatibility |
@@ -45,13 +45,13 @@ FormulaX keeps the legacy KityFormula runtime isolated in `@formulax/kity-runtim
 ```
 FormulaX workspace
 ├── @formulax/core (document model, LaTeX parser/serializer)
+├── @formulax/renderer (static formula renderers)
 ├── @formulax/editor (DOM interaction, selection, keyboard handling)
 ├── @formulax/kity-runtime (legacy compatibility layer)
 │   ├── KityFormula runtime (lazy-loaded chunk)
 │   ├── Parser runtime (lazy-loaded chunk)
 │   ├── Font maps & sprite position maps (embedded in lazy chunks)
 │   └── canvg export runtime (lazy-loaded, only when exporting to PNG/JPG)
-├── @formulax/renderer-katex (KaTeX rendering adapter)
 ├── @formulax/tiptap (TipTap adapter)
 └── @formulax/tinymce (TinyMCE adapter)
 ```
@@ -138,16 +138,6 @@ import { parseLatex, serializeLatex } from '@formulax/core';
 
 const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
-```
-
-### KaTeX Renderer
-
-```ts
-import { parseLatex } from '@formulax/core';
-import { renderKatex } from '@formulax/renderer-katex';
-
-const doc = parseLatex('\\sqrt{x}');
-const html = renderKatex(doc);
 ```
 
 ### TipTap Integration

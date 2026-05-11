@@ -9,7 +9,7 @@ export default defineConfig({
       '@formulax/core': fromRoot('./packages/core/src/index.ts'),
       '@formulax/editor': fromRoot('./packages/editor/src/index.ts'),
       '@formulax/kity-assets': fromRoot('./packages/kity-assets/src/index.ts'),
-      '@formulax/renderer-katex': fromRoot('./packages/renderer-katex/src/index.ts'),
+      '@formulax/renderer': fromRoot('./packages/renderer/src/index.ts'),
       '@formulax/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
       '@formulax/tinymce': fromRoot('./packages/tinymce/src/index.ts'),
       '@formulax/kity-runtime': fromRoot('./packages/kity-runtime/src/index.ts'),
@@ -26,7 +26,7 @@ export default defineConfig({
           name: 'node',
           include: [
             'packages/core/test/**/*.test.ts',
-            'packages/renderer-katex/test/**/*.test.ts',
+            'packages/renderer/test/**/*.test.ts',
             'packages/tiptap/test/**/*.test.ts',
           ],
           environment: 'node',

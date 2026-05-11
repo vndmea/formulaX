@@ -2,7 +2,7 @@
   "files": [],
   "references": [
     { "path": "./packages/core" },
-    { "path": "./packages/renderer-katex" },
+    { "path": "./packages/renderer" },
     { "path": "./packages/editor" },
     { "path": "./packages/tiptap" },
     { "path": "./packages/tinymce" },

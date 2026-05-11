@@ -1,15 +1,15 @@
 {
-  "name": "@formulax/renderer-katex",
+  "name": "@formulax/renderer",
   "version": "0.1.0",
   "private": false,
   "type": "module",
-  "description": "KaTeX-based renderer for FormulaX.",
+  "description": "Static formula renderers for FormulaX rich-text adapters.",
   "keywords": [
     "formulax",
     "formula",
-    "katex",
     "renderer",
-    "math"
+    "svg",
+    "katex"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -25,11 +25,7 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/renderer-katex/test",
+    "test": "vitest run packages/renderer/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
-  },
-  "dependencies": {
-    "@formulax/core": "workspace:*",
-    "katex": "^0.16.11"
   }
 }

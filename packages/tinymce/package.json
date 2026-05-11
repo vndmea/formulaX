@@ -32,6 +32,7 @@
     "@formulax/core": "workspace:*",
     "@formulax/editor": "workspace:*",
     "@formulax/kity-runtime": "workspace:*",
+    "@formulax/renderer": "workspace:*",
     "@formulax/kity-assets": "workspace:*"
   },
   "peerDependencies": {
