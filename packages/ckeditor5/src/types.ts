@@ -2,7 +2,6 @@ import type { KityEditorAssets } from '@formulax/kity-runtime';
 
 export interface FormulaXPayload {
   latex: string;
-  html?: string;
 }
 
 export interface FormulaXCKEditor5Options {

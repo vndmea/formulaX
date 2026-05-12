@@ -74,8 +74,7 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
     const submit = async (): Promise<void> => {
       try {
         const latex = await mounted.getLatex();
-        const html = latex.trim() ? await mounted.getRenderHtml() : '';
-        close({ latex, html });
+        close({ latex });
       } catch (error) {
         host.innerHTML = `
           <div class="fx-formula-editor-error">

@@ -12,6 +12,7 @@ import {
   FORMULA_FLAG_ATTRIBUTE,
   createFormulaMarkup,
   ensureFormulaXModalStyles,
+  mountFormulaXKityEditor,
 } from '@formulax/editor';
 import { openFormulaXModal } from './modal';
 import type {
@@ -131,7 +132,6 @@ function applyFormulaPayload(editor: any, selectedFormula: any, payload: Formula
       }
 
       writer.setAttribute('latex', payload.latex, selectedFormula);
-      writer.setAttribute('html', payload.html ?? '', selectedFormula);
       return;
     }
 
@@ -139,7 +139,6 @@ function applyFormulaPayload(editor: any, selectedFormula: any, payload: Formula
 
     const formula = writer.createElement('formulaX', {
       latex: payload.latex,
-      html: payload.html ?? '',
     });
 
     editor.model.insertObject(formula, null, null, { setSelection: 'after' });
@@ -151,7 +150,7 @@ function defineFormulaSchema(editor: any): void {
     allowWhere: '$text',
     isInline: true,
     isObject: true,
-    allowAttributes: ['latex', 'html'],
+    allowAttributes: ['latex'],
   });
 }
 
@@ -165,7 +164,6 @@ function defineFormulaConverters(editor: any, options: RequiredFormulaXCKEditor5
     },
     model: (viewElement: any, { writer }: any) => writer.createElement('formulaX', {
       latex: readFormulaLatexFromView(viewElement, options),
-      html: readFormulaHtmlFromView(viewElement),
     }),
   });
 
@@ -189,7 +187,7 @@ function createFormulaConverterModelDefinition(): {
 } {
   return {
     name: 'formulaX',
-    attributes: ['latex', 'html'],
+    attributes: ['latex'],
   };
 }
 
@@ -199,15 +197,18 @@ function createFormulaRawElement(
   options: RequiredFormulaXCKEditor5Options,
 ): any {
   const latex = String(modelElement.getAttribute('latex') ?? '');
-  const html = String(modelElement.getAttribute('html') ?? '');
 
-  return writer.createRawElement(
+  const element = writer.createContainerElement(
     'span',
     createFormulaViewAttributes(latex, options),
-    (domElement: HTMLElement) => {
-      domElement.innerHTML = html || createFormulaFallbackMarkup(latex, options);
-    },
   );
+
+  writer.insert(
+    writer.createPositionAt(element, 0),
+    writer.createText(latex || '\\square'),
+  );
+
+  return element;
 }
 
 function createFormulaWidgetElement(
@@ -217,7 +218,6 @@ function createFormulaWidgetElement(
   editor: any,
 ): any {
   const latex = String(modelElement.getAttribute('latex') ?? '');
-  const html = String(modelElement.getAttribute('html') ?? '');
   const widgetElement = writer.createContainerElement(
     'span',
     createFormulaViewAttributes(latex, options),
@@ -229,7 +229,8 @@ function createFormulaWidgetElement(
       'aria-hidden': 'true',
     },
     (domElement: HTMLElement) => {
-      domElement.innerHTML = html || createFormulaFallbackMarkup(latex, options);
+      domElement.innerHTML = createFormulaFallbackMarkup(latex, options);
+      void renderFormulaIntoElement(domElement, latex, options);
       bindFormulaWidgetDomEvents(domElement, editor, modelElement, options.buttonName);
     },
   );
@@ -319,49 +320,81 @@ function readFormulaLatexFromView(viewElement: any, options: RequiredFormulaXCKE
   );
 }
 
-function readFormulaHtmlFromView(viewElement: any): string {
+const formulaRenderCache = new Map<string, Promise<string>>();
+
+async function renderFormulaIntoElement(
+  domElement: HTMLElement,
+  latex: string,
+  options: RequiredFormulaXCKEditor5Options,
+): Promise<void> {
+  const trimmedLatex = latex.trim();
+  const renderToken = `${trimmedLatex}::${Date.now()}::${Math.random().toString(36).slice(2, 8)}`;
+  domElement.dataset.renderToken = renderToken;
+
+  if (!trimmedLatex) {
+    return;
+  }
+
   try {
-    return Array.from(viewElement.getChildren?.() ?? [])
-      .map((child: any) => serializeViewNode(child))
-      .join('');
-  } catch {
-    return '';
+    const markup = await renderFormulaSvgMarkup(trimmedLatex, options);
+    if (domElement.dataset.renderToken !== renderToken) {
+      return;
+    }
+
+    domElement.innerHTML = markup;
+  } catch (error) {
+    if (domElement.dataset.renderToken !== renderToken) {
+      return;
+    }
+
+    console.error('[FormulaX] Failed to render CKEditor5 formula widget:', error);
   }
 }
 
-function serializeViewNode(node: any): string {
-  if (typeof node?.data === 'string') {
-    return escapeHtml(node.data);
+function renderFormulaSvgMarkup(
+  latex: string,
+  options: RequiredFormulaXCKEditor5Options,
+): Promise<string> {
+  const cached = formulaRenderCache.get(latex);
+  if (cached) {
+    return cached;
   }
 
-  if (!node?.name || typeof node.getChildren !== 'function') {
-    return '';
-  }
+  const pending = (async () => {
+    const host = document.createElement('div');
+    host.style.position = 'fixed';
+    host.style.left = '-100000px';
+    host.style.top = '0';
+    host.style.width = '1px';
+    host.style.height = '1px';
+    host.style.opacity = '0';
+    host.style.pointerEvents = 'none';
+    host.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(host);
 
-  const attributesList = Array.from(
-    (node.getAttributes?.() ?? []) as Iterable<[string, unknown]>,
-  );
-  const attributes = attributesList
-    .map(([name, value]) => value === true ? name : `${name}="${escapeAttribute(String(value))}"`)
-    .join(' ');
-  const children = Array.from(node.getChildren())
-    .map((child: any) => serializeViewNode(child))
-    .join('');
+    const mounted = mountFormulaXKityEditor(host, {
+      initialLatex: latex,
+      height: options.editor.height,
+      autofocus: false,
+      assets: options.editor.assets,
+      render: {
+        fontsize: options.editor.render.fontsize,
+      },
+    });
 
-  return `<${node.name}${attributes ? ` ${attributes}` : ''}>${children}</${node.name}>`;
-}
+    try {
+      return await mounted.getRenderHtml();
+    } finally {
+      mounted.destroy();
+      host.remove();
+    }
+  })();
 
-function escapeAttribute(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  formulaRenderCache.set(latex, pending);
+  pending.catch(() => {
+    if (formulaRenderCache.get(latex) === pending) {
+      formulaRenderCache.delete(latex);
+    }
+  });
+  return pending;
 }
