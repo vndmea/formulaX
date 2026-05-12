@@ -1,0 +1,193 @@
+# @formulax/tiptap
+
+[English](./README.md) | 简体中文
+
+FormulaX 的 Tiptap 集成适配器。
+
+`@formulax/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。该扩展在文档模型中只持久化 LaTeX，并在运行时渲染公式展示结果。
+
+> 状态：实验阶段。在首个稳定版本发布前，公共 API 仍可能调整。
+
+## 功能特性
+
+- 通过 `FormulaXNode` 导出 Tiptap 节点扩展
+- 通过 `createFormulaXNode` 导出扩展工厂函数
+- 提供 `openFormulaX` 命令，便于接工具栏按钮或代码中主动打开
+- 支持双击编辑已有公式
+- 节点 attrs 中仅持久化 LaTeX
+- 在 node view 中运行时渲染 SVG
+- 直接导出弹窗工具函数 `openFormulaXTiptapModal`
+- 兼容 Tiptap 2 和 3 的 peer dependency 范围
+
+## 兼容性
+
+该包将 `@tiptap/core` 声明为可选 peer dependency：
+
+```json
+{
+  "@tiptap/core": ">=2 <4"
+}
+```
+
+工作空间中的 demo 可以在 Tiptap 2 和 3 之间切换，用于兼容性验证。
+
+## 安装
+
+包发布后可使用：
+
+```bash
+pnpm add @formulax/tiptap
+pnpm add @tiptap/core
+```
+
+在 FormulaX 工作空间内，直接使用 workspace 包：
+
+```bash
+pnpm install
+pnpm dev:tiptap
+```
+
+## 基础使用
+
+创建 FormulaX 节点扩展，并加入 Tiptap 的扩展列表：
+
+```ts
+import { Editor } from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
+import { createFormulaXNode } from '@formulax/tiptap';
+
+const editor = new Editor({
+  element: document.querySelector('#editor')!,
+  extensions: [
+    StarterKit,
+    createFormulaXNode(),
+  ],
+  content: '<p>点击工具栏按钮插入公式。</p>',
+});
+```
+
+如果要在代码中主动打开 FormulaX 弹窗：
+
+```ts
+editor.commands.openFormulaX();
+```
+
+## 持久化数据
+
+Tiptap 节点中只保存 LaTeX 源内容：
+
+```json
+{
+  "type": "formulaX",
+  "attrs": {
+    "latex": "\\sqrt{x}"
+  }
+}
+```
+
+节点视图会根据保存的 LaTeX 在运行时渲染 SVG。生成的 DOM 会带有 `data-formulax="true"` 和 `data-formulax-latex`，但这些渲染后的 DOM 不是持久化数据的真实来源。
+
+## 配置项
+
+```ts
+interface FormulaXTiptapOptions {
+  formulaClassName?: string;
+  formulaAttributeName?: string;
+  cursorStyle?: string;
+  initialLatex?: string;
+  modal?: {
+    title?: string;
+    insertText?: string;
+    updateText?: string;
+    cancelText?: string;
+    closeOnBackdrop?: boolean;
+  };
+  editor?: {
+    height?: number | string;
+    autofocus?: boolean;
+    assets?: Partial<KityEditorAssets>;
+    render?: {
+      fontsize?: number;
+    };
+  };
+}
+```
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `formulaClassName` | `formulax-math` | 渲染后公式节点使用的 CSS class。 |
+| `formulaAttributeName` | `data-formulax-latex` | 渲染后 DOM 中保存 LaTeX 源内容的属性名。 |
+| `cursorStyle` | `pointer` | 渲染后公式节点的鼠标光标样式。 |
+| `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
+| `modal` | 见下方 | 弹窗文案和关闭行为。 |
+| `editor` | 见下方 | 内嵌 FormulaX 编辑器配置。 |
+
+### Modal 配置
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `title` | `FormulaX Editor` | 弹窗标题。 |
+| `insertText` | `Insert` | 插入公式时的提交按钮文本。 |
+| `updateText` | `Update` | 更新公式时的提交按钮文本。 |
+| `cancelText` | `Cancel` | 取消按钮文本。 |
+| `closeOnBackdrop` | `true` | 点击遮罩层时是否关闭弹窗。 |
+
+### Editor 配置
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `height` | `100%` | 内嵌编辑器高度。 |
+| `autofocus` | `true` | 内嵌编辑器是否自动聚焦。 |
+| `assets` | `{}` | 可选的 Kity runtime 资源覆盖配置。 |
+| `render.fontsize` | `40` | 公式渲染字号。 |
+
+## 导出 API
+
+| 导出 | 说明 |
+| --- | --- |
+| `FormulaXNode` | 默认的 FormulaX Tiptap 节点扩展。 |
+| `createFormulaXNode` | 创建 FormulaX 节点扩展，可传入自定义配置。 |
+| `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
+| `openFormulaXTiptapModal` | 直接打开 FormulaX 弹窗。 |
+| `FORMULAX_NODE_NAME` | 默认的 Tiptap 节点名。 |
+| `createFormulaXPayload` | 将 LaTeX 解析为 FormulaX 文档。 |
+| `serializeFormulaXPayload` | 将 FormulaX 文档序列化回 LaTeX。 |
+
+## 开发
+
+在仓库根目录执行：
+
+```bash
+pnpm install
+pnpm dev:tiptap
+```
+
+仅构建该包：
+
+```bash
+pnpm --filter @formulax/tiptap build
+```
+
+运行该包测试：
+
+```bash
+pnpm --filter @formulax/tiptap test
+```
+
+运行该包类型检查：
+
+```bash
+pnpm --filter @formulax/tiptap typecheck
+```
+
+## Demo
+
+本地 demo：
+
+```bash
+pnpm dev:tiptap
+```
+
+GitHub Pages demo：
+
+[https://vndmea.github.io/formulaX/tiptap/](https://vndmea.github.io/formulaX/tiptap/)

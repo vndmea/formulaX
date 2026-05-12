@@ -15,7 +15,8 @@ CKEditor 5 integration adapter for FormulaX.
 - Programmatic opening through `editor.execute('formulaX')`
 - Insert and update formulas as inline widget objects
 - Double-click editing for existing formulas
-- Formula source persistence through `data-formulax-latex`
+- Persist only LaTeX source in the CKEditor 5 model
+- Runtime SVG rendering in the editing view
 - Upcast and downcast support for formula markup in editor data
 - Direct modal helper export through `openFormulaXModal`
 
@@ -117,9 +118,15 @@ Programmatic opening should use the same custom command name:
 editor.execute('myFormulaX');
 ```
 
-## Persisted markup
+## Persisted data and markup
 
-Generated formula nodes are marked with `data-formulax="true"` and store the source LaTeX in `data-formulax-latex` by default:
+The CKEditor 5 model stores only the formula source LaTeX:
+
+```ts
+<formulaX latex="\\sqrt{x}" />
+```
+
+When editor data is downcast to HTML, generated formula nodes are marked with `data-formulax="true"` and store the source LaTeX in `data-formulax-latex` by default:
 
 ```html
 <span
@@ -134,7 +141,7 @@ Generated formula nodes are marked with `data-formulax="true"` and store the sou
 ></span>
 ```
 
-The exact inner HTML used to render the formula is internal and may evolve. Consumers should rely on the plugin and exported options rather than hard-coding the full markup shape.
+The editing view renders formula SVG at runtime from the persisted LaTeX. The exact rendered inner HTML is internal and may evolve. Consumers should rely on the plugin and exported options rather than hard-coding the full markup shape.
 
 ## Options
 

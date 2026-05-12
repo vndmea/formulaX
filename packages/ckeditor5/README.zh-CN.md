@@ -15,7 +15,8 @@ FormulaX 的 CKEditor 5 集成适配器。
 - 通过 `editor.execute('formulaX')` 在代码中主动打开
 - 将公式作为行内 widget object 插入和更新
 - 支持双击编辑已有公式
-- 默认通过 `data-formulax-latex` 持久化 LaTeX 源内容
+- 在 CKEditor 5 model 中仅持久化 LaTeX 源内容
+- 在 editing view 中运行时渲染 SVG
 - 支持在编辑器数据中对公式 markup 进行 upcast 和 downcast
 - 直接导出弹窗工具函数 `openFormulaXModal`
 
@@ -117,9 +118,15 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 editor.execute('myFormulaX');
 ```
 
-## 持久化 markup
+## 持久化数据与 markup
 
-生成的公式节点默认会通过 `data-formulax="true"` 标记，并将 LaTeX 源内容保存在 `data-formulax-latex` 中：
+CKEditor 5 的 model 层只保存公式的 LaTeX 源内容：
+
+```ts
+<formulaX latex="\\sqrt{x}" />
+```
+
+当编辑器数据 downcast 为 HTML 时，生成的公式节点默认会通过 `data-formulax="true"` 标记，并将 LaTeX 源内容保存在 `data-formulax-latex` 中：
 
 ```html
 <span
@@ -134,7 +141,7 @@ editor.execute('myFormulaX');
 ></span>
 ```
 
-用于渲染公式的内部 HTML 结构属于实现细节，后续可能演进。业务侧应优先依赖插件能力和导出的配置项，而不是写死完整 markup 结构。
+编辑态中的 SVG 由持久化的 LaTeX 在运行时生成。用于渲染公式的内部 HTML 结构属于实现细节，后续可能演进。业务侧应优先依赖插件能力和导出的配置项，而不是写死完整 markup 结构。
 
 ## 配置项
 
