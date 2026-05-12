@@ -11,7 +11,7 @@ type DemoEditor = {
     openFormulaX: () => boolean;
   };
   destroy?: () => void;
-  getHTML?: () => string;
+  getJSON?: () => unknown;
 };
 
 function queryRequiredElement<T extends Element>(selector: string): T {
@@ -47,11 +47,6 @@ app.innerHTML = `
     <div class="fx-demo-actions">
       <button id="insert-formula" type="button">Open FormulaX</button>
     </div>
-
-    <section class="fx-demo-output">
-      <h2>Current HTML</h2>
-      <pre id="editor-output"></pre>
-    </section>
   </main>
 `;
 
@@ -59,7 +54,6 @@ const versionSelect = queryRequiredElement<HTMLSelectElement>('#tiptap-version')
 const host = queryRequiredElement<HTMLElement>('#editor');
 const button = queryRequiredElement<HTMLButtonElement>('#insert-formula');
 const status = queryRequiredElement<HTMLParagraphElement>('#runtime-status');
-const output = queryRequiredElement<HTMLElement>('#editor-output');
 
 let activeEditor: DemoEditor | null = null;
 let activeLoadToken = 0;
@@ -69,8 +63,12 @@ function setStatus(message: string, tone: 'info' | 'success' | 'error'): void {
   status.dataset.tone = tone;
 }
 
-function syncOutput(): void {
-  output.textContent = activeEditor?.getHTML?.() ?? '';
+function logNodeTree(reason: 'create' | 'update'): void {
+  if (!activeEditor?.getJSON) {
+    return;
+  }
+
+  console.log(`[tiptap-demo] ${reason} node tree`, activeEditor.getJSON());
 }
 
 function destroyEditor(): void {
@@ -107,17 +105,19 @@ async function initTiptap(version: TiptapDemoVersion): Promise<void> {
       element: host,
       extensions: [runtime.StarterKit, formulaXNode],
       content: '<p>Click <strong>Open FormulaX</strong> to insert a formula, then double-click an existing formula to edit it.</p>',
-      onCreate: syncOutput,
-      onUpdate: syncOutput,
+      onCreate: () => {
+        logNodeTree('create');
+      },
+      onUpdate: () => {
+        logNodeTree('update');
+      },
     });
 
-    syncOutput();
     setStatus(`Loaded Tiptap v${version}. Use the dialog button or double-click a formula to edit.`, 'success');
     button.disabled = false;
   } catch (error) {
     console.error(error);
     setStatus(`Failed to load Tiptap v${version}. Check the console for details.`, 'error');
-    output.textContent = '';
   } finally {
     if (loadToken === activeLoadToken) {
       versionSelect.disabled = false;

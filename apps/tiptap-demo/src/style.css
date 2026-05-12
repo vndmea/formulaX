@@ -89,22 +89,3 @@
   outline: 1px solid rgba(37, 99, 235, 0.7);
   background: rgba(37, 99, 235, 0.1);
 }
-
-.fx-demo-output {
-  margin-top: 20px;
-}
-
-.fx-demo-output h2 {
-  margin: 0 0 8px;
-  font-size: 16px;
-}
-
-#editor-output {
-  margin: 0;
-  padding: 12px;
-  border-radius: 12px;
-  background: #f3f4f6;
-  color: #111827;
-  white-space: pre-wrap;
-  word-break: break-word;
-}

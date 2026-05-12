@@ -6,13 +6,13 @@ import {
   DEFAULT_FORMULA_CLASS,
   ensureFormulaXModalStyles,
   getFormulaLatexFromElement,
+  mountFormulaXKityEditor,
 } from '@formulax/editor';
 import { openFormulaXTiptapModal } from './modal';
 import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
 
 export interface FormulaXNodeAttributes {
   latex: string;
-  html: string;
 }
 
 export const FORMULAX_NODE_NAME = 'formulaX';
@@ -68,10 +68,6 @@ const formulaXNodeConfig: any = {
       latex: {
         default: '',
       },
-      html: {
-        default: '',
-        rendered: false,
-      },
     };
   },
   parseHTML() {
@@ -84,7 +80,6 @@ const formulaXNodeConfig: any = {
 
         return {
           latex: getFormulaLatexFromElement(element, this.options.formulaAttributeName),
-          html: element.innerHTML,
         };
       },
     }];
@@ -153,6 +148,7 @@ const formulaXNodeConfig: any = {
     }) => {
       const dom = createFormulaDomElement(document, node.attrs, this.options) ?? document.createElement('span');
       dom.classList.add('formulax-math--interactive');
+      void renderFormulaIntoElement(dom, node.attrs, this.options);
 
       const selectNode = (): void => {
         const position = getPos();
@@ -183,6 +179,7 @@ const formulaXNodeConfig: any = {
           }
 
           syncFormulaDomElement(dom, updatedNode.attrs, this.options);
+          void renderFormulaIntoElement(dom, updatedNode.attrs, this.options);
           return true;
         },
         selectNode: () => {
@@ -282,7 +279,6 @@ function getSelectedFormula(editor: {
     to: selection.to,
     attrs: {
       latex: node.attrs?.latex ?? '',
-      html: node.attrs?.html ?? '',
     },
   };
 }
@@ -295,7 +291,6 @@ function createFormulaNodeContent(payload: FormulaXPayload): {
     type: FORMULAX_NODE_NAME,
     attrs: {
       latex: payload.latex,
-      html: payload.html ?? '',
     },
   };
 }
@@ -309,7 +304,6 @@ function createFormulaDomElement(
     attributeName: options.formulaAttributeName,
     className: options.formulaClassName,
     cursorStyle: options.cursorStyle,
-    renderHtml: attrs.html || undefined,
   });
 }
 
@@ -335,6 +329,93 @@ function syncFormulaDomElement(
   Array.from(next.attributes).forEach((attribute) => {
     dom.setAttribute(attribute.name, attribute.value);
   });
+}
+
+const formulaRenderCache = new Map<string, Promise<string>>();
+
+async function renderFormulaIntoElement(
+  dom: HTMLElement,
+  attrs: FormulaXNodeAttributes,
+  options: RequiredFormulaXTiptapOptions,
+): Promise<void> {
+  const latex = attrs.latex.trim();
+  const renderToken = `${latex}::${Date.now()}::${Math.random().toString(36).slice(2, 8)}`;
+  dom.dataset.renderToken = renderToken;
+
+  if (!latex) {
+    const placeholder = dom.querySelector<HTMLElement>(`.${options.formulaClassName}__render`);
+    if (placeholder) {
+      placeholder.textContent = '\\square';
+    }
+    return;
+  }
+
+  try {
+    const markup = await renderFormulaSvgMarkup(latex, options);
+    if (dom.dataset.renderToken !== renderToken) {
+      return;
+    }
+
+    dom.innerHTML = markup;
+  } catch (error) {
+    if (dom.dataset.renderToken !== renderToken) {
+      return;
+    }
+
+    console.error('[FormulaX] Failed to render Tiptap formula node:', error);
+    const placeholder = dom.querySelector<HTMLElement>(`.${options.formulaClassName}__render`);
+    if (placeholder) {
+      placeholder.textContent = latex;
+    }
+  }
+}
+
+function renderFormulaSvgMarkup(
+  latex: string,
+  options: RequiredFormulaXTiptapOptions,
+): Promise<string> {
+  const cached = formulaRenderCache.get(latex);
+  if (cached) {
+    return cached;
+  }
+
+  const pending = (async () => {
+    const host = document.createElement('div');
+    host.style.position = 'fixed';
+    host.style.left = '-100000px';
+    host.style.top = '0';
+    host.style.width = '1px';
+    host.style.height = '1px';
+    host.style.opacity = '0';
+    host.style.pointerEvents = 'none';
+    host.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(host);
+
+    const mounted = mountFormulaXKityEditor(host, {
+      initialLatex: latex,
+      height: options.editor.height,
+      autofocus: false,
+      assets: options.editor.assets,
+      render: {
+        fontsize: options.editor.render.fontsize,
+      },
+    });
+
+    try {
+      return await mounted.getRenderHtml();
+    } finally {
+      mounted.destroy();
+      host.remove();
+    }
+  })();
+
+  formulaRenderCache.set(latex, pending);
+  pending.catch(() => {
+    if (formulaRenderCache.get(latex) === pending) {
+      formulaRenderCache.delete(latex);
+    }
+  });
+  return pending;
 }
 
 export type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';

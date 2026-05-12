@@ -2,7 +2,6 @@ import type { FormulaXKityEditorOptions } from '@formulax/editor';
 
 export interface FormulaXPayload {
   latex: string;
-  html?: string;
 }
 
 export interface FormulaXTiptapOptions {
@@ -41,4 +40,3 @@ export interface RequiredFormulaXTiptapOptions {
     };
   };
 }
-
