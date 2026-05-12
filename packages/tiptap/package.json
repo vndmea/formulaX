@@ -30,7 +30,17 @@
   },
   "dependencies": {
     "@formulax/core": "workspace:*",
-    "@formulax/editor": "workspace:*",
-    "@tiptap/core": "^2.11.5"
+    "@formulax/editor": "workspace:*"
+  },
+  "peerDependencies": {
+    "@tiptap/core": ">=2 <4"
+  },
+  "peerDependenciesMeta": {
+    "@tiptap/core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tiptap/core": "^2.27.2"
   }
 }

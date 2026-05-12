@@ -9,9 +9,6 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@formulax/core": "workspace:*",
-    "@formulax/tiptap": "workspace:*",
-    "@tiptap/core": "^2.11.5",
-    "@tiptap/starter-kit": "^2.11.5"
+    "@formulax/tiptap": "workspace:*"
   }
 }
