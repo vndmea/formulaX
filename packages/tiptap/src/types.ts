@@ -1,4 +1,4 @@
-import type { FormulaXKityEditorOptions } from '@formulax/editor';
+import type { FormulaXKityEditorOptions } from '@formulaxjs/editor';
 
 export interface FormulaXPayload {
   latex: string;

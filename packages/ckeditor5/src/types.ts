@@ -1,4 +1,4 @@
-import type { KityEditorAssets } from '@formulax/kity-runtime';
+import type { KityEditorAssets } from '@formulaxjs/kity-runtime';
 
 export interface FormulaXPayload {
   latex: string;

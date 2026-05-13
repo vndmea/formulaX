@@ -1,15 +1,15 @@
-# @formulax/kity-runtime
+# @formulaxjs/kity-runtime
 
 Legacy KityFormula runtime adapter for FormulaX.
 
-`@formulax/kity-runtime` packages the compatibility runtime that powers FormulaX's Kity-based editing and rendering flows. It wires legacy runtime code to the modern asset pipeline and provides helpers for mounting the editor in browser applications.
+`@formulaxjs/kity-runtime` packages the compatibility runtime that powers FormulaX's Kity-based editing and rendering flows. It wires legacy runtime code to the modern asset pipeline and provides helpers for mounting the editor in browser applications.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
 ## Install
 
 ```bash
-pnpm add @formulax/kity-runtime @formulax/kity-assets
+pnpm add @formulaxjs/kity-runtime @formulaxjs/kity-assets
 ```
 
 ## Highlights
@@ -22,7 +22,7 @@ pnpm add @formulax/kity-runtime @formulax/kity-assets
 ## Example
 
 ```ts
-import { mountKityEditor } from '@formulax/kity-runtime';
+import { mountKityEditor } from '@formulaxjs/kity-runtime';
 
 const root = document.getElementById('editor');
 

@@ -1,5 +1,5 @@
 {
-  "name": "@formulax/editor",
+  "name": "@formulaxjs/editor",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -36,8 +36,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulax/core": "workspace:*",
-    "@formulax/renderer": "workspace:*",
-    "@formulax/kity-runtime": "workspace:*"
+    "@formulaxjs/core": "workspace:*",
+    "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/kity-runtime": "workspace:*"
   }
 }

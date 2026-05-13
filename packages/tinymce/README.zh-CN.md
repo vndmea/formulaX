@@ -1,10 +1,10 @@
-# @formulax/tinymce
+# @formulaxjs/tinymce
 
 [English](./README.md) | 简体中文
 
 FormulaX 的 TinyMCE 集成适配器。
 
-`@formulax/tinymce` 会将 FormulaX 注册为 TinyMCE 插件，并提供基于弹窗的公式编辑体验，用于在 TinyMCE 内容中插入和更新公式。
+`@formulaxjs/tinymce` 会将 FormulaX 注册为 TinyMCE 插件，并提供基于弹窗的公式编辑体验，用于在 TinyMCE 内容中插入和更新公式。
 
 > 状态：实验阶段。在首个稳定版本发布前，公共 API 仍可能调整。
 
@@ -38,7 +38,7 @@ FormulaX 的 TinyMCE 集成适配器。
 包发布后可使用：
 
 ```bash
-pnpm add @formulax/tinymce
+pnpm add @formulaxjs/tinymce
 pnpm add tinymce
 ```
 
@@ -55,7 +55,7 @@ pnpm dev:tinymce
 
 ```ts
 import tinymce from 'tinymce';
-import { registerFormulaXTinyMcePlugin } from '@formulax/tinymce';
+import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 
 registerFormulaXTinyMcePlugin(tinymce, {
   toolbarText: 'FormulaX',
@@ -121,7 +121,7 @@ import {
   getFormulaLatexFromElement,
   isFormulaElement,
   replaceFormulaElement,
-} from '@formulax/tinymce';
+} from '@formulaxjs/tinymce';
 
 const html = createTinyMceFormulaMarkup('\\sqrt{x}');
 
@@ -234,19 +234,19 @@ pnpm dev:tinymce
 仅构建该包：
 
 ```bash
-pnpm --filter @formulax/tinymce build
+pnpm --filter @formulaxjs/tinymce build
 ```
 
 运行该包测试：
 
 ```bash
-pnpm --filter @formulax/tinymce test
+pnpm --filter @formulaxjs/tinymce test
 ```
 
 运行该包类型检查：
 
 ```bash
-pnpm --filter @formulax/tinymce typecheck
+pnpm --filter @formulaxjs/tinymce typecheck
 ```
 
 ## Demo

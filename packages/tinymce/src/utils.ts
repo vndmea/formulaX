@@ -1,7 +1,7 @@
 export function noop(): void {}
 
 export function warn(message: string): void {
-  console.warn(`[@formulax/tinymce] ${message}`);
+  console.warn(`[@formulaxjs/tinymce] ${message}`);
 }
 
 export function injectStyles(css: string): void {

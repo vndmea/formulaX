@@ -1,4 +1,4 @@
-import { createFormulaXNode } from '@formulax/tiptap';
+import { createFormulaXNode } from '@formulaxjs/tiptap';
 import {
   loadTiptapRuntime,
   TIPTAP_VERSION_OPTIONS,

@@ -1,4 +1,4 @@
-import { kityAssetManifest, type KityAssetManifest } from '@formulax/kity-assets';
+import { kityAssetManifest, type KityAssetManifest } from '@formulaxjs/kity-assets';
 import { legacyBoxType } from './vendor/legacy-box-type';
 import { legacyCharPosition } from './vendor/char-position';
 import { legacyOtherPosition } from './vendor/other-position';

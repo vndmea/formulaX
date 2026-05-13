@@ -6,8 +6,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@formulax/core": ["../core/src/index.d.ts"],
-      "@formulax/editor": ["../editor/src/index.d.ts"]
+      "@formulaxjs/core": ["../core/src/index.d.ts"],
+      "@formulaxjs/editor": ["../editor/src/index.d.ts"]
     }
   },
   "include": ["src"]

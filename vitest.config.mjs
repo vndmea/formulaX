@@ -6,13 +6,13 @@ const fromRoot = (path) => fileURLToPath(new URL(path, import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
-      '@formulax/core': fromRoot('./packages/core/src/index.ts'),
-      '@formulax/editor': fromRoot('./packages/editor/src/index.ts'),
-      '@formulax/kity-assets': fromRoot('./packages/kity-assets/src/index.ts'),
-      '@formulax/renderer': fromRoot('./packages/renderer/src/index.ts'),
-      '@formulax/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
-      '@formulax/tinymce': fromRoot('./packages/tinymce/src/index.ts'),
-      '@formulax/kity-runtime': fromRoot('./packages/kity-runtime/src/index.ts'),
+      '@formulaxjs/core': fromRoot('./packages/core/src/index.ts'),
+      '@formulaxjs/editor': fromRoot('./packages/editor/src/index.ts'),
+      '@formulaxjs/kity-assets': fromRoot('./packages/kity-assets/src/index.ts'),
+      '@formulaxjs/renderer': fromRoot('./packages/renderer/src/index.ts'),
+      '@formulaxjs/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
+      '@formulaxjs/tinymce': fromRoot('./packages/tinymce/src/index.ts'),
+      '@formulaxjs/kity-runtime': fromRoot('./packages/kity-runtime/src/index.ts'),
     },
   },
   test: {

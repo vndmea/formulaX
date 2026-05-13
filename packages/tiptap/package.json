@@ -1,5 +1,5 @@
 {
-  "name": "@formulax/tiptap",
+  "name": "@formulaxjs/tiptap",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -36,8 +36,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulax/core": "workspace:*",
-    "@formulax/editor": "workspace:*"
+    "@formulaxjs/core": "workspace:*",
+    "@formulaxjs/editor": "workspace:*"
   },
   "peerDependencies": {
     "@tiptap/core": ">=2 <4"

@@ -1,5 +1,5 @@
 {
-  "name": "@formulax/tinymce",
+  "name": "@formulaxjs/tinymce",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -36,11 +36,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulax/core": "workspace:*",
-    "@formulax/editor": "workspace:*",
-    "@formulax/kity-runtime": "workspace:*",
-    "@formulax/renderer": "workspace:*",
-    "@formulax/kity-assets": "workspace:*"
+    "@formulaxjs/core": "workspace:*",
+    "@formulaxjs/editor": "workspace:*",
+    "@formulaxjs/kity-runtime": "workspace:*",
+    "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/kity-assets": "workspace:*"
   },
   "peerDependencies": {
     "tinymce": ">=5 <9"

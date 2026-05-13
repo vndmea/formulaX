@@ -1,10 +1,10 @@
-# @formulax/ckeditor5
+# @formulaxjs/ckeditor5
 
 [English](./README.md) | 简体中文
 
 FormulaX 的 CKEditor 5 集成适配器。
 
-`@formulax/ckeditor5` 提供了一个 CKEditor 5 插件，会以弹窗形式打开 FormulaX 编辑器，用于在 CKEditor 5 内容中插入和更新行内公式。
+`@formulaxjs/ckeditor5` 提供了一个 CKEditor 5 插件，会以弹窗形式打开 FormulaX 编辑器，用于在 CKEditor 5 内容中插入和更新行内公式。
 
 > 状态：实验阶段。在首个稳定版本发布前，公共 API 仍可能调整。
 
@@ -37,7 +37,7 @@ FormulaX 的 CKEditor 5 集成适配器。
 包发布后可使用：
 
 ```bash
-pnpm add @formulax/ckeditor5
+pnpm add @formulaxjs/ckeditor5
 pnpm add ckeditor5
 ```
 
@@ -60,7 +60,7 @@ import {
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
 
-import { FormulaX } from '@formulax/ckeditor5';
+import { FormulaX } from '@formulaxjs/ckeditor5';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -227,13 +227,13 @@ pnpm dev:ckeditor5
 仅构建该包：
 
 ```bash
-pnpm --filter @formulax/ckeditor5 build
+pnpm --filter @formulaxjs/ckeditor5 build
 ```
 
 运行该包类型检查：
 
 ```bash
-pnpm --filter @formulax/ckeditor5 typecheck
+pnpm --filter @formulaxjs/ckeditor5 typecheck
 ```
 
 ## Demo

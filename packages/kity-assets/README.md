@@ -1,15 +1,15 @@
-# @formulax/kity-assets
+# @formulaxjs/kity-assets
 
 Static KityFormula-compatible assets for FormulaX.
 
-`@formulax/kity-assets` publishes the fonts, toolbar sprites, theme files, and style entrypoints used by the legacy Kity runtime integration.
+`@formulaxjs/kity-assets` publishes the fonts, toolbar sprites, theme files, and style entrypoints used by the legacy Kity runtime integration.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
 ## Install
 
 ```bash
-pnpm add @formulax/kity-assets
+pnpm add @formulaxjs/kity-assets
 ```
 
 ## Highlights
@@ -21,7 +21,7 @@ pnpm add @formulax/kity-assets
 ## Example
 
 ```ts
-import { kityAssetManifest } from '@formulax/kity-assets';
+import { kityAssetManifest } from '@formulaxjs/kity-assets';
 
 console.log(kityAssetManifest.styles.editor);
 console.log(kityAssetManifest.fonts.KF_AMS_MAIN);

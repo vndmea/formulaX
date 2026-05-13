@@ -1,10 +1,10 @@
-# @formulax/tiptap
+# @formulaxjs/tiptap
 
 English | [简体中文](./README.zh-CN.md)
 
 Tiptap integration adapter for FormulaX.
 
-`@formulax/tiptap` provides a FormulaX inline node extension for Tiptap and a modal-based formula editing flow. The extension persists only LaTeX in the document model and renders formula output at runtime.
+`@formulaxjs/tiptap` provides a FormulaX inline node extension for Tiptap and a modal-based formula editing flow. The extension persists only LaTeX in the document model and renders formula output at runtime.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -36,7 +36,7 @@ The workspace demo can switch between Tiptap 2 and 3 for compatibility verificat
 When the package is published:
 
 ```bash
-pnpm add @formulax/tiptap
+pnpm add @formulaxjs/tiptap
 pnpm add @tiptap/core
 ```
 
@@ -54,7 +54,7 @@ Create the FormulaX node extension and add it to the Tiptap extension list:
 ```ts
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import { createFormulaXNode } from '@formulax/tiptap';
+import { createFormulaXNode } from '@formulaxjs/tiptap';
 
 const editor = new Editor({
   element: document.querySelector('#editor')!,
@@ -165,19 +165,19 @@ pnpm dev:tiptap
 Build only this package:
 
 ```bash
-pnpm --filter @formulax/tiptap build
+pnpm --filter @formulaxjs/tiptap build
 ```
 
 Run package tests:
 
 ```bash
-pnpm --filter @formulax/tiptap test
+pnpm --filter @formulaxjs/tiptap test
 ```
 
 Run package type checking:
 
 ```bash
-pnpm --filter @formulax/tiptap typecheck
+pnpm --filter @formulaxjs/tiptap typecheck
 ```
 
 ## Demo

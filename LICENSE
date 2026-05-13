@@ -24,7 +24,7 @@ SOFTWARE.
 
 ## Legacy KityFormula Code
 
-Portions of FormulaX, specifically within the `@formulax/kity-runtime` package,
+Portions of FormulaX, specifically within the `@formulaxjs/kity-runtime` package,
 contain code adapted from [KityFormula](https://github.com/BaiduFE/kityformula)
 by Baidu FEX Team, originally released under the MIT License.
 

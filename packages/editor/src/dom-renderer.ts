@@ -1,4 +1,4 @@
-import type { FormulaDoc, FormulaNode, FormulaPath } from '@formulax/core';
+import type { FormulaDoc, FormulaNode, FormulaPath } from '@formulaxjs/core';
 
 const joinPath = (path: FormulaPath): string => path.join('.');
 

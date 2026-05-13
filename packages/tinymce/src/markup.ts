@@ -1,4 +1,4 @@
-import { parseLatex, serializeLatex, type FormulaDoc } from '@formulax/core';
+import { parseLatex, serializeLatex, type FormulaDoc } from '@formulaxjs/core';
 import {
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
@@ -12,7 +12,7 @@ import {
   isFormulaElement,
   replaceFormulaElement,
   type CreateFormulaMarkupOptions,
-} from '@formulax/editor';
+} from '@formulaxjs/editor';
 
 export type { CreateFormulaMarkupOptions };
 

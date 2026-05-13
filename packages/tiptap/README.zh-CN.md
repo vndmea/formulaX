@@ -1,10 +1,10 @@
-# @formulax/tiptap
+# @formulaxjs/tiptap
 
 [English](./README.md) | 简体中文
 
 FormulaX 的 Tiptap 集成适配器。
 
-`@formulax/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。该扩展在文档模型中只持久化 LaTeX，并在运行时渲染公式展示结果。
+`@formulaxjs/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。该扩展在文档模型中只持久化 LaTeX，并在运行时渲染公式展示结果。
 
 > 状态：实验阶段。在首个稳定版本发布前，公共 API 仍可能调整。
 
@@ -36,7 +36,7 @@ FormulaX 的 Tiptap 集成适配器。
 包发布后可使用：
 
 ```bash
-pnpm add @formulax/tiptap
+pnpm add @formulaxjs/tiptap
 pnpm add @tiptap/core
 ```
 
@@ -54,7 +54,7 @@ pnpm dev:tiptap
 ```ts
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import { createFormulaXNode } from '@formulax/tiptap';
+import { createFormulaXNode } from '@formulaxjs/tiptap';
 
 const editor = new Editor({
   element: document.querySelector('#editor')!,
@@ -165,19 +165,19 @@ pnpm dev:tiptap
 仅构建该包：
 
 ```bash
-pnpm --filter @formulax/tiptap build
+pnpm --filter @formulaxjs/tiptap build
 ```
 
 运行该包测试：
 
 ```bash
-pnpm --filter @formulax/tiptap test
+pnpm --filter @formulaxjs/tiptap test
 ```
 
 运行该包类型检查：
 
 ```bash
-pnpm --filter @formulax/tiptap typecheck
+pnpm --filter @formulaxjs/tiptap typecheck
 ```
 
 ## Demo

@@ -1,15 +1,15 @@
-# @formulax/core
+# @formulaxjs/core
 
 Core document model and shared utilities for FormulaX.
 
-`@formulax/core` contains the AST, editor state, command helpers, traversal helpers, and LaTeX parse/serialize logic used by the higher-level FormulaX packages.
+`@formulaxjs/core` contains the AST, editor state, command helpers, traversal helpers, and LaTeX parse/serialize logic used by the higher-level FormulaX packages.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
 ## Install
 
 ```bash
-pnpm add @formulax/core
+pnpm add @formulaxjs/core
 ```
 
 ## Highlights
@@ -28,7 +28,7 @@ import {
   insertText,
   parseLatex,
   serializeLatex,
-} from '@formulax/core';
+} from '@formulaxjs/core';
 
 const initial = parseLatex('x^2+1');
 const latex = serializeLatex(initial);

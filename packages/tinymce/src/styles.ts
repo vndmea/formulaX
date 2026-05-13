@@ -1,7 +1,7 @@
 import {
   ensureFormulaXModalStyles,
   formulaXModalStyles,
-} from '@formulax/editor';
+} from '@formulaxjs/editor';
 
 export const tinymceStyles = formulaXModalStyles;
 

@@ -8,7 +8,7 @@ A modern formula editor workspace with legacy KityFormula compatibility, modular
 
 FormulaX is a modern formula editor project. The current implementation includes a compatibility runtime adapted from [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor, while progressively modularizing the legacy code for modern frontend tooling, npm packages, lazy loading, and editor integrations.
 
-It is **not** an official KityFormula project. KityFormula-related code is kept as a legacy compatibility layer under the `@formulax/kity-runtime` package.
+It is **not** an official KityFormula project. KityFormula-related code is kept as a legacy compatibility layer under the `@formulaxjs/kity-runtime` package.
 
 ## Features
 
@@ -26,13 +26,13 @@ Some packages are experimental and not yet published to npm.
 
 | Package | Description |
 | --- | --- |
-| `@formulax/kity-runtime` | Legacy KityFormula runtime adapter for FormulaX |
-| `@formulax/core` | Core data model and shared utilities |
-| `@formulax/renderer` | Static formula renderers for rich-text adapters |
-| `@formulax/editor` | Modern formula editor foundation |
-| `@formulax/tiptap` | TipTap integration adapter |
-| `@formulax/tinymce` | TinyMCE integration adapter |
-| `@formulax/kity-assets` | Static assets for KityFormula legacy compatibility |
+| `@formulaxjs/kity-runtime` | Legacy KityFormula runtime adapter for FormulaX |
+| `@formulaxjs/core` | Core data model and shared utilities |
+| `@formulaxjs/renderer` | Static formula renderers for rich-text adapters |
+| `@formulaxjs/editor` | Modern formula editor foundation |
+| `@formulaxjs/tiptap` | TipTap integration adapter |
+| `@formulaxjs/tinymce` | TinyMCE integration adapter |
+| `@formulaxjs/kity-assets` | Static assets for KityFormula legacy compatibility |
 
 ## Playground
 
@@ -40,20 +40,20 @@ Live demo: [https://vndmea.github.io/formulaX/playground/](https://vndmea.github
 
 ## Architecture
 
-FormulaX keeps the legacy KityFormula runtime isolated in `@formulax/kity-runtime`. Large legacy modules are progressively split into lazy chunks:
+FormulaX keeps the legacy KityFormula runtime isolated in `@formulaxjs/kity-runtime`. Large legacy modules are progressively split into lazy chunks:
 
 ```
 FormulaX workspace
-├── @formulax/core (document model, LaTeX parser/serializer)
-├── @formulax/renderer (static formula renderers)
-├── @formulax/editor (DOM interaction, selection, keyboard handling)
-├── @formulax/kity-runtime (legacy compatibility layer)
+├── @formulaxjs/core (document model, LaTeX parser/serializer)
+├── @formulaxjs/renderer (static formula renderers)
+├── @formulaxjs/editor (DOM interaction, selection, keyboard handling)
+├── @formulaxjs/kity-runtime (legacy compatibility layer)
 │   ├── KityFormula runtime (lazy-loaded chunk)
 │   ├── Parser runtime (lazy-loaded chunk)
 │   ├── Font maps & sprite position maps (embedded in lazy chunks)
 │   └── canvg export runtime (lazy-loaded, only when exporting to PNG/JPG)
-├── @formulax/tiptap (TipTap adapter)
-└── @formulax/tinymce (TinyMCE adapter)
+├── @formulaxjs/tiptap (TipTap adapter)
+└── @formulaxjs/tinymce (TinyMCE adapter)
 ```
 
 This architecture allows:
@@ -66,7 +66,7 @@ This architecture allows:
 
 The current editing runtime is based on a legacy compatibility layer adapted from Baidu FEX Team's [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor ecosystem.
 
-FormulaX keeps this code under a dedicated runtime package (`@formulax/kity-runtime`) and treats it as a **compatibility backend** rather than the long-term public architecture.
+FormulaX keeps this code under a dedicated runtime package (`@formulaxjs/kity-runtime`) and treats it as a **compatibility backend** rather than the long-term public architecture.
 
 This approach:
 - Preserves existing formula rendering behavior
@@ -124,7 +124,7 @@ pnpm dev
 ### Browser SDK (Vanilla JS)
 
 ```html
-<script src="https://unpkg.com/@formulax/core/dist/browser/index.global.js"></script>
+<script src="https://unpkg.com/@formulaxjs/core/dist/browser/index.global.js"></script>
 <script>
   const doc = FormulaX.parseLatex('\\frac{a}{b}');
   const latex = FormulaX.serializeLatex(doc);
@@ -134,7 +134,7 @@ pnpm dev
 ### Core Package
 
 ```ts
-import { parseLatex, serializeLatex } from '@formulax/core';
+import { parseLatex, serializeLatex } from '@formulaxjs/core';
 
 const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
@@ -145,7 +145,7 @@ const latex = serializeLatex(doc);
 ```ts
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
-import { FormulaXNode } from '@formulax/tiptap';
+import { FormulaXNode } from '@formulaxjs/tiptap';
 
 const editor = new Editor({
   element: document.querySelector('#editor'),
@@ -157,7 +157,7 @@ const editor = new Editor({
 
 ```ts
 import tinymce from 'tinymce';
-import { createTinyMceFormulaMarkup } from '@formulax/tinymce';
+import { createTinyMceFormulaMarkup } from '@formulaxjs/tinymce';
 
 tinymce.init({
   target: document.querySelector('#tiny-host'),
@@ -185,10 +185,10 @@ FormulaX contains code adapted from Baidu FEX Team's [KityFormula](https://githu
 
 KityFormula-related code and assets retain their original copyright and license notices.
 
-The original KityFormula project provided the foundational formula rendering engine and interaction model that powers the legacy compatibility runtime in `@formulax/kity-runtime`.
+The original KityFormula project provided the foundational formula rendering engine and interaction model that powers the legacy compatibility runtime in `@formulaxjs/kity-runtime`.
 
 KityFormula-related code in FormulaX is:
-- Kept isolated in `@formulax/kity-runtime` as a legacy compatibility layer
+- Kept isolated in `@formulaxjs/kity-runtime` as a legacy compatibility layer
 - Not the long-term architecture of FormulaX
 - Intended to be replaced or significantly refactored in future versions
 

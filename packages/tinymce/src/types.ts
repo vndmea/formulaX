@@ -1,5 +1,5 @@
-import type { FormulaState } from '@formulax/core';
-import type { KityEditorAssets } from '@formulax/kity-runtime';
+import type { FormulaState } from '@formulaxjs/core';
+import type { KityEditorAssets } from '@formulaxjs/kity-runtime';
 
 export interface TinyMceLike {
   PluginManager?: {

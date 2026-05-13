@@ -10,7 +10,7 @@ import {
   insertText,
   type FormulaPath,
   type FormulaState,
-} from '@formulax/core';
+} from '@formulaxjs/core';
 import { renderInteractiveHtml } from './dom-renderer';
 import { editorStyles } from './styles';
 import { type Locale, type LocaleConfig } from './i18n';

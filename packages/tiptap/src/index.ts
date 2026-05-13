@@ -1,5 +1,5 @@
 import { Node } from '@tiptap/core';
-import { parseLatex, serializeLatex, type FormulaDoc } from '@formulax/core';
+import { parseLatex, serializeLatex, type FormulaDoc } from '@formulaxjs/core';
 import {
   createFormulaElement,
   DEFAULT_FORMULA_ATTRIBUTE,
@@ -7,7 +7,7 @@ import {
   ensureFormulaXModalStyles,
   getFormulaLatexFromElement,
   mountFormulaXKityEditor,
-} from '@formulax/editor';
+} from '@formulaxjs/editor';
 import { openFormulaXTiptapModal } from './modal';
 import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
 

@@ -1,8 +1,8 @@
 import {
   mountFormulaXKityEditor,
   type FormulaXKityEditorOptions,
-} from '@formulax/editor';
-import { serializeSvgForInsertion } from '@formulax/renderer';
+} from '@formulaxjs/editor';
+import { serializeSvgForInsertion } from '@formulaxjs/renderer';
 import type { MountedFormulaXEditor, RequiredFormulaXTinyMceOptions } from './types';
 
 export interface MountFormulaXEditorOptions {

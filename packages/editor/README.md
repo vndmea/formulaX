@@ -1,15 +1,15 @@
-# @formulax/editor
+# @formulaxjs/editor
 
 Browser editing foundation for FormulaX.
 
-`@formulax/editor` adapts `@formulax/core` state to the DOM. It provides the interactive editor shell, HTML rendering helpers, modal wiring, and browser-side styles used by richer host integrations.
+`@formulaxjs/editor` adapts `@formulaxjs/core` state to the DOM. It provides the interactive editor shell, HTML rendering helpers, modal wiring, and browser-side styles used by richer host integrations.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
 ## Install
 
 ```bash
-pnpm add @formulax/editor @formulax/core @formulax/renderer @formulax/kity-runtime
+pnpm add @formulaxjs/editor @formulaxjs/core @formulaxjs/renderer @formulaxjs/kity-runtime
 ```
 
 ## Highlights
@@ -22,7 +22,7 @@ pnpm add @formulax/editor @formulax/core @formulax/renderer @formulax/kity-runti
 ## Example
 
 ```ts
-import { FormulaEditor } from '@formulax/editor';
+import { FormulaEditor } from '@formulaxjs/editor';
 
 const root = document.getElementById('editor');
 

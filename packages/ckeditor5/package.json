@@ -1,5 +1,5 @@
 {
-  "name": "@formulax/ckeditor5",
+  "name": "@formulaxjs/ckeditor5",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -35,10 +35,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulax/core": "workspace:*",
-    "@formulax/editor": "workspace:*",
-    "@formulax/kity-runtime": "workspace:*",
-    "@formulax/kity-assets": "workspace:*"
+    "@formulaxjs/core": "workspace:*",
+    "@formulaxjs/editor": "workspace:*",
+    "@formulaxjs/kity-runtime": "workspace:*",
+    "@formulaxjs/kity-assets": "workspace:*"
   },
   "peerDependencies": {
     "ckeditor5": ">=42 <49"

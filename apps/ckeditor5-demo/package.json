@@ -1,5 +1,5 @@
 {
-  "name": "@formulax/ckeditor5-demo",
+  "name": "@formulaxjs/ckeditor5-demo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@formulax/ckeditor5": "workspace:*",
+    "@formulaxjs/ckeditor5": "workspace:*",
     "ckeditor5": "^46.1.1"
   }
 }

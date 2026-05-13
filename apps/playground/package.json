@@ -1,5 +1,5 @@
 {
-  "name": "@formulax/playground",
+  "name": "@formulaxjs/playground",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,6 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@formulax/kity-runtime": "workspace:*"
+    "@formulaxjs/kity-runtime": "workspace:*"
   }
 }

@@ -1,10 +1,10 @@
-# @formulax/ckeditor5
+# @formulaxjs/ckeditor5
 
 English | [简体中文](./README.zh-CN.md)
 
 CKEditor 5 integration adapter for FormulaX.
 
-`@formulax/ckeditor5` provides a CKEditor 5 plugin that opens the FormulaX editor in a modal for inserting and updating inline formulas inside CKEditor 5 content.
+`@formulaxjs/ckeditor5` provides a CKEditor 5 plugin that opens the FormulaX editor in a modal for inserting and updating inline formulas inside CKEditor 5 content.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -37,7 +37,7 @@ Inside this workspace, the demo app currently uses CKEditor 5 `46.1.1`.
 When the package is published:
 
 ```bash
-pnpm add @formulax/ckeditor5
+pnpm add @formulaxjs/ckeditor5
 pnpm add ckeditor5
 ```
 
@@ -60,7 +60,7 @@ import {
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
 
-import { FormulaX } from '@formulax/ckeditor5';
+import { FormulaX } from '@formulaxjs/ckeditor5';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -227,13 +227,13 @@ pnpm dev:ckeditor5
 Build only this package:
 
 ```bash
-pnpm --filter @formulax/ckeditor5 build
+pnpm --filter @formulaxjs/ckeditor5 build
 ```
 
 Run package type checking:
 
 ```bash
-pnpm --filter @formulax/ckeditor5 typecheck
+pnpm --filter @formulaxjs/ckeditor5 typecheck
 ```
 
 ## Demo

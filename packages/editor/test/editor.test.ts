@@ -1,4 +1,4 @@
-import { doc, fenced, frac, sqrt, supsub, text } from '@formulax/core';
+import { doc, fenced, frac, sqrt, supsub, text } from '@formulaxjs/core';
 import { describe, expect, it } from 'vitest';
 import { FormulaEditor } from '../src';
 

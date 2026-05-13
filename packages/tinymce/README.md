@@ -1,10 +1,10 @@
-# @formulax/tinymce
+# @formulaxjs/tinymce
 
 English | [简体中文](./README.zh-CN.md)
 
 TinyMCE integration adapter for FormulaX.
 
-`@formulax/tinymce` registers FormulaX as a TinyMCE plugin and provides a modal-based formula editing experience for inserting and updating formulas inside TinyMCE content.
+`@formulaxjs/tinymce` registers FormulaX as a TinyMCE plugin and provides a modal-based formula editing experience for inserting and updating formulas inside TinyMCE content.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -38,7 +38,7 @@ The workspace demo can dynamically load TinyMCE 5, 6, 7, or 8 from CDN for compa
 When the package is published:
 
 ```bash
-pnpm add @formulax/tinymce
+pnpm add @formulaxjs/tinymce
 pnpm add tinymce
 ```
 
@@ -55,7 +55,7 @@ Register the FormulaX TinyMCE plugin before calling `tinymce.init`:
 
 ```ts
 import tinymce from 'tinymce';
-import { registerFormulaXTinyMcePlugin } from '@formulax/tinymce';
+import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 
 registerFormulaXTinyMcePlugin(tinymce, {
   toolbarText: 'FormulaX',
@@ -121,7 +121,7 @@ import {
   getFormulaLatexFromElement,
   isFormulaElement,
   replaceFormulaElement,
-} from '@formulax/tinymce';
+} from '@formulaxjs/tinymce';
 
 const html = createTinyMceFormulaMarkup('\\sqrt{x}');
 
@@ -234,19 +234,19 @@ pnpm dev:tinymce
 Build only this package:
 
 ```bash
-pnpm --filter @formulax/tinymce build
+pnpm --filter @formulaxjs/tinymce build
 ```
 
 Run package tests:
 
 ```bash
-pnpm --filter @formulax/tinymce test
+pnpm --filter @formulaxjs/tinymce test
 ```
 
 Run package type checking:
 
 ```bash
-pnpm --filter @formulax/tinymce typecheck
+pnpm --filter @formulaxjs/tinymce typecheck
 ```
 
 ## Demo

@@ -1,4 +1,4 @@
-import { registerFormulaXTinyMcePlugin } from '@formulax/tinymce';
+import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 import {
   loadTinyMceRuntime,
   TINYMCE_VERSION_OPTIONS,

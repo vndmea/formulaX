@@ -5,7 +5,7 @@ import {
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
 
-import { FormulaX } from '@formulax/ckeditor5';
+import { FormulaX } from '@formulaxjs/ckeditor5';
 import './style.css';
 
 function queryRequiredElement<T extends Element>(selector: string): T {

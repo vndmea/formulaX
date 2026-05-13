@@ -1,5 +1,5 @@
-import { createEmptyState, parseLatex, type FormulaState } from '@formulax/core';
-import { mountKityEditor, type KityEditorAssets, type KityEditorHandle } from '@formulax/kity-runtime';
+import { createEmptyState, parseLatex, type FormulaState } from '@formulaxjs/core';
+import { mountKityEditor, type KityEditorAssets, type KityEditorHandle } from '@formulaxjs/kity-runtime';
 import { escapeHtml } from './formula-node';
 
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';

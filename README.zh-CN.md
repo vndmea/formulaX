@@ -8,7 +8,7 @@
 
 FormulaX 是一个现代化的公式编辑器项目。当前实现包含从 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 适配的兼容运行时，同时逐步将旧代码模块化以适配现代前端工具链、npm 包、懒加载和编辑器集成。
 
-FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为旧版兼容层保留在 `@formulax/kity-runtime` 包中。
+FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为旧版兼容层保留在 `@formulaxjs/kity-runtime` 包中。
 
 ## 功能特性
 
@@ -26,13 +26,13 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 | 包 | 描述 |
 | --- | --- |
-| `@formulax/kity-runtime` | FormulaX 的 KityFormula 旧版兼容运行时 |
-| `@formulax/core` | FormulaX 核心数据模型和公共工具 |
-| `@formulax/renderer` | 面向富文本适配器的静态公式渲染器 |
-| `@formulax/editor` | 现代公式编辑器基础 |
-| `@formulax/tiptap` | TipTap 集成适配器 |
-| `@formulax/tinymce` | TinyMCE 集成适配器 |
-| `@formulax/kity-assets` | KityFormula 旧版兼容静态资源 |
+| `@formulaxjs/kity-runtime` | FormulaX 的 KityFormula 旧版兼容运行时 |
+| `@formulaxjs/core` | FormulaX 核心数据模型和公共工具 |
+| `@formulaxjs/renderer` | 面向富文本适配器的静态公式渲染器 |
+| `@formulaxjs/editor` | 现代公式编辑器基础 |
+| `@formulaxjs/tiptap` | TipTap 集成适配器 |
+| `@formulaxjs/tinymce` | TinyMCE 集成适配器 |
+| `@formulaxjs/kity-assets` | KityFormula 旧版兼容静态资源 |
 
 ## 在线演示
 
@@ -40,20 +40,20 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 ## 架构设计
 
-FormulaX 将旧版 KityFormula 运行时隔离在 `@formulax/kity-runtime` 中。大型旧版模块逐步拆分为懒加载 chunks：
+FormulaX 将旧版 KityFormula 运行时隔离在 `@formulaxjs/kity-runtime` 中。大型旧版模块逐步拆分为懒加载 chunks：
 
 ```
 FormulaX 工作空间
-├── @formulax/core（文档模型、LaTeX 解析器/序列化器）
-├── @formulax/renderer（静态公式渲染器）
-├── @formulax/editor（DOM 交互、选择、键盘处理）
-├── @formulax/kity-runtime（旧版兼容层）
+├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
+├── @formulaxjs/renderer（静态公式渲染器）
+├── @formulaxjs/editor（DOM 交互、选择、键盘处理）
+├── @formulaxjs/kity-runtime（旧版兼容层）
 │   ├── KityFormula 运行时（懒加载 chunk）
 │   ├── Parser 运行时（懒加载 chunk）
 │   ├── 字体映射和 sprite 位置映射（嵌入在懒加载 chunks 中）
 │   └── canvg 导出运行时（懒加载，仅在导出 PNG/JPG 时加载）
-├── @formulax/tiptap（TipTap 适配器）
-└── @formulax/tinymce（TinyMCE 适配器）
+├── @formulaxjs/tiptap（TipTap 适配器）
+└── @formulaxjs/tinymce（TinyMCE 适配器）
 ```
 
 这种架构可以实现：
@@ -66,7 +66,7 @@ FormulaX 工作空间
 
 当前编辑运行时基于百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态适配的旧版兼容层。
 
-FormulaX 将此代码保留在独立运行时包（`@formulax/kity-runtime`）中，并将其作为**兼容后端**而非长期公共架构。
+FormulaX 将此代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其作为**兼容后端**而非长期公共架构。
 
 这种做法：
 - 保留现有公式渲染行为
@@ -124,7 +124,7 @@ pnpm dev
 ### 浏览器 SDK（原生 JS）
 
 ```html
-<script src="https://unpkg.com/@formulax/core/dist/browser/index.global.js"></script>
+<script src="https://unpkg.com/@formulaxjs/core/dist/browser/index.global.js"></script>
 <script>
   const doc = FormulaX.parseLatex('\\frac{a}{b}');
   const latex = FormulaX.serializeLatex(doc);
@@ -134,7 +134,7 @@ pnpm dev
 ### Core 包
 
 ```ts
-import { parseLatex, serializeLatex } from '@formulax/core';
+import { parseLatex, serializeLatex } from '@formulaxjs/core';
 
 const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
@@ -145,7 +145,7 @@ const latex = serializeLatex(doc);
 ```ts
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
-import { FormulaXNode } from '@formulax/tiptap';
+import { FormulaXNode } from '@formulaxjs/tiptap';
 
 const editor = new Editor({
   element: document.querySelector('#editor'),
@@ -157,7 +157,7 @@ const editor = new Editor({
 
 ```ts
 import tinymce from 'tinymce';
-import { createTinyMceFormulaMarkup } from '@formulax/tinymce';
+import { createTinyMceFormulaMarkup } from '@formulaxjs/tinymce';
 
 tinymce.init({
   target: document.querySelector('#tiny-host'),
@@ -185,10 +185,10 @@ FormulaX 包含改编自百度 FEX 团队的 [KityFormula](https://github.com/Ba
 
 KityFormula 相关代码和资源保留其原始版权和许可声明。
 
-原始 KityFormula 项目提供了为 `@formulax/kity-runtime` 中旧版兼容运行时提供支持的公式渲染引擎和交互模型基础。
+原始 KityFormula 项目提供了为 `@formulaxjs/kity-runtime` 中旧版兼容运行时提供支持的公式渲染引擎和交互模型基础。
 
 FormulaX 中的 KityFormula 相关代码：
-- 隔离在 `@formulax/kity-runtime` 作为旧版兼容层
+- 隔离在 `@formulaxjs/kity-runtime` 作为旧版兼容层
 - 不是 FormulaX 的长期架构
 - 计划在未来版本中替换或大幅重构
 

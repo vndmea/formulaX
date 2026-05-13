@@ -7,7 +7,7 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: 'corepack pnpm --filter @formulax/playground dev --host 127.0.0.1 --port 4173',
+    command: 'corepack pnpm --filter @formulaxjs/playground dev --host 127.0.0.1 --port 4173',
     port: 4173,
     reuseExistingServer: true,
     timeout: 120000,

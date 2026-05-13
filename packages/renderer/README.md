@@ -1,15 +1,15 @@
-# @formulax/renderer
+# @formulaxjs/renderer
 
 Static rendering helpers for FormulaX rich-text integrations.
 
-`@formulax/renderer` contains DOM-level helpers for working with rendered SVG formulas, including reading the rendered box and serializing SVG for inline insertion.
+`@formulaxjs/renderer` contains DOM-level helpers for working with rendered SVG formulas, including reading the rendered box and serializing SVG for inline insertion.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
 ## Install
 
 ```bash
-pnpm add @formulax/renderer
+pnpm add @formulaxjs/renderer
 ```
 
 ## Highlights
@@ -21,7 +21,7 @@ pnpm add @formulax/renderer
 ## Example
 
 ```ts
-import { readRenderedFormulaSvgBox, serializeSvgForInsertion } from '@formulax/renderer';
+import { readRenderedFormulaSvgBox, serializeSvgForInsertion } from '@formulaxjs/renderer';
 
 const svg = document.querySelector('svg');
 

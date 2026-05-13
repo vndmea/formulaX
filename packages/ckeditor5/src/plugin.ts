@@ -13,7 +13,7 @@ import {
   createFormulaMarkup,
   ensureFormulaXModalStyles,
   mountFormulaXKityEditor,
-} from '@formulax/editor';
+} from '@formulaxjs/editor';
 import { openFormulaXModal } from './modal';
 import type {
   FormulaXCKEditor5Options,

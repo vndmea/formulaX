@@ -3,7 +3,7 @@ import {
   escapeAttribute,
   escapeHtml,
   mountFormulaXKityEditor,
-} from '@formulax/editor';
+} from '@formulaxjs/editor';
 import type { FormulaXPayload, RequiredFormulaXCKEditor5Options } from './types';
 
 export interface OpenFormulaXModalInput {
