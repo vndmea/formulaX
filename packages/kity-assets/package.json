@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "type": "module",
+  "license": "MIT",
   "description": "Static assets for KityFormula legacy compatibility in FormulaX.",
   "keywords": [
     "formulax",
@@ -29,6 +30,9 @@
     "dist",
     "index.d.ts"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue"

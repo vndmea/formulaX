@@ -1,0 +1,42 @@
+# @formulax/kity-runtime
+
+Legacy KityFormula runtime adapter for FormulaX.
+
+`@formulax/kity-runtime` packages the compatibility runtime that powers FormulaX's Kity-based editing and rendering flows. It wires legacy runtime code to the modern asset pipeline and provides helpers for mounting the editor in browser applications.
+
+> Status: experimental. Public APIs may change before the first stable release.
+
+## Install
+
+```bash
+pnpm add @formulax/kity-runtime @formulax/kity-assets
+```
+
+## Highlights
+
+- `ensureKityRuntime` for lazy runtime bootstrapping
+- `createKityEditor` and `mountKityEditor` for mounting a Kity editor into the DOM
+- `FormulaXEditor` as a small wrapper around the mounted runtime
+- Legacy compatibility exports used by existing KityFormula-oriented integrations
+
+## Example
+
+```ts
+import { mountKityEditor } from '@formulax/kity-runtime';
+
+const root = document.getElementById('editor');
+
+if (!root) {
+  throw new Error('Missing #editor');
+}
+
+const handle = await mountKityEditor(root, {
+  value: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
+});
+
+console.log(handle.getLatex());
+```
+
+## Package role
+
+Use this package when you need the legacy Kity editing experience or compatibility with historical KityFormula behavior. For host-editor integrations, prefer the dedicated adapter packages that already depend on this runtime.

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "type": "module",
+  "license": "MIT",
   "description": "Legacy KityFormula runtime adapter for FormulaX.",
   "keywords": [
     "formulax",
@@ -23,6 +24,12 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
