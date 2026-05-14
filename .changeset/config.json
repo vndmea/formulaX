@@ -7,5 +7,10 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [
+    "@formulaxjs/playground",
+    "@formulaxjs/ckeditor5-demo",
+    "@formulaxjs/tiptap-demo",
+    "@formulaxjs/tinymce-demo"
+  ]
 }
