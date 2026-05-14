@@ -72,6 +72,26 @@ const editor = new Editor({
 editor.commands.openFormulaX();
 ```
 
+## 自定义节点名称
+
+默认的 Tiptap 节点名是 `formulaX`。
+
+如果宿主编辑器里已经存在同名节点，可以在创建扩展时传入自定义 `name`：
+
+```ts
+const editor = new Editor({
+  element: document.querySelector('#editor')!,
+  extensions: [
+    StarterKit,
+    createFormulaXNode(undefined, {
+      name: 'inlineMath',
+    }),
+  ],
+});
+```
+
+如果 Tiptap 检测到配置的节点名已经被注册，扩展会输出一条 `console.warn`，提醒你尽快改成唯一名称，避免 schema 冲突。
+
 ## 持久化数据
 
 Tiptap 节点中只保存 LaTeX 源内容：
@@ -91,6 +111,7 @@ Tiptap 节点中只保存 LaTeX 源内容：
 
 ```ts
 interface FormulaXTiptapOptions {
+  name?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   cursorStyle?: string;
@@ -115,6 +136,7 @@ interface FormulaXTiptapOptions {
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
+| `name` | `formulaX` | 用于文档 schema 的 Tiptap 节点名。 |
 | `formulaClassName` | `formulax-math` | 渲染后公式节点使用的 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 渲染后 DOM 中保存 LaTeX 源内容的属性名。 |
 | `cursorStyle` | `pointer` | 渲染后公式节点的鼠标光标样式。 |

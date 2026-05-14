@@ -72,6 +72,26 @@ To open the FormulaX modal programmatically:
 editor.commands.openFormulaX();
 ```
 
+## Custom node names
+
+The default Tiptap node name is `formulaX`.
+
+If the host editor already uses that name, pass a custom `name` when creating the extension:
+
+```ts
+const editor = new Editor({
+  element: document.querySelector('#editor')!,
+  extensions: [
+    StarterKit,
+    createFormulaXNode(undefined, {
+      name: 'inlineMath',
+    }),
+  ],
+});
+```
+
+If Tiptap detects that the configured node name is already registered, the extension logs a `console.warn` message so you can rename it before the schema collides.
+
 ## Persisted data
 
 The Tiptap node stores only the LaTeX source:
@@ -91,6 +111,7 @@ The node view renders formula SVG at runtime from the stored LaTeX. Generated DO
 
 ```ts
 interface FormulaXTiptapOptions {
+  name?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   cursorStyle?: string;
@@ -115,6 +136,7 @@ interface FormulaXTiptapOptions {
 
 | Option | Default | Description |
 | --- | --- | --- |
+| `name` | `formulaX` | Tiptap node name used in the document schema. |
 | `formulaClassName` | `formulax-math` | CSS class used by rendered formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used in rendered DOM for the source LaTeX. |
 | `cursorStyle` | `pointer` | Cursor style applied to rendered formula nodes. |

@@ -87,6 +87,24 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 
 Then users can click the `FormulaX` toolbar button to insert a formula. Existing formulas can be updated by double-clicking them, or by selecting them and executing the same command again.
 
+## Custom model names
+
+The default CKEditor 5 model name is `formulaX`.
+
+If the host editor already uses that model name, pass a custom `name` in the `formulaX` config:
+
+```ts
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+  formulaX: {
+    name: 'inlineMath',
+  },
+} as any);
+```
+
+If CKEditor 5 detects that the configured model name is already registered, the plugin logs a `console.error` and skips registration so the editor does not silently create a conflicting schema definition.
+
 ## Programmatic opening
 
 The plugin registers a command whose name matches `buttonName`. With the default configuration:
@@ -147,6 +165,7 @@ The editing view renders formula SVG at runtime from the persisted LaTeX. The ex
 
 ```ts
 interface FormulaXCKEditor5Options {
+  name?: string;
   buttonName?: string;
   toolbarText?: string;
   tooltip?: string;
@@ -173,6 +192,7 @@ interface FormulaXCKEditor5Options {
 
 | Option | Default | Description |
 | --- | --- | --- |
+| `name` | `formulaX` | CKEditor 5 model/schema element name used for persisted formula nodes. |
 | `buttonName` | `formulaX` | CKEditor 5 toolbar button name and command name. |
 | `toolbarText` | `FormulaX` | Toolbar button label. |
 | `tooltip` | `Insert or edit formula` | Toolbar button tooltip. |
@@ -210,6 +230,7 @@ interface FormulaXCKEditor5Options {
 | `FormulaXCommand` | Command implementation used by the plugin. |
 | `resolveOptions` | Resolves user options into required defaults. |
 | `openFormulaXModal` | Opens the FormulaX modal directly. |
+| `DEFAULT_MODEL_NAME` | Default CKEditor 5 model name. |
 | `DEFAULT_BUTTON_NAME` | Default CKEditor 5 command and toolbar button name. |
 | `DEFAULT_FORMULA_ATTRIBUTE` | Default LaTeX persistence attribute name. |
 | `DEFAULT_FORMULA_CLASS` | Default CSS class for formula nodes. |

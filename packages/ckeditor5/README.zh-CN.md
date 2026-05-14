@@ -87,6 +87,24 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 
 之后用户可以点击 `FormulaX` 工具栏按钮插入公式。已有公式可以通过双击更新，也可以先选中后再次执行同一个命令进行更新。
 
+## 自定义 model 名称
+
+默认的 CKEditor 5 model 名称是 `formulaX`。
+
+如果宿主编辑器里已经存在同名 model，可以在 `formulaX` 配置里传入自定义 `name`：
+
+```ts
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+  formulaX: {
+    name: 'inlineMath',
+  },
+} as any);
+```
+
+如果 CKEditor 5 检测到配置的 model 名称已经被注册，插件会输出一条 `console.error`，并跳过本次注册，避免悄悄创建冲突的 schema 定义。
+
 ## 代码中主动打开
 
 插件注册的命令名与 `buttonName` 保持一致。默认配置下可直接调用：
@@ -147,6 +165,7 @@ CKEditor 5 的 model 层只保存公式的 LaTeX 源内容：
 
 ```ts
 interface FormulaXCKEditor5Options {
+  name?: string;
   buttonName?: string;
   toolbarText?: string;
   tooltip?: string;
@@ -173,6 +192,7 @@ interface FormulaXCKEditor5Options {
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
+| `name` | `formulaX` | 用于持久化公式节点的 CKEditor 5 model/schema 元素名。 |
 | `buttonName` | `formulaX` | CKEditor 5 的工具栏按钮名，同时也是命令名。 |
 | `toolbarText` | `FormulaX` | 工具栏按钮显示文本。 |
 | `tooltip` | `Insert or edit formula` | 工具栏按钮 tooltip。 |
@@ -210,6 +230,7 @@ interface FormulaXCKEditor5Options {
 | `FormulaXCommand` | 插件内部使用的命令实现。 |
 | `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
 | `openFormulaXModal` | 直接打开 FormulaX 弹窗。 |
+| `DEFAULT_MODEL_NAME` | 默认的 CKEditor 5 model 名称。 |
 | `DEFAULT_BUTTON_NAME` | 默认的 CKEditor 5 命令名和工具栏按钮名。 |
 | `DEFAULT_FORMULA_ATTRIBUTE` | 默认的 LaTeX 持久化属性名。 |
 | `DEFAULT_FORMULA_CLASS` | 默认的公式节点 CSS class。 |
