@@ -5,6 +5,7 @@ export interface FormulaXPayload {
 }
 
 export interface FormulaXCKEditor5Options {
+  name?: string;
   buttonName?: string;
   toolbarText?: string;
   tooltip?: string;
@@ -29,6 +30,7 @@ export interface FormulaXCKEditor5Options {
 }
 
 export interface RequiredFormulaXCKEditor5Options {
+  name: string;
   buttonName: string;
   toolbarText: string;
   tooltip: string;

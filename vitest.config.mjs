@@ -37,6 +37,7 @@ export default defineConfig({
         test: {
           name: 'jsdom',
           include: [
+            'packages/ckeditor5/test/**/*.test.ts',
             'packages/editor/test/**/*.test.ts',
             'packages/tinymce/test/**/*.test.ts',
           ],

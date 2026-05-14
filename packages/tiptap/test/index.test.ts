@@ -21,8 +21,37 @@ describe('tiptap adapter', () => {
     expect((node as { config: { name: string } }).config.name).toBe('formulaX');
   });
 
+  it('allows a custom node name', () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const node = createFormulaXNode({ create }, { name: 'inlineMath' });
+
+    expect(create).toHaveBeenCalledOnce();
+    expect((node as { config: { name: string } }).config.name).toBe('inlineMath');
+  });
+
+  it('warns when the configured node name is duplicated', () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const node = createFormulaXNode({ create }, { name: 'inlineMath' }) as {
+      config: { onCreate: (this: unknown) => void };
+    };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    node.config.onCreate.call({
+      name: 'inlineMath',
+      editor: {
+        extensionManager: {
+          extensions: [{ name: 'inlineMath' }, { name: 'inlineMath' }],
+        },
+      },
+    });
+
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
   it('resolves tiptap modal defaults', () => {
     expect(resolveOptions()).toMatchObject({
+      name: 'formulaX',
       formulaClassName: 'formulax-math',
       formulaAttributeName: 'data-formulax-latex',
       modal: {

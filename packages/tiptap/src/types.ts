@@ -5,6 +5,7 @@ export interface FormulaXPayload {
 }
 
 export interface FormulaXTiptapOptions {
+  name?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
   cursorStyle?: string;
@@ -20,6 +21,7 @@ export interface FormulaXTiptapOptions {
 }
 
 export interface RequiredFormulaXTiptapOptions {
+  name: string;
   formulaClassName: string;
   formulaAttributeName: string;
   cursorStyle: string;

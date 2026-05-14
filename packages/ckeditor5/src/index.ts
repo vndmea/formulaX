@@ -6,6 +6,7 @@ export {
 
 export {
   DEFAULT_BUTTON_NAME,
+  DEFAULT_MODEL_NAME,
   FormulaX,
   FormulaXCommand,
   resolveOptions,

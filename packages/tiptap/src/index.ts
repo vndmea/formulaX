@@ -27,6 +27,7 @@ declare module '@tiptap/core' {
 
 export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFormulaXTiptapOptions {
   return {
+    name: options.name ?? FORMULAX_NODE_NAME,
     formulaClassName: options.formulaClassName ?? DEFAULT_FORMULA_CLASS,
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
     cursorStyle: options.cursorStyle ?? 'pointer',
@@ -49,149 +50,168 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
   };
 }
 
-const formulaXNodeConfig: any = {
-  name: FORMULAX_NODE_NAME,
-  group: 'inline',
-  inline: true,
-  atom: true,
-  selectable: true,
-  addOptions() {
-    return resolveOptions();
-  },
-  onCreate() {
-    if (typeof document !== 'undefined') {
-      ensureFormulaXModalStyles(document);
-    }
-  },
-  addAttributes() {
-    return {
-      latex: {
-        default: '',
-      },
-    };
-  },
-  parseHTML() {
-    return [{
-      tag: 'span[data-formulax]',
-      getAttrs: (element: Node | string) => {
-        if (!(element instanceof HTMLElement)) {
-          return false;
-        }
+function warnDuplicateNodeName(extension: {
+  name: string;
+  editor?: { extensionManager?: { extensions?: Array<{ name?: string }> } };
+}) {
+  const extensions = extension.editor?.extensionManager?.extensions ?? [];
+  const duplicates = extensions.filter((item) => item?.name === extension.name);
 
-        return {
-          latex: getFormulaLatexFromElement(element, this.options.formulaAttributeName),
-        };
-      },
-    }];
-  },
-  renderHTML({ node }: { node: { attrs: FormulaXNodeAttributes } }) {
-    if (typeof document === 'undefined') {
-      return [
-        'span',
-        {
-          'data-formulax': 'true',
-          [this.options.formulaAttributeName]: node.attrs.latex,
-          'data-latex': node.attrs.latex,
-        },
-        node.attrs.latex || '\\square',
-      ] as const;
-    }
+  if (duplicates.length > 1) {
+    console.warn(
+      `[FormulaX] TipTap node name "${extension.name}" is already registered. ` +
+      'Pass a unique "name" option to avoid schema collisions.',
+    );
+  }
+}
 
-    return createFormulaDomElement(document, node.attrs, this.options);
-  },
-  addCommands() {
-    return {
-      openFormulaX: () => () => {
-        const selectedFormula = getSelectedFormula(this.editor);
-        const initialLatex = selectedFormula?.attrs.latex ?? this.options.initialLatex;
+function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
+  return {
+    name: options.name,
+    group: 'inline',
+    inline: true,
+    atom: true,
+    selectable: true,
+    addOptions() {
+      return options;
+    },
+    onCreate() {
+      warnDuplicateNodeName(this);
 
-        void openFormulaXTiptapModal({
-          initialLatex,
-          isUpdate: Boolean(selectedFormula),
-          options: this.options,
-        }).then((payload) => {
-          if (!payload) {
-            return;
-          }
-
-          applyFormulaPayload(this.editor, payload, selectedFormula);
-          this.editor.commands.focus();
-        });
-
-        return true;
-      },
-    };
-  },
-  addKeyboardShortcuts() {
-    return {
-      Enter: () => {
-        if (!getSelectedFormula(this.editor)) {
-          return false;
-        }
-
-        return this.editor.commands.openFormulaX();
-      },
-      Space: () => {
-        if (!getSelectedFormula(this.editor)) {
-          return false;
-        }
-
-        return this.editor.commands.openFormulaX();
-      },
-    };
-  },
-  addNodeView() {
-    return ({ editor, getPos, node }: {
-      editor: { commands: { openFormulaX: () => boolean; setNodeSelection?: (position: number) => boolean } };
-      getPos: () => number;
-      node: { attrs: FormulaXNodeAttributes };
-    }) => {
-      const dom = createFormulaDomElement(document, node.attrs, this.options) ?? document.createElement('span');
-      dom.classList.add('formulax-math--interactive');
-      void renderFormulaIntoElement(dom, node.attrs, this.options);
-
-      const selectNode = (): void => {
-        const position = getPos();
-        if (typeof position !== 'number') {
-          return;
-        }
-
-        editor.commands.setNodeSelection?.(position);
-      };
-
-      dom.addEventListener('click', (event) => {
-        event.preventDefault();
-        selectNode();
-      });
-
-      dom.addEventListener('dblclick', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        selectNode();
-        editor.commands.openFormulaX();
-      });
-
+      if (typeof document !== 'undefined') {
+        ensureFormulaXModalStyles(document);
+      }
+    },
+    addAttributes() {
       return {
-        dom,
-        update: (updatedNode: { attrs: FormulaXNodeAttributes; type: { name: string } }) => {
-          if (updatedNode.type.name !== FORMULAX_NODE_NAME) {
+        latex: {
+          default: '',
+        },
+      };
+    },
+    parseHTML() {
+      return [{
+        tag: 'span[data-formulax]',
+        getAttrs: (element: Node | string) => {
+          if (!(element instanceof HTMLElement)) {
             return false;
           }
 
-          syncFormulaDomElement(dom, updatedNode.attrs, this.options);
-          void renderFormulaIntoElement(dom, updatedNode.attrs, this.options);
+          return {
+            latex: getFormulaLatexFromElement(element, this.options.formulaAttributeName),
+          };
+        },
+      }];
+    },
+    renderHTML({ node }: { node: { attrs: FormulaXNodeAttributes } }) {
+      if (typeof document === 'undefined') {
+        return [
+          'span',
+          {
+            'data-formulax': 'true',
+            [this.options.formulaAttributeName]: node.attrs.latex,
+            'data-latex': node.attrs.latex,
+          },
+          node.attrs.latex || '\\square',
+        ] as const;
+      }
+
+      return createFormulaDomElement(document, node.attrs, this.options);
+    },
+    addCommands() {
+      return {
+        openFormulaX: () => () => {
+          const selectedFormula = getSelectedFormula(this.editor, this.name);
+          const initialLatex = selectedFormula?.attrs.latex ?? this.options.initialLatex;
+
+          void openFormulaXTiptapModal({
+            initialLatex,
+            isUpdate: Boolean(selectedFormula),
+            options: this.options,
+          }).then((payload) => {
+            if (!payload) {
+              return;
+            }
+
+            applyFormulaPayload(this.editor, payload, selectedFormula, this.name);
+            this.editor.commands.focus();
+          });
+
           return true;
         },
-        selectNode: () => {
-          dom.classList.add('ProseMirror-selectednode');
+      };
+    },
+    addKeyboardShortcuts() {
+      return {
+        Enter: () => {
+          if (!getSelectedFormula(this.editor, this.name)) {
+            return false;
+          }
+
+          return this.editor.commands.openFormulaX();
         },
-        deselectNode: () => {
-          dom.classList.remove('ProseMirror-selectednode');
+        Space: () => {
+          if (!getSelectedFormula(this.editor, this.name)) {
+            return false;
+          }
+
+          return this.editor.commands.openFormulaX();
         },
       };
-    };
-  },
-};
+    },
+    addNodeView() {
+      return ({ editor, getPos, node }: {
+        editor: { commands: { openFormulaX: () => boolean; setNodeSelection?: (position: number) => boolean } };
+        getPos: () => number;
+        node: { attrs: FormulaXNodeAttributes };
+      }) => {
+        const dom = createFormulaDomElement(document, node.attrs, this.options) ?? document.createElement('span');
+        dom.classList.add('formulax-math--interactive');
+        void renderFormulaIntoElement(dom, node.attrs, this.options);
+
+        const selectNode = (): void => {
+          const position = getPos();
+          if (typeof position !== 'number') {
+            return;
+          }
+
+          editor.commands.setNodeSelection?.(position);
+        };
+
+        dom.addEventListener('click', (event) => {
+          event.preventDefault();
+          selectNode();
+        });
+
+        dom.addEventListener('dblclick', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          selectNode();
+          editor.commands.openFormulaX();
+        });
+
+        return {
+          dom,
+          update: (updatedNode: { attrs: FormulaXNodeAttributes; type: { name: string } }) => {
+            if (updatedNode.type.name !== this.name) {
+              return false;
+            }
+
+            syncFormulaDomElement(dom, updatedNode.attrs, this.options);
+            void renderFormulaIntoElement(dom, updatedNode.attrs, this.options);
+            return true;
+          },
+          selectNode: () => {
+            dom.classList.add('ProseMirror-selectednode');
+          },
+          deselectNode: () => {
+            dom.classList.remove('ProseMirror-selectednode');
+          },
+        };
+      };
+    },
+  };
+}
 
 export interface TiptapNodeFactory {
   create: typeof Node.create;
@@ -201,8 +221,7 @@ export function createFormulaXNode(
   nodeFactory: TiptapNodeFactory = Node,
   options?: FormulaXTiptapOptions,
 ) {
-  const extension = nodeFactory.create(formulaXNodeConfig) as any;
-  return options ? extension.configure(options) : extension;
+  return nodeFactory.create(createFormulaXNodeConfig(resolveOptions(options))) as any;
 }
 
 export const FormulaXNode = createFormulaXNode();
@@ -223,6 +242,7 @@ function applyFormulaPayload(
   },
   payload: FormulaXPayload,
   selectedFormula: SelectedFormula | null,
+  nodeName: string,
 ): void {
   const latex = payload.latex.trim();
 
@@ -240,7 +260,7 @@ function applyFormulaPayload(
         from: selectedFormula.from,
         to: selectedFormula.to,
       },
-      createFormulaNodeContent(payload),
+      createFormulaNodeContent(payload, nodeName),
     ).run();
     return;
   }
@@ -249,7 +269,7 @@ function applyFormulaPayload(
     return;
   }
 
-  editor.chain().focus().insertContent(createFormulaNodeContent(payload)).run();
+  editor.chain().focus().insertContent(createFormulaNodeContent(payload, nodeName)).run();
 }
 
 interface SelectedFormula {
@@ -266,11 +286,11 @@ function getSelectedFormula(editor: {
       node?: { type?: { name?: string }; attrs?: FormulaXNodeAttributes };
     };
   };
-}): SelectedFormula | null {
+}, nodeName: string): SelectedFormula | null {
   const { selection } = editor.state;
   const node = selection.node;
 
-  if (node?.type?.name !== FORMULAX_NODE_NAME) {
+  if (node?.type?.name !== nodeName) {
     return null;
   }
 
@@ -283,12 +303,15 @@ function getSelectedFormula(editor: {
   };
 }
 
-function createFormulaNodeContent(payload: FormulaXPayload): {
+function createFormulaNodeContent(
+  payload: FormulaXPayload,
+  nodeName = FORMULAX_NODE_NAME,
+): {
   type: string;
   attrs: FormulaXNodeAttributes;
 } {
   return {
-    type: FORMULAX_NODE_NAME,
+    type: nodeName,
     attrs: {
       latex: payload.latex,
     },

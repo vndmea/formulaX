@@ -22,11 +22,13 @@ import type {
 } from './types';
 
 const DEFAULT_BUTTON_NAME = 'formulaX';
+const DEFAULT_MODEL_NAME = 'formulaX';
 
-export { DEFAULT_BUTTON_NAME };
+export { DEFAULT_BUTTON_NAME, DEFAULT_MODEL_NAME };
 
 export function resolveOptions(options: FormulaXCKEditor5Options = {}): RequiredFormulaXCKEditor5Options {
   return {
+    name: options.name ?? DEFAULT_MODEL_NAME,
     buttonName: options.buttonName ?? DEFAULT_BUTTON_NAME,
     toolbarText: options.toolbarText ?? 'FormulaX',
     tooltip: options.tooltip ?? 'Insert or edit formula',
@@ -65,7 +67,7 @@ export class FormulaXCommand extends Command {
 
   override execute(): void {
     const editor = this.editor as any;
-    const selectedFormula = getSelectedFormulaModelElement(editor);
+    const selectedFormula = getSelectedFormulaModelElement(editor, this.options.name);
     const initialLatex = String(selectedFormula?.getAttribute('latex') ?? '');
 
     void openFormulaXModal({
@@ -74,7 +76,7 @@ export class FormulaXCommand extends Command {
       options: this.options,
     }).then((payload) => {
       if (!payload) return;
-      applyFormulaPayload(editor, selectedFormula, payload);
+      applyFormulaPayload(editor, selectedFormula, payload, this.options.name);
       editor.editing.view.focus();
     });
   }
@@ -93,8 +95,16 @@ export class FormulaX extends Plugin {
     const editor = this.editor as any;
     const options = resolveOptions(editor.config.get('formulaX') as FormulaXCKEditor5Options | undefined);
 
+    if (hasRegisteredFormulaModelName(editor, options.name)) {
+      console.error(
+        `[FormulaX] CKEditor5 model name "${options.name}" is already registered. ` +
+        'Pass a unique "name" option to avoid schema collisions.',
+      );
+      return;
+    }
+
     ensureFormulaXModalStyles(document);
-    defineFormulaSchema(editor);
+    defineFormulaSchema(editor, options.name);
     defineFormulaConverters(editor, options);
     editor.editing.mapper.on(
       'viewToModelPosition',
@@ -123,7 +133,12 @@ export class FormulaX extends Plugin {
 
 export default FormulaX;
 
-function applyFormulaPayload(editor: any, selectedFormula: any, payload: FormulaXPayload): void {
+function applyFormulaPayload(
+  editor: any,
+  selectedFormula: any,
+  payload: FormulaXPayload,
+  modelName: string,
+): void {
   editor.model.change((writer: any) => {
     if (selectedFormula) {
       if (!payload.latex.trim()) {
@@ -137,7 +152,7 @@ function applyFormulaPayload(editor: any, selectedFormula: any, payload: Formula
 
     if (!payload.latex.trim()) return;
 
-    const formula = writer.createElement('formulaX', {
+    const formula = writer.createElement(modelName, {
       latex: payload.latex,
     });
 
@@ -145,8 +160,30 @@ function applyFormulaPayload(editor: any, selectedFormula: any, payload: Formula
   });
 }
 
-function defineFormulaSchema(editor: any): void {
-  editor.model.schema.register('formulaX', {
+function hasRegisteredFormulaModelName(editor: any, modelName: string): boolean {
+  const schema = editor?.model?.schema;
+
+  if (!schema) {
+    return false;
+  }
+
+  if (typeof schema.isRegistered === 'function') {
+    return Boolean(schema.isRegistered(modelName));
+  }
+
+  if (typeof schema.getDefinition === 'function') {
+    return Boolean(schema.getDefinition(modelName));
+  }
+
+  if (schema._sourceDefinitions?.has) {
+    return Boolean(schema._sourceDefinitions.has(modelName));
+  }
+
+  return Boolean(schema._definitions?.[modelName]);
+}
+
+function defineFormulaSchema(editor: any, modelName: string): void {
+  editor.model.schema.register(modelName, {
     allowWhere: '$text',
     isInline: true,
     isObject: true,
@@ -162,18 +199,18 @@ function defineFormulaConverters(editor: any, options: RequiredFormulaXCKEditor5
         [FORMULA_FLAG_ATTRIBUTE]: true,
       },
     },
-    model: (viewElement: any, { writer }: any) => writer.createElement('formulaX', {
+    model: (viewElement: any, { writer }: any) => writer.createElement(options.name, {
       latex: readFormulaLatexFromView(viewElement, options),
     }),
   });
 
   editor.conversion.for('dataDowncast').elementToElement({
-    model: createFormulaConverterModelDefinition(),
+    model: createFormulaConverterModelDefinition(options.name),
     view: (modelElement: any, { writer }: any) => createFormulaRawElement(writer, modelElement, options),
   });
 
   editor.conversion.for('editingDowncast').elementToElement({
-    model: createFormulaConverterModelDefinition(),
+    model: createFormulaConverterModelDefinition(options.name),
     view: (modelElement: any, { writer }: any) => {
       const widgetElement = createFormulaWidgetElement(writer, modelElement, options, editor);
       return toWidget(widgetElement, writer, { label: 'FormulaX formula' });
@@ -181,12 +218,12 @@ function defineFormulaConverters(editor: any, options: RequiredFormulaXCKEditor5
   });
 }
 
-function createFormulaConverterModelDefinition(): {
+function createFormulaConverterModelDefinition(modelName: string): {
   name: string;
   attributes: string[];
 } {
   return {
-    name: 'formulaX',
+    name: modelName,
     attributes: ['latex'],
   };
 }
@@ -303,9 +340,9 @@ function extractInnerHtml(markup: string): string {
   return wrapper.firstElementChild?.innerHTML ?? '';
 }
 
-function getSelectedFormulaModelElement(editor: any): any | null {
+function getSelectedFormulaModelElement(editor: any, modelName: string): any | null {
   const selectedElement = editor.model.document.selection.getSelectedElement();
-  return selectedElement?.is?.('element', 'formulaX') ? selectedElement : null;
+  return selectedElement?.is?.('element', modelName) ? selectedElement : null;
 }
 
 function isFormulaWidgetView(node: any): boolean {
