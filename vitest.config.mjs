@@ -8,7 +8,6 @@ export default defineConfig({
     alias: {
       '@formulaxjs/core': fromRoot('./packages/core/src/index.ts'),
       '@formulaxjs/editor': fromRoot('./packages/editor/src/index.ts'),
-      '@formulaxjs/kity-assets': fromRoot('./packages/kity-assets/src/index.ts'),
       '@formulaxjs/renderer': fromRoot('./packages/renderer/src/index.ts'),
       '@formulaxjs/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
       '@formulaxjs/tinymce': fromRoot('./packages/tinymce/src/index.ts'),

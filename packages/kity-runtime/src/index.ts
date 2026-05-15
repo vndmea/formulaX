@@ -1,3 +1,4 @@
+export * from './asset-manifest';
 export * from './create-editor';
 export * from './dom-utils';
 export * from './vendor/legacy-box-type';

@@ -15,6 +15,17 @@ export type KityStyleAssetMap = {
   editor: string;
 };
 
+export type KityAssetManifest = {
+  fonts: KityFontAssetMap;
+  toolbar: KityToolbarAssetMap;
+  styles: KityStyleAssetMap;
+};
+
+export const kityFontAssets: KityFontAssetMap;
+export const kityToolbarAssets: KityToolbarAssetMap;
+export const kityStyleAssets: KityStyleAssetMap;
+export const kityAssetManifest: KityAssetManifest;
+
 export type KityEditorAssets = {
   fonts: KityFontAssetMap;
   toolbar: KityToolbarAssetMap;

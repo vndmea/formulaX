@@ -1,6 +1,6 @@
 {
   "name": "@formulaxjs/ckeditor5",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -37,8 +37,7 @@
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/editor": "workspace:*",
-    "@formulaxjs/kity-runtime": "workspace:*",
-    "@formulaxjs/kity-assets": "workspace:*"
+    "@formulaxjs/kity-runtime": "workspace:*"
   },
   "peerDependencies": {
     "ckeditor5": ">=42 <49"

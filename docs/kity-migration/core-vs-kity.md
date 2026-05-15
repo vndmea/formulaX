@@ -28,19 +28,14 @@ The FormulaX editor package provides:
 
 ### `@formulaxjs/kity-runtime`
 
-Contains the modern bootstrap API, compatibility shims, and progressively migrated source modules used to start the embedded Kity editor.
-
-### `@formulaxjs/kity-assets`
-
-Contains the static Kity assets that are served by workspace apps, including legacy bundles, styles, fonts, and image resources.
+Contains the modern bootstrap API, compatibility shims, progressively migrated source modules, and the embedded legacy assets used to start the Kity editor.
 
 ## Long-Term Ownership Boundaries
 
 | Package | Ownership | Notes |
 |---------|-----------|-------|
 | `@formulaxjs/core` | FormulaX | Host-agnostic formula model |
-| `@formulaxjs/kity-runtime` | FormulaX | Modern runtime bridge over embedded Kity source |
-| `@formulaxjs/kity-assets` | FormulaX | Static assets and legacy bundles |
+| `@formulaxjs/kity-runtime` | FormulaX | Modern runtime bridge over embedded Kity source and assets |
 
 ## Migration Strategy
 
@@ -55,5 +50,5 @@ Contains the static Kity assets that are served by workspace apps, including leg
 
 - Core semantics remain in `@formulaxjs/core`
 - Embedded Kity runtime is surfaced through `@formulaxjs/kity-runtime`
-- Static assets remain isolated in `@formulaxjs/kity-assets`
+- Static assets are embedded and exported through `@formulaxjs/kity-runtime`
 - Clear boundaries enable independent evolution of each layer

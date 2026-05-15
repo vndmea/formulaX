@@ -8,7 +8,6 @@
     "paths": {
       "@formulaxjs/core": ["../core/src/index.ts"],
       "@formulaxjs/editor": ["../editor/src/index.ts"],
-      "@formulaxjs/kity-assets": ["../kity-assets/src/index.ts"],
       "@formulaxjs/kity-runtime": ["../kity-runtime/src/index.ts"]
     }
   },

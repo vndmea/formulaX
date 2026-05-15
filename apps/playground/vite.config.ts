@@ -10,7 +10,6 @@ export default defineConfig({
     alias: {
       '@formulaxjs/core': path.resolve(rootDir, 'packages/core/src/index.ts'),
       '@formulaxjs/editor': path.resolve(rootDir, 'packages/editor/src/index.ts'),
-      '@formulaxjs/kity-assets': path.resolve(rootDir, 'packages/kity-assets/src/index.ts'),
       '@formulaxjs/kity-runtime': path.resolve(rootDir, 'packages/kity-runtime/src/index.ts'),
       '@formulaxjs/renderer': path.resolve(rootDir, 'packages/renderer/src/index.ts'),
     },

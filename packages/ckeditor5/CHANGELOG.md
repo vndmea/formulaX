@@ -1,5 +1,13 @@
 # @formulaxjs/ckeditor5
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @formulaxjs/kity-runtime@0.2.0
+  - @formulaxjs/editor@0.1.1
+
 ## 0.2.0
 
 ### Minor Changes

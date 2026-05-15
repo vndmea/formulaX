@@ -32,7 +32,6 @@ Some packages are experimental and not yet published to npm.
 | `@formulaxjs/editor` | Modern formula editor foundation |
 | `@formulaxjs/tiptap` | TipTap integration adapter |
 | `@formulaxjs/tinymce` | TinyMCE integration adapter |
-| `@formulaxjs/kity-assets` | Static assets for KityFormula legacy compatibility |
 
 ## Playground
 
@@ -47,10 +46,10 @@ FormulaX workspace
 ├── @formulaxjs/core (document model, LaTeX parser/serializer)
 ├── @formulaxjs/renderer (static formula renderers)
 ├── @formulaxjs/editor (DOM interaction, selection, keyboard handling)
-├── @formulaxjs/kity-runtime (legacy compatibility layer)
+├── @formulaxjs/kity-runtime (legacy compatibility layer and embedded assets)
 │   ├── KityFormula runtime (lazy-loaded chunk)
 │   ├── Parser runtime (lazy-loaded chunk)
-│   ├── Font maps & sprite position maps (embedded in lazy chunks)
+│   ├── Font maps, sprite position maps, and static assets
 │   └── canvg export runtime (lazy-loaded, only when exporting to PNG/JPG)
 ├── @formulaxjs/tiptap (TipTap adapter)
 └── @formulaxjs/tinymce (TinyMCE adapter)

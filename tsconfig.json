@@ -6,7 +6,6 @@
       "@formulaxjs/ckeditor5": ["packages/ckeditor5/src/index.ts"],
       "@formulaxjs/core": ["packages/core/src/index.ts"],
       "@formulaxjs/editor": ["packages/editor/src/index.ts"],
-      "@formulaxjs/kity-assets": ["packages/kity-assets/src/index.ts"],
       "@formulaxjs/renderer": ["packages/renderer/src/index.ts"],
       "@formulaxjs/tiptap": ["packages/tiptap/src/index.ts"],
       "@formulaxjs/tinymce": ["packages/tinymce/src/index.ts"],

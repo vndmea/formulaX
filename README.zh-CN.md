@@ -32,7 +32,6 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 | `@formulaxjs/editor` | 现代公式编辑器基础 |
 | `@formulaxjs/tiptap` | TipTap 集成适配器 |
 | `@formulaxjs/tinymce` | TinyMCE 集成适配器 |
-| `@formulaxjs/kity-assets` | KityFormula 旧版兼容静态资源 |
 
 ## 在线演示
 
@@ -47,10 +46,10 @@ FormulaX 工作空间
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
 ├── @formulaxjs/renderer（静态公式渲染器）
 ├── @formulaxjs/editor（DOM 交互、选择、键盘处理）
-├── @formulaxjs/kity-runtime（旧版兼容层）
+├── @formulaxjs/kity-runtime（旧版兼容层和内置静态资源）
 │   ├── KityFormula 运行时（懒加载 chunk）
 │   ├── Parser 运行时（懒加载 chunk）
-│   ├── 字体映射和 sprite 位置映射（嵌入在懒加载 chunks 中）
+│   ├── 字体映射、sprite 位置映射和静态资源
 │   └── canvg 导出运行时（懒加载，仅在导出 PNG/JPG 时加载）
 ├── @formulaxjs/tiptap（TipTap 适配器）
 └── @formulaxjs/tinymce（TinyMCE 适配器）

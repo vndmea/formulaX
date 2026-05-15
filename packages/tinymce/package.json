@@ -1,6 +1,6 @@
 {
   "name": "@formulaxjs/tinymce",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -39,8 +39,7 @@
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/editor": "workspace:*",
     "@formulaxjs/kity-runtime": "workspace:*",
-    "@formulaxjs/renderer": "workspace:*",
-    "@formulaxjs/kity-assets": "workspace:*"
+    "@formulaxjs/renderer": "workspace:*"
   },
   "peerDependencies": {
     "tinymce": ">=5 <9"
