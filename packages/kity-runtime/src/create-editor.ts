@@ -13,7 +13,7 @@ import { legacyKfExtDef } from './vendor/legacy-kf-ext-def';
 import { legacyKfEvent } from './vendor/legacy-kfevent';
 import { legacySysconf } from './vendor/legacy-sysconf';
 import { legacyUiDef } from './vendor/legacy-ui-def';
-import { createLegacyUiUtils } from './vendor/legacy-ui-utils';
+import { legacyUiUtils } from './vendor/legacy-ui-utils';
 import { legacyBaseUtils } from './vendor/legacy-utils';
 import { installKityRuntime } from './kity/index';
 import { setToolbarAssetUrls } from './toolbar-assets';
@@ -70,7 +70,7 @@ type KityWindow = Window &
       kity?: unknown;
       otherPosition: typeof legacyOtherPosition;
       uiDef?: typeof legacyUiDef;
-      uiUtils: ReturnType<typeof createLegacyUiUtils>;
+      uiUtils: typeof legacyUiUtils;
     };
     kf?: Record<string, unknown> & {
       EditorFactory?: EditorFactory;
@@ -212,7 +212,7 @@ function installLegacyRuntime(runtimeWindow: KityWindow) {
     kity: runtimeWindow.kity,
     otherPosition: legacyOtherPosition,
     uiDef: legacyUiDef,
-    uiUtils: createLegacyUiUtils(),
+    uiUtils: legacyUiUtils,
   };
 }
 
