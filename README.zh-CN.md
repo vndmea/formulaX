@@ -2,7 +2,7 @@
 
 [English](./README.md) | 简体中文
 
-现代公式编辑器工作空间，兼容旧版 KityFormula，支持模块化运行时加载、静态渲染器和编辑器集成。
+现代公式编辑器 workspace，兼容旧版 KityFormula，并支持模块化运行时加载、静态渲染和编辑器集成。
 
 ## 什么是 FormulaX？
 
@@ -14,13 +14,13 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 - 基于 KityFormula 兼容运行时的公式编辑
 - LaTeX 输入与渲染
-- 模块化包结构，支持懒加载 chunks
+- 模块化包结构，支持懒加载模块
 - 基于 SVG 的公式渲染
-- PNG/JPG 导出（按需加载 canvg runtime）
+- PNG/JPG 导出（按需加载 canvg 运行时）
 - 支持渲染器和编辑器适配器扩展
-- 编辑器集成：TipTap、TinyMCE
+- 编辑器集成：TipTap、TinyMCE、CKEditor 5
 
-## 工作空间包
+## Workspace 包
 
 部分包仍处于实验阶段，尚未发布到 npm。
 
@@ -29,9 +29,10 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 | `@formulaxjs/core` | FormulaX 核心数据模型和公共工具 |
 | `@formulaxjs/renderer` | 面向富文本适配器的静态公式渲染器 |
 | `@formulaxjs/editor` | 对外公开的 FormulaX 编辑器入口和共享集成辅助层 |
-| `@formulaxjs/kity-runtime` | 作为编辑器后端使用的 KityFormula 旧版兼容运行时 |
+| `@formulaxjs/kity-runtime` | 作为编辑器后端使用的 KityFormula 旧版底层兼容运行时 |
 | `@formulaxjs/tiptap` | TipTap 集成适配器 |
 | `@formulaxjs/tinymce` | TinyMCE 集成适配器 |
+| `@formulaxjs/ckeditor5` | CKEditor 5 集成适配器 |
 
 ## 在线演示
 
@@ -39,10 +40,10 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 ## 架构设计
 
-FormulaX 通过 `@formulaxjs/editor` 暴露面向应用的编辑器 API，同时将旧版 KityFormula 运行时隔离在 `@formulaxjs/kity-runtime` 中。大型旧版模块逐步拆分为懒加载 chunks：
+FormulaX 通过 `@formulaxjs/editor` 暴露面向应用的编辑器 API，同时将旧版 KityFormula 运行时隔离在 `@formulaxjs/kity-runtime` 中。较大的旧版模块会逐步拆分为懒加载模块：
 
 ```
-FormulaX 工作空间
+FormulaX workspace
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
 ├── @formulaxjs/renderer（静态公式渲染器）
 ├── @formulaxjs/editor（对外编辑器入口和共享集成辅助层）
@@ -52,20 +53,21 @@ FormulaX 工作空间
 │   ├── 字体映射、sprite 位置映射和静态资源
 │   └── canvg 导出运行时（懒加载，仅在导出 PNG/JPG 时加载）
 ├── @formulaxjs/tiptap（TipTap 适配器）
-└── @formulaxjs/tinymce（TinyMCE 适配器）
+├── @formulaxjs/tinymce（TinyMCE 适配器）
+└── @formulaxjs/ckeditor5（CKEditor 5 适配器）
 ```
 
 这种架构可以实现：
-- 默认入口点保持轻量，不会急切地将旧版运行时打包进来
+- 默认入口保持轻量，不会提前把旧版运行时整体打包进来
 - 仅在启用公式编辑器时懒加载旧版运行时
-- 导出图片时按需加载 canvg，不影响主 bundle
+- 导出图片时按需加载 canvg，不影响主包体积
 - 未来可替换 KityFormula 运行时为现代渲染器
 
 ## KityFormula 旧版兼容性
 
 当前编辑运行时基于百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态适配的旧版兼容层。
 
-FormulaX 将此代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其作为公开 `@formulaxjs/editor` 入口背后的**兼容后端**，而非长期公共架构。
+FormulaX 将这部分代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其作为公开 `@formulaxjs/editor` 入口背后的**兼容后端**，而不是长期对外架构的一部分。
 
 这种做法：
 - 保留现有公式渲染行为
@@ -97,9 +99,10 @@ pnpm install
 pnpm dev
 ```
 
-运行编辑器集成演示：
+运行编辑器集成 demo：
 
 ```bash
+pnpm dev:ckeditor5
 pnpm dev:tiptap
 pnpm dev:tinymce
 ```
@@ -120,14 +123,14 @@ pnpm build
 pnpm dev
 ```
 
-### 浏览器 SDK（原生 JS）
+### 独立编辑器包
 
-```html
-<script src="https://unpkg.com/@formulaxjs/core/dist/browser/index.global.js"></script>
-<script>
-  const doc = FormulaX.parseLatex('\\frac{a}{b}');
-  const latex = FormulaX.serializeLatex(doc);
-</script>
+```ts
+import { FormulaXEditor } from '@formulaxjs/editor';
+
+const editor = new FormulaXEditor({
+  el: '#app',
+});
 ```
 
 ### Core 包
@@ -223,14 +226,27 @@ tinymce.init({
 const markup = createTinyMceFormulaMarkup('\\sqrt{x}');
 ```
 
-## 工作空间脚本
+### CKEditor 5 集成
+
+```ts
+import { ClassicEditor, Essentials, Paragraph } from 'ckeditor5';
+import { FormulaX } from '@formulaxjs/ckeditor5';
+
+ClassicEditor.create(document.querySelector('#editor'), {
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+});
+```
+
+## Workspace 脚本
 
 - `pnpm dev` - 启动独立 FormulaX playground
-- `pnpm dev:tiptap` - 启动 TipTap 演示
-- `pnpm dev:tinymce` - 启动 TinyMCE 演示
+- `pnpm dev:ckeditor5` - 启动 CKEditor 5 demo
+- `pnpm dev:tiptap` - 启动 TipTap demo
+- `pnpm dev:tinymce` - 启动 TinyMCE demo
 - `pnpm build` - 构建所有 packages 和演示应用
-- `pnpm build:packages` - 仅构建 workspace packages
-- `pnpm build:pages` - 构建 GitHub Pages 演示站
+- `pnpm build:packages` - 仅构建 workspace 中的 packages
+- `pnpm build:pages` - 构建 GitHub Pages demo 站点
 - `pnpm lint` - 运行 ESLint
 - `pnpm typecheck` - 运行 TypeScript 类型检查
 - `pnpm test` - 运行 Vitest 单元测试
@@ -253,7 +269,7 @@ FormulaX 与百度或原始 KityFormula 项目无关。
 
 ## 发布方向
 
-在公开 npm 发布之前，以下方面需要进一步打磨：
+在正式发布到 npm 之前，以下方面仍需要进一步打磨：
 
 - 各 package 稳定的公共 API
 - 包级 changelog 和发布说明
@@ -264,14 +280,14 @@ FormulaX 与百度或原始 KityFormula 项目无关。
 ## 设计原则
 
 - 语义逻辑放在 `core`
-- DOM 交互放在 `editor`
+- 对外编辑器入口放在 `editor`
+- 旧版运行时隔离在 `kity-runtime`
 - 渲染适配器保持轻薄
 - 宿主集成保持轻薄
-- UI 可复用且可替换
 
 ## 协议
 
-**注意**：在公开 npm 发布之前，应审查并最终确定 FormulaX 及所有第三方组件的许可信息。
+**注意**：在正式发布到 npm 之前，应审查并最终确定 FormulaX 及所有第三方组件的许可信息。
 
 KityFormula 相关代码和资源保留其原始版权和许可声明。
 
@@ -285,4 +301,4 @@ KityFormula 相关代码和资源保留其原始版权和许可声明。
 - 改进 LaTeX 解析器的错误恢复
 - 添加协作事务钩子
 - 完成 Playwright 浏览器测试（需下载浏览器）
-- 准备 npm 发布流程和使用 Changesets 的自动化发布
+- 准备 npm 发布流程，以及基于 Changesets 的自动化发版

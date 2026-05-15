@@ -18,7 +18,7 @@ It is **not** an official KityFormula project. KityFormula-related code is kept 
 - SVG-based formula rendering
 - PNG/JPG export support loaded on demand (lazy-loaded canvg runtime)
 - Designed for future renderer and editor adapter extensions
-- Editor integrations: TipTap, TinyMCE
+- Editor integrations: TipTap, TinyMCE, CKEditor 5
 
 ## Packages
 
@@ -29,9 +29,10 @@ Some packages are experimental and not yet published to npm.
 | `@formulaxjs/core` | Core data model and shared utilities |
 | `@formulaxjs/renderer` | Static formula renderers for rich-text adapters |
 | `@formulaxjs/editor` | Public FormulaX editor entry and shared integration helpers |
-| `@formulaxjs/kity-runtime` | Legacy KityFormula compatibility runtime used behind the editor entry |
+| `@formulaxjs/kity-runtime` | Low-level legacy KityFormula compatibility runtime used behind the editor entry |
 | `@formulaxjs/tiptap` | TipTap integration adapter |
 | `@formulaxjs/tinymce` | TinyMCE integration adapter |
+| `@formulaxjs/ckeditor5` | CKEditor 5 integration adapter |
 
 ## Playground
 
@@ -52,7 +53,8 @@ FormulaX workspace
 │   ├── Font maps, sprite position maps, and static assets
 │   └── canvg export runtime (lazy-loaded, only when exporting to PNG/JPG)
 ├── @formulaxjs/tiptap (TipTap adapter)
-└── @formulaxjs/tinymce (TinyMCE adapter)
+├── @formulaxjs/tinymce (TinyMCE adapter)
+└── @formulaxjs/ckeditor5 (CKEditor 5 adapter)
 ```
 
 This architecture allows:
@@ -100,6 +102,7 @@ pnpm dev
 Run editor integration demos:
 
 ```bash
+pnpm dev:ckeditor5
 pnpm dev:tiptap
 pnpm dev:tinymce
 ```
@@ -120,14 +123,14 @@ APIs are experimental and may change before the first stable npm release.
 pnpm dev
 ```
 
-### Browser SDK (Vanilla JS)
+### Standalone Editor Package
 
-```html
-<script src="https://unpkg.com/@formulaxjs/core/dist/browser/index.global.js"></script>
-<script>
-  const doc = FormulaX.parseLatex('\\frac{a}{b}');
-  const latex = FormulaX.serializeLatex(doc);
-</script>
+```ts
+import { FormulaXEditor } from '@formulaxjs/editor';
+
+const editor = new FormulaXEditor({
+  el: '#app',
+});
 ```
 
 ### Core Package
@@ -223,9 +226,22 @@ tinymce.init({
 const markup = createTinyMceFormulaMarkup('\\sqrt{x}');
 ```
 
+### CKEditor 5 Integration
+
+```ts
+import { ClassicEditor, Essentials, Paragraph } from 'ckeditor5';
+import { FormulaX } from '@formulaxjs/ckeditor5';
+
+ClassicEditor.create(document.querySelector('#editor'), {
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+});
+```
+
 ## Workspace Scripts
 
 - `pnpm dev` - Start the standalone FormulaX playground
+- `pnpm dev:ckeditor5` - Start the CKEditor 5 demo
 - `pnpm dev:tiptap` - Start the TipTap demo
 - `pnpm dev:tinymce` - Start the TinyMCE demo
 - `pnpm build` - Build all packages and demo apps
@@ -264,10 +280,10 @@ Before public npm publishing, the following areas need further refinement:
 ## Design Principles
 
 - Keep semantics in `core`
-- Keep DOM interaction in `editor`
+- Keep the public editor entry in `editor`
+- Keep the legacy runtime isolated in `kity-runtime`
 - Keep rendering adapters thin
 - Keep host integrations thin
-- Keep UI reusable and replaceable
 
 ## License
 
