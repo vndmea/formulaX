@@ -1,45 +1,34 @@
 # @formulaxjs/editor
 
-Browser editing foundation for FormulaX.
+Public editor entry and integration helpers for FormulaX.
 
-`@formulaxjs/editor` adapts `@formulaxjs/core` state to the DOM. It provides the interactive editor shell, HTML rendering helpers, modal wiring, and browser-side styles used by richer host integrations.
+`@formulaxjs/editor` provides the public FormulaX editor entry backed by the Kity compatibility runtime, along with shared formula markup helpers and modal wiring used by richer host integrations.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
 ## Install
 
 ```bash
-pnpm add @formulaxjs/editor @formulaxjs/core @formulaxjs/renderer @formulaxjs/kity-runtime
+pnpm add @formulaxjs/editor
 ```
 
 ## Highlights
 
-- `FormulaEditor` for mounting an interactive FormulaX editor into a DOM node
-- `renderInteractiveHtml` for HTML rendering of FormulaX state
-- `mountFormulaXKityEditor` for modal-based Kity editing flows
-- `formulaXModalStyles` and `editorStyles` for default browser styling
+- `FormulaXEditor` as the public runtime-backed editor entry
+- `mountFormulaXEditor` for modal-based Kity editing flows
+- `formulaXModalStyles` for shared modal styling
+- Formula node helpers for host-editor markup integration
 
 ## Example
 
 ```ts
-import { FormulaEditor } from '@formulaxjs/editor';
+import { FormulaXEditor } from '@formulaxjs/editor';
 
-const root = document.getElementById('editor');
-
-if (!root) {
-  throw new Error('Missing #editor');
-}
-
-const editor = new FormulaEditor({
-  root,
-  onChange(state) {
-    console.log(state);
-  },
+new FormulaXEditor({
+  el: '#app',
 });
-
-console.log(editor.getState());
 ```
 
 ## Package role
 
-Use this package for browser-native FormulaX editing. If you are integrating FormulaX into TinyMCE, CKEditor 5, or Tiptap, prefer the dedicated adapter packages instead.
+Use this package as the main application-facing FormulaX editor entry. If you are integrating FormulaX into TinyMCE, CKEditor 5, or Tiptap, prefer the dedicated adapter packages instead.

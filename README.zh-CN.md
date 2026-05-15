@@ -26,10 +26,10 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 | 包 | 描述 |
 | --- | --- |
-| `@formulaxjs/kity-runtime` | FormulaX 的 KityFormula 旧版兼容运行时 |
 | `@formulaxjs/core` | FormulaX 核心数据模型和公共工具 |
 | `@formulaxjs/renderer` | 面向富文本适配器的静态公式渲染器 |
-| `@formulaxjs/editor` | 现代公式编辑器基础 |
+| `@formulaxjs/editor` | 对外公开的 FormulaX 编辑器入口和共享集成辅助层 |
+| `@formulaxjs/kity-runtime` | 作为编辑器后端使用的 KityFormula 旧版兼容运行时 |
 | `@formulaxjs/tiptap` | TipTap 集成适配器 |
 | `@formulaxjs/tinymce` | TinyMCE 集成适配器 |
 
@@ -39,13 +39,13 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 ## 架构设计
 
-FormulaX 将旧版 KityFormula 运行时隔离在 `@formulaxjs/kity-runtime` 中。大型旧版模块逐步拆分为懒加载 chunks：
+FormulaX 通过 `@formulaxjs/editor` 暴露面向应用的编辑器 API，同时将旧版 KityFormula 运行时隔离在 `@formulaxjs/kity-runtime` 中。大型旧版模块逐步拆分为懒加载 chunks：
 
 ```
 FormulaX 工作空间
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
 ├── @formulaxjs/renderer（静态公式渲染器）
-├── @formulaxjs/editor（DOM 交互、选择、键盘处理）
+├── @formulaxjs/editor（对外编辑器入口和共享集成辅助层）
 ├── @formulaxjs/kity-runtime（旧版兼容层和内置静态资源）
 │   ├── KityFormula 运行时（懒加载 chunk）
 │   ├── Parser 运行时（懒加载 chunk）
@@ -65,7 +65,7 @@ FormulaX 工作空间
 
 当前编辑运行时基于百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态适配的旧版兼容层。
 
-FormulaX 将此代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其作为**兼容后端**而非长期公共架构。
+FormulaX 将此代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其作为公开 `@formulaxjs/editor` 入口背后的**兼容后端**，而非长期公共架构。
 
 这种做法：
 - 保留现有公式渲染行为
@@ -137,6 +137,64 @@ import { parseLatex, serializeLatex } from '@formulaxjs/core';
 
 const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
+```
+
+### React 集成
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { FormulaXEditor } from '@formulaxjs/editor';
+
+export function FormulaXReactExample() {
+  const hostRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!hostRef.current) {
+      return;
+    }
+
+    const editor = new FormulaXEditor({
+      el: hostRef.current,
+    });
+
+    return () => {
+      void editor.destroy();
+    };
+  }, []);
+
+  return <div ref={hostRef} />;
+}
+```
+
+### Vue 3 集成
+
+```vue
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { FormulaXEditor } from '@formulaxjs/editor';
+
+const hostRef = ref<HTMLDivElement | null>(null);
+let editor: FormulaXEditor | null = null;
+
+onMounted(() => {
+  if (!hostRef.value) {
+    return;
+  }
+
+  editor = new FormulaXEditor({
+    el: hostRef.value,
+  });
+});
+
+onBeforeUnmount(() => {
+  void editor?.destroy();
+  editor = null;
+});
+</script>
+
+<template>
+  <div ref="hostRef" />
+</template>
 ```
 
 ### TipTap 集成
@@ -227,5 +285,4 @@ KityFormula 相关代码和资源保留其原始版权和许可声明。
 - 改进 LaTeX 解析器的错误恢复
 - 添加协作事务钩子
 - 完成 Playwright 浏览器测试（需下载浏览器）
-- 添加除 TipTap 和 TinyMCE 之外的框架集成文档
 - 准备 npm 发布流程和使用 Changesets 的自动化发布

@@ -12,7 +12,7 @@ import {
   FORMULA_FLAG_ATTRIBUTE,
   createFormulaMarkup,
   ensureFormulaXModalStyles,
-  mountFormulaXKityEditor,
+  mountFormulaXEditor,
 } from '@formulaxjs/editor';
 import { openFormulaXModal } from './modal';
 import type {
@@ -409,7 +409,7 @@ function renderFormulaSvgMarkup(
     host.setAttribute('aria-hidden', 'true');
     document.body.appendChild(host);
 
-    const mounted = mountFormulaXKityEditor(host, {
+    const mounted = mountFormulaXEditor(host, {
       initialLatex: latex,
       height: options.editor.height,
       autofocus: false,

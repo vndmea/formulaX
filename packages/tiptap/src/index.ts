@@ -6,7 +6,7 @@ import {
   DEFAULT_FORMULA_CLASS,
   ensureFormulaXModalStyles,
   getFormulaLatexFromElement,
-  mountFormulaXKityEditor,
+  mountFormulaXEditor,
 } from '@formulaxjs/editor';
 import { openFormulaXTiptapModal } from './modal';
 import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
@@ -414,7 +414,7 @@ function renderFormulaSvgMarkup(
     host.setAttribute('aria-hidden', 'true');
     document.body.appendChild(host);
 
-    const mounted = mountFormulaXKityEditor(host, {
+    const mounted = mountFormulaXEditor(host, {
       initialLatex: latex,
       height: options.editor.height,
       autofocus: false,

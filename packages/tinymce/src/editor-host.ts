@@ -1,6 +1,6 @@
 import {
-  mountFormulaXKityEditor,
-  type FormulaXKityEditorOptions,
+  mountFormulaXEditor,
+  type FormulaXEditorOptions,
 } from '@formulaxjs/editor';
 import { serializeSvgForInsertion } from '@formulaxjs/renderer';
 import type { MountedFormulaXEditor, RequiredFormulaXTinyMceOptions } from './types';
@@ -14,7 +14,7 @@ export function mountFormulaXEditorInModal(
   root: HTMLElement,
   input: MountFormulaXEditorOptions,
 ): MountedFormulaXEditor {
-  const options: FormulaXKityEditorOptions = {
+  const options: FormulaXEditorOptions = {
     initialLatex: input.initialLatex,
     height: input.options.editor.height ?? '100%',
     autofocus: input.options.editor.autofocus ?? true,
@@ -23,7 +23,7 @@ export function mountFormulaXEditorInModal(
       fontsize: input.options.editor.render?.fontsize ?? 40,
     },
   };
-  return mountFormulaXKityEditor(root, options);
+  return mountFormulaXEditor(root, options);
 }
 
 export { serializeSvgForInsertion };

@@ -2,7 +2,7 @@ import {
   ensureFormulaXModalStyles,
   escapeAttribute,
   escapeHtml,
-  mountFormulaXKityEditor,
+  mountFormulaXEditor,
 } from '@formulaxjs/editor';
 import type { FormulaXPayload, RequiredFormulaXCKEditor5Options } from './types';
 
@@ -47,7 +47,7 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
     return Promise.reject(new Error('[FormulaX] CKEditor 5 modal host not found.'));
   }
 
-  const mounted = mountFormulaXKityEditor(host, {
+  const mounted = mountFormulaXEditor(host, {
     initialLatex: input.initialLatex,
     height: input.options.editor.height,
     autofocus: input.options.editor.autofocus,

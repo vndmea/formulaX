@@ -2,7 +2,7 @@ import {
   ensureFormulaXModalStyles,
   escapeAttribute,
   escapeHtml,
-  mountFormulaXKityEditor,
+  mountFormulaXEditor,
 } from '@formulaxjs/editor';
 import type { FormulaXPayload, RequiredFormulaXTiptapOptions } from './types';
 
@@ -49,7 +49,7 @@ export function openFormulaXTiptapModal(
     return Promise.reject(new Error('[FormulaX] Tiptap modal host not found.'));
   }
 
-  const mounted = mountFormulaXKityEditor(host, {
+  const mounted = mountFormulaXEditor(host, {
     initialLatex: input.initialLatex,
     height: input.options.editor.height,
     autofocus: input.options.editor.autofocus,

@@ -1,5 +1,12 @@
 # @formulaxjs/tiptap
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @formulaxjs/editor@0.2.0
+
 ## 0.2.1
 
 ### Patch Changes

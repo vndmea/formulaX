@@ -5,7 +5,7 @@ import { escapeHtml } from './formula-node';
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
 const STYLE_ID = 'fx-formula-modal-styles';
 
-export interface FormulaXKityEditorOptions {
+export interface FormulaXEditorOptions {
   initialLatex?: string;
   height?: number | string;
   autofocus?: boolean;
@@ -15,7 +15,7 @@ export interface FormulaXKityEditorOptions {
   };
 }
 
-export interface MountedFormulaXKityEditor {
+export interface MountedFormulaXEditor {
   root: HTMLElement;
   getLatex: () => Promise<string>;
   getState: () => Promise<FormulaState>;
@@ -301,10 +301,10 @@ export function ensureFormulaXModalStyles(doc: Document = document): void {
   doc.head.appendChild(style);
 }
 
-export function mountFormulaXKityEditor(
+export function mountFormulaXEditor(
   root: HTMLElement,
-  options: FormulaXKityEditorOptions = {},
-): MountedFormulaXKityEditor {
+  options: FormulaXEditorOptions = {},
+): MountedFormulaXEditor {
   let destroyed = false;
   let latestLatex = options.initialLatex ?? '';
   let handle: KityEditorHandle | null = null;

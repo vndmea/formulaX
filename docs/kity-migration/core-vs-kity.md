@@ -19,6 +19,7 @@ This package is host-agnostic and designed to be portable across different edito
 
 The FormulaX editor package provides:
 
+- Public `FormulaXEditor` application entry backed by the embedded Kity runtime
 - DOM rendering for formula nodes
 - Keyboard handling
 - Selection/path mapping
@@ -41,7 +42,7 @@ Contains the modern bootstrap API, compatibility shims, progressively migrated s
 
 1. **Phase 1**: Move Kity runtime boot and shared data into workspace packages
 2. **Phase 2**: Replace public source files with thin compatibility shims
-3. **Phase 3**: Route playground through `@formulaxjs/kity-runtime`
+3. **Phase 3**: Route playground through `@formulaxjs/editor` while keeping `@formulaxjs/kity-runtime` as the compatibility backend
 4. **Phase 4**: Continue migrating source modules from asset-side JS into typed workspace modules
 5. **Phase 5**: Reduce dependence on legacy bundles and unused experiments
 6. **Phase 6**: Add broader tests and package-level integrations
@@ -49,6 +50,7 @@ Contains the modern bootstrap API, compatibility shims, progressively migrated s
 ## Design Principles
 
 - Core semantics remain in `@formulaxjs/core`
-- Embedded Kity runtime is surfaced through `@formulaxjs/kity-runtime`
+- Application-facing editor usage is surfaced through `@formulaxjs/editor`
+- Embedded Kity runtime remains available through `@formulaxjs/kity-runtime`
 - Static assets are embedded and exported through `@formulaxjs/kity-runtime`
 - Clear boundaries enable independent evolution of each layer

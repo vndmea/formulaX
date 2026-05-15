@@ -9,6 +9,6 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@formulaxjs/kity-runtime": "workspace:*"
+    "@formulaxjs/editor": "workspace:*"
   }
 }

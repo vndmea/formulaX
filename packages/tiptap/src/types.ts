@@ -1,4 +1,4 @@
-import type { FormulaXKityEditorOptions } from '@formulaxjs/editor';
+import type { FormulaXEditorOptions } from '@formulaxjs/editor';
 
 export interface FormulaXPayload {
   latex: string;
@@ -17,7 +17,7 @@ export interface FormulaXTiptapOptions {
     cancelText?: string;
     closeOnBackdrop?: boolean;
   };
-  editor?: Omit<FormulaXKityEditorOptions, 'initialLatex'>;
+  editor?: Omit<FormulaXEditorOptions, 'initialLatex'>;
 }
 
 export interface RequiredFormulaXTiptapOptions {
@@ -36,7 +36,7 @@ export interface RequiredFormulaXTiptapOptions {
   editor: {
     height: number | string;
     autofocus: boolean;
-    assets: FormulaXKityEditorOptions['assets'];
+    assets: FormulaXEditorOptions['assets'];
     render: {
       fontsize: number;
     };
