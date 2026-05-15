@@ -1,3 +1,3 @@
-export type FormulaRenderMode = 'svg' | 'katex';
+export type FormulaRenderMode = 'svg';
 
 export * from './svg';

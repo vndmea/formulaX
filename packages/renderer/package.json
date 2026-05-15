@@ -4,13 +4,12 @@
   "private": false,
   "type": "module",
   "license": "MIT",
-  "description": "Static formula renderers for FormulaX rich-text adapters.",
+  "description": "SVG formula rendering helpers for FormulaX rich-text adapters.",
   "keywords": [
     "formulax",
     "formula",
     "renderer",
-    "svg",
-    "katex"
+    "svg"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
