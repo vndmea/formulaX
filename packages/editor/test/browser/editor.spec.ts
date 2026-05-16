@@ -73,6 +73,28 @@ async function getRenderedContentHeight(page: Page, id: string) {
   }, { id });
 }
 
+async function expectNoRuntimeErrors(page: Page, action: () => Promise<void>, ignore: RegExp[] = []) {
+  const errors: string[] = [];
+  const handler = (msg: { type: () => string; text: () => string }) => {
+    if (msg.type() === 'error') {
+      const text = msg.text();
+      if (ignore.some((pattern) => pattern.test(text))) {
+        return;
+      }
+      errors.push(text);
+    }
+  };
+
+  page.on('console', handler as never);
+  try {
+    await action();
+  } finally {
+    page.off('console', handler as never);
+  }
+
+  expect(errors).toEqual([]);
+}
+
 test.describe('FormulaX Editor', () => {
   test('page loads without errors', async ({ page }) => {
     const errors: string[] = [];
@@ -216,6 +238,24 @@ test.describe('FormulaX Editor', () => {
     });
 
     await expect.poll(() => getEditorSource(page, 'exec-test')).toBe('{x}^{2}+1');
+  });
+
+  test('typing before using the toolbar keeps cursor state fresh', async ({ page }) => {
+    await page.goto('/');
+    const staleEditor = await mountEditor(page, 'stale-cursor-test', {
+      initialLatex: 'x',
+    });
+
+    await expect(staleEditor).toBeVisible();
+    const input = page.locator('#stale-cursor-test .kf-editor-input-box');
+    await input.fill('abc');
+
+    await expectNoRuntimeErrors(page, async () => {
+      await page.locator('#stale-cursor-test .kf-editor-toolbar').getByText('分数').first().click();
+      await page.locator('#stale-cursor-test .kf-editor-ui-box-item[data-value="\\\\frac \\\\placeholder\\\\placeholder"]').first().click();
+    }, [/favicon/i]);
+
+    await expect.poll(() => getEditorSource(page, 'stale-cursor-test')).toContain('\\frac');
   });
 
   test('invalid selector throws error', async ({ page }) => {

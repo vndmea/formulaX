@@ -133,4 +133,38 @@ describe('renderer svg', () => {
     expect(markup).toContain('height="20"');
     expect(markup).toContain('style="font-size:inherit; width:6.25em; height:1.25em"');
   });
+
+  it('uses the base inline em height for simple formulas and removes root font-size', () => {
+    const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    svg.setAttribute('viewBox', '0 0 24 40.5');
+    svg.setAttribute('font-size', '50');
+    svg.appendChild(document.createElementNS(SVG_NS, 'g'));
+
+    Object.defineProperty(svg, 'getBoundingClientRect', {
+      value: () => ({ width: 48, height: 81 }),
+    });
+
+    const markup = serializeSvgForInsertion(svg);
+
+    expect(markup).toContain('width="24"');
+    expect(markup).toContain('height="40.5"');
+    expect(markup).toContain('style="font-size:inherit; width:0.75em; height:1.25em"');
+    expect(markup).not.toContain('font-size="50"');
+  });
+
+  it('caps complex formulas at the maximum inline em height', () => {
+    const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    svg.setAttribute('viewBox', '0 0 300 400');
+    svg.appendChild(document.createElementNS(SVG_NS, 'g'));
+
+    Object.defineProperty(svg, 'getBoundingClientRect', {
+      value: () => ({ width: 600, height: 800 }),
+    });
+
+    const markup = serializeSvgForInsertion(svg);
+
+    expect(markup).toContain('width="300"');
+    expect(markup).toContain('height="400"');
+    expect(markup).toContain('style="font-size:inherit; width:1.237em; height:1.65em"');
+  });
 });
