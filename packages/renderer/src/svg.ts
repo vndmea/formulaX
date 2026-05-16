@@ -20,6 +20,12 @@ interface SVGMatrixLike {
   f: number;
 }
 
+const SIMPLE_INLINE_HEIGHT_EM = 1.25;
+const BASE_FORMULA_HEIGHT = 40.5;
+const SIMPLE_FORMULA_HEIGHT_RATIO = 1.05;
+const MAX_INLINE_HEIGHT_EM = 1.65;
+const COMPLEX_FORMULA_SCALE = 0.825;
+
 export function readRenderedFormulaSvgBox(svg: SVGSVGElement): SvgBox | null {
   return getInlineSvgContent(svg)?.box ?? readSvgBox(svg);
 }
@@ -242,6 +248,7 @@ function copySvgRootAttributes(source: SVGSVGElement, target: SVGSVGElement): vo
     'width',
     'height',
     'viewBox',
+    'font-size',
     'class',
     'focusable',
     'aria-hidden',
@@ -255,17 +262,32 @@ function copySvgRootAttributes(source: SVGSVGElement, target: SVGSVGElement): vo
   });
 }
 
+function calculateInlineHeightEm(height: number): number {
+  const heightRatio = height / BASE_FORMULA_HEIGHT;
+
+  if (!Number.isFinite(heightRatio) || heightRatio <= SIMPLE_FORMULA_HEIGHT_RATIO) {
+    return SIMPLE_INLINE_HEIGHT_EM;
+  }
+
+  return Math.min(
+    MAX_INLINE_HEIGHT_EM,
+    SIMPLE_INLINE_HEIGHT_EM * Math.pow(heightRatio, COMPLEX_FORMULA_SCALE),
+  );
+}
+
 function sizeSvgForInlineDisplay(
   clone: SVGSVGElement,
   source: SVGSVGElement,
   viewport: SvgBox | null,
 ): void {
+  clone.removeAttribute('font-size');
+
   const viewBox = clone.viewBox?.baseVal;
   const rect = source.getBoundingClientRect();
   const width = viewport?.width || viewBox?.width || rect.width || Number(clone.getAttribute('width')) || 1;
   const height = viewport?.height || viewBox?.height || rect.height || Number(clone.getAttribute('height')) || 1;
   const ratio = Math.max(0.1, width / Math.max(1, height));
-  const inlineHeightEm = 0.875;
+  const inlineHeightEm = calculateInlineHeightEm(height);
   const inlineWidthEm = Math.min(40, Math.max(0.75, ratio * inlineHeightEm));
 
   clone.setAttribute('width', roundLength(width));
@@ -274,8 +296,9 @@ function sizeSvgForInlineDisplay(
     'style',
     mergeInlineStyles(
       clone.getAttribute('style'),
+      'font-size:inherit',
       `width:${roundLength(inlineWidthEm)}em`,
-      `height:${inlineHeightEm}em`,
+      `height:${roundLength(inlineHeightEm)}em`,
     ),
   );
 }
