@@ -94,6 +94,30 @@ type SyntaxComponentInstance = {
 const CURSOR_CHAR = legacySysconf.cursorCharacter;
 const kity = getLegacyKity();
 
+function clampOffset(offset: number, maxOffset: number) {
+  return Math.max(0, Math.min(offset, maxOffset));
+}
+
+function normalizeCursorRecord(
+  objTree: ObjectTree,
+  cursor: CursorRecord,
+): CursorRecord {
+  const fallbackGroupId = objTree.mapping.root.strGroup.attr!.id as string;
+  const targetGroupId =
+    cursor.groupId && objTree.mapping[cursor.groupId]
+      ? cursor.groupId
+      : fallbackGroupId;
+  const operandCount = objTree.mapping[targetGroupId].strGroup.operand.length;
+  const startOffset = clampOffset(cursor.startOffset, operandCount);
+  const endOffset = clampOffset(cursor.endOffset, operandCount);
+
+  return {
+    groupId: targetGroupId,
+    startOffset: Math.min(startOffset, endOffset),
+    endOffset: Math.max(startOffset, endOffset),
+  };
+}
+
 const SyntaxComponent = kity.createClass('SyntaxComponenet', {
   constructor(this: SyntaxComponentInstance, kfEditor: LegacyEditorInstance) {
     this.kfEditor = kfEditor;
@@ -148,11 +172,16 @@ const SyntaxComponent = kity.createClass('SyntaxComponenet', {
   updateObjTree(this: SyntaxComponentInstance, objTree: ObjectTree) {
     const selectInfo = objTree.select;
 
+    this.objTree = objTree;
+
     if (selectInfo?.groupId) {
       this.updateCursor(selectInfo.groupId, selectInfo.startOffset, selectInfo.endOffset);
+      return;
     }
 
-    this.objTree = objTree;
+    if (this.record.cursor.groupId !== null) {
+      this.record.cursor = normalizeCursorRecord(objTree, this.record.cursor);
+    }
   },
 
   hasCursorInfo(this: SyntaxComponentInstance) {
@@ -214,7 +243,8 @@ const SyntaxComponent = kity.createClass('SyntaxComponenet', {
   },
 
   getGroupObject(this: SyntaxComponentInstance, id: string) {
-    return this.objTree!.mapping[id].objGroup || null;
+    const groupInfo = this.objTree!.mapping[id];
+    return groupInfo ? groupInfo.objGroup : null;
   },
 
   getCursorRecord(this: SyntaxComponentInstance) {
@@ -308,7 +338,7 @@ const SyntaxComponent = kity.createClass('SyntaxComponenet', {
   },
 
   serialization(this: SyntaxComponentInstance) {
-    const cursor = this.record.cursor;
+    const cursor = normalizeCursorRecord(this.objTree!, this.record.cursor);
     const objGroup = this.objTree!.mapping[cursor.groupId as string];
     const curStrGroup = objGroup.strGroup;
     let strStartIndex = Math.min(cursor.endOffset, cursor.startOffset);
@@ -355,11 +385,15 @@ const SyntaxComponent = kity.createClass('SyntaxComponenet', {
       startOffset = tmp;
     }
 
-    this.record.cursor = {
+    const nextCursor = {
       groupId: groupId as string,
       startOffset: startOffset as number,
       endOffset: endOffset as number,
     };
+
+    this.record.cursor = this.objTree
+      ? normalizeCursorRecord(this.objTree, nextCursor)
+      : nextCursor;
   },
 
   leftMove(this: SyntaxComponentInstance) {
