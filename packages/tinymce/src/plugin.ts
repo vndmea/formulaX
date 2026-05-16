@@ -4,6 +4,7 @@ import type {
   TinyMceEditorLike,
   TinyMceLike,
 } from './types';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import { createTinyMceCompat, warnUnsupportedTinyMceVersion } from './compat';
 import { findFormulaElement } from './markup';
 import { openFormulaXOverlayModal } from './modal';
@@ -38,6 +39,11 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     formulaAttributeName: options.formulaAttributeName ?? 'data-formulax-latex',
     renderMode: options.renderMode ?? 'text',
     initialLatex: options.initialLatex ?? '',
+    renderer: options.renderer ?? createKityFormulaRenderer({
+      fontSize: options.editor?.render?.fontsize ?? 40,
+      height: options.editor?.height ?? '100%',
+      assets: options.editor?.assets ?? {},
+    }),
     modal: {
       title: options.modal?.title ?? 'FormulaX',
       insertText: options.modal?.insertText ?? 'Insert',
@@ -48,7 +54,6 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
       closeOnBackdrop: options.modal?.closeOnBackdrop ?? true,
     },
     editor: {
-      mode: 'kity',
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
       assets: options.editor?.assets ?? {},

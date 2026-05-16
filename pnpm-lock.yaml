@@ -104,9 +104,12 @@ importers:
       '@formulaxjs/editor':
         specifier: workspace:*
         version: link:../editor
-      '@formulaxjs/kity-runtime':
+      '@formulaxjs/renderer':
         specifier: workspace:*
-        version: link:../kity-runtime
+        version: link:../renderer
+      '@formulaxjs/renderer-kity':
+        specifier: workspace:*
+        version: link:../renderer-kity
     devDependencies:
       ckeditor5:
         specifier: ^46.1.1
@@ -125,6 +128,9 @@ importers:
       '@formulaxjs/renderer':
         specifier: workspace:*
         version: link:../renderer
+      '@formulaxjs/renderer-kity':
+        specifier: workspace:*
+        version: link:../renderer-kity
 
   packages/kity-runtime:
     dependencies:
@@ -138,6 +144,15 @@ importers:
 
   packages/renderer: {}
 
+  packages/renderer-kity:
+    dependencies:
+      '@formulaxjs/kity-runtime':
+        specifier: workspace:*
+        version: link:../kity-runtime
+      '@formulaxjs/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+
   packages/tinymce:
     dependencies:
       '@formulaxjs/core':
@@ -146,12 +161,12 @@ importers:
       '@formulaxjs/editor':
         specifier: workspace:*
         version: link:../editor
-      '@formulaxjs/kity-runtime':
-        specifier: workspace:*
-        version: link:../kity-runtime
       '@formulaxjs/renderer':
         specifier: workspace:*
         version: link:../renderer
+      '@formulaxjs/renderer-kity':
+        specifier: workspace:*
+        version: link:../renderer-kity
     devDependencies:
       tinymce:
         specifier: ^7.7.1
@@ -165,6 +180,12 @@ importers:
       '@formulaxjs/editor':
         specifier: workspace:*
         version: link:../editor
+      '@formulaxjs/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@formulaxjs/renderer-kity':
+        specifier: workspace:*
+        version: link:../renderer-kity
     devDependencies:
       '@tiptap/core':
         specifier: ^2.27.2
@@ -3256,6 +3277,8 @@ snapshots:
       '@ckeditor/ckeditor5-core': 46.1.1
       '@ckeditor/ckeditor5-upload': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-alignment@46.1.1':
     dependencies:
@@ -3357,6 +3380,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-cloud-services@46.1.1':
     dependencies:
@@ -3429,6 +3454,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-editor-inline@46.1.1':
     dependencies:
@@ -3500,6 +3527,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-font@46.1.1':
     dependencies:
@@ -3554,6 +3583,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-html-embed@46.1.1':
     dependencies:
@@ -3612,8 +3643,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-language@46.1.1':
     dependencies:
@@ -3621,8 +3650,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-link@46.1.1':
     dependencies:
@@ -3652,8 +3679,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-markdown-gfm@46.1.1':
     dependencies:
@@ -3691,8 +3716,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-mention@46.1.1':
     dependencies:
@@ -3712,8 +3735,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-page-break@46.1.1':
     dependencies:
@@ -3723,8 +3744,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-paragraph@46.1.1':
     dependencies:
@@ -3748,8 +3767,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-restricted-editing@46.1.1':
     dependencies:
@@ -3775,8 +3792,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-source-editing@46.1.1':
     dependencies:
@@ -3807,8 +3822,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-table@46.1.1':
     dependencies:
@@ -3821,8 +3834,6 @@ snapshots:
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-theme-lark@46.1.1':
     dependencies:
@@ -3898,8 +3909,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@csstools/color-helpers@5.1.0': {}
 

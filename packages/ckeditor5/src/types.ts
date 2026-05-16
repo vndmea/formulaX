@@ -1,4 +1,5 @@
-import type { KityEditorAssets } from '@formulaxjs/kity-runtime';
+import type { FormulaXEditorOptions } from '@formulaxjs/editor';
+import type { FormulaRenderer } from '@formulaxjs/renderer';
 
 export interface FormulaXPayload {
   latex: string;
@@ -12,6 +13,7 @@ export interface FormulaXCKEditor5Options {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  renderer?: FormulaRenderer;
   modal?: {
     title?: string;
     insertText?: string;
@@ -19,14 +21,7 @@ export interface FormulaXCKEditor5Options {
     cancelText?: string;
     closeOnBackdrop?: boolean;
   };
-  editor?: {
-    height?: number | string;
-    autofocus?: boolean;
-    assets?: Partial<KityEditorAssets>;
-    render?: {
-      fontsize?: number;
-    };
-  };
+  editor?: Omit<FormulaXEditorOptions, 'initialLatex'>;
 }
 
 export interface RequiredFormulaXCKEditor5Options {
@@ -37,6 +32,7 @@ export interface RequiredFormulaXCKEditor5Options {
   cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;
+  renderer: FormulaRenderer;
   modal: {
     title: string;
     insertText: string;
@@ -47,7 +43,7 @@ export interface RequiredFormulaXCKEditor5Options {
   editor: {
     height: number | string;
     autofocus: boolean;
-    assets: Partial<KityEditorAssets>;
+    assets: FormulaXEditorOptions['assets'];
     render: {
       fontsize: number;
     };

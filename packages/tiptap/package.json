@@ -37,6 +37,8 @@
   },
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
+    "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/renderer-kity": "workspace:*",
     "@formulaxjs/editor": "workspace:*"
   },
   "peerDependencies": {

@@ -37,7 +37,8 @@
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/editor": "workspace:*",
-    "@formulaxjs/kity-runtime": "workspace:*"
+    "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/renderer-kity": "workspace:*"
   },
   "peerDependencies": {
     "ckeditor5": ">=42 <49"

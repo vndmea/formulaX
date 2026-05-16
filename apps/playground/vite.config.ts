@@ -12,6 +12,7 @@ export default defineConfig({
       '@formulaxjs/editor': path.resolve(rootDir, 'packages/editor/src/index.ts'),
       '@formulaxjs/kity-runtime': path.resolve(rootDir, 'packages/kity-runtime/src/index.ts'),
       '@formulaxjs/renderer': path.resolve(rootDir, 'packages/renderer/src/index.ts'),
+      '@formulaxjs/renderer-kity': path.resolve(rootDir, 'packages/renderer-kity/src/index.ts'),
     },
   },
 });

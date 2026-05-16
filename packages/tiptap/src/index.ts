@@ -4,10 +4,11 @@ import {
   createFormulaElement,
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
-  ensureFormulaXModalStyles,
+  ensureFormulaXBaseStyles,
   getFormulaLatexFromElement,
-  mountFormulaXEditor,
-} from '@formulaxjs/editor';
+} from '@formulaxjs/renderer';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { ensureFormulaXModalStyles } from '@formulaxjs/editor';
 import { openFormulaXTiptapModal } from './modal';
 import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
 
@@ -32,6 +33,11 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
     cursorStyle: options.cursorStyle ?? 'pointer',
     initialLatex: options.initialLatex ?? '',
+    renderer: options.renderer ?? createKityFormulaRenderer({
+      fontSize: options.editor?.render?.fontsize ?? 40,
+      height: options.editor?.height ?? '100%',
+      assets: options.editor?.assets ?? {},
+    }),
     modal: {
       title: options.modal?.title ?? 'FormulaX Editor',
       insertText: options.modal?.insertText ?? 'Insert',
@@ -79,6 +85,7 @@ function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
       warnDuplicateNodeName(this);
 
       if (typeof document !== 'undefined') {
+        ensureFormulaXBaseStyles(document);
         ensureFormulaXModalStyles(document);
       }
     },
@@ -354,8 +361,6 @@ function syncFormulaDomElement(
   });
 }
 
-const formulaRenderCache = new Map<string, Promise<string>>();
-
 async function renderFormulaIntoElement(
   dom: HTMLElement,
   attrs: FormulaXNodeAttributes,
@@ -374,12 +379,14 @@ async function renderFormulaIntoElement(
   }
 
   try {
-    const markup = await renderFormulaSvgMarkup(latex, options);
+    const result = await options.renderer.renderLatex(latex, {
+      fontSize: options.editor.render.fontsize,
+    });
     if (dom.dataset.renderToken !== renderToken) {
       return;
     }
 
-    dom.innerHTML = markup;
+    dom.innerHTML = result.html;
   } catch (error) {
     if (dom.dataset.renderToken !== renderToken) {
       return;
@@ -391,54 +398,6 @@ async function renderFormulaIntoElement(
       placeholder.textContent = latex;
     }
   }
-}
-
-function renderFormulaSvgMarkup(
-  latex: string,
-  options: RequiredFormulaXTiptapOptions,
-): Promise<string> {
-  const cached = formulaRenderCache.get(latex);
-  if (cached) {
-    return cached;
-  }
-
-  const pending = (async () => {
-    const host = document.createElement('div');
-    host.style.position = 'fixed';
-    host.style.left = '-100000px';
-    host.style.top = '0';
-    host.style.width = '1px';
-    host.style.height = '1px';
-    host.style.opacity = '0';
-    host.style.pointerEvents = 'none';
-    host.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(host);
-
-    const mounted = mountFormulaXEditor(host, {
-      initialLatex: latex,
-      height: options.editor.height,
-      autofocus: false,
-      assets: options.editor.assets,
-      render: {
-        fontsize: options.editor.render.fontsize,
-      },
-    });
-
-    try {
-      return await mounted.getRenderHtml();
-    } finally {
-      mounted.destroy();
-      host.remove();
-    }
-  })();
-
-  formulaRenderCache.set(latex, pending);
-  pending.catch(() => {
-    if (formulaRenderCache.get(latex) === pending) {
-      formulaRenderCache.delete(latex);
-    }
-  });
-  return pending;
 }
 
 export type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';

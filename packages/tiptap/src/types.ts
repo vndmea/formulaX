@@ -1,4 +1,5 @@
 import type { FormulaXEditorOptions } from '@formulaxjs/editor';
+import type { FormulaRenderer } from '@formulaxjs/renderer';
 
 export interface FormulaXPayload {
   latex: string;
@@ -10,6 +11,7 @@ export interface FormulaXTiptapOptions {
   formulaAttributeName?: string;
   cursorStyle?: string;
   initialLatex?: string;
+  renderer?: FormulaRenderer;
   modal?: {
     title?: string;
     insertText?: string;
@@ -26,6 +28,7 @@ export interface RequiredFormulaXTiptapOptions {
   formulaAttributeName: string;
   cursorStyle: string;
   initialLatex: string;
+  renderer: FormulaRenderer;
   modal: {
     title: string;
     insertText: string;

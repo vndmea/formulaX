@@ -1,4 +1,7 @@
 import {
+  ensureFormulaXBaseStyles,
+} from '@formulaxjs/renderer';
+import {
   ensureFormulaXModalStyles,
   formulaXModalStyles,
 } from '@formulaxjs/editor';
@@ -6,5 +9,6 @@ import {
 export const tinymceStyles = formulaXModalStyles;
 
 export function ensureTinyMceStyles(doc: Document = document): void {
+  ensureFormulaXBaseStyles(doc);
   ensureFormulaXModalStyles(doc);
 }

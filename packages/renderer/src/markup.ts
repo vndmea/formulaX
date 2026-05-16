@@ -44,7 +44,7 @@ export function createFormulaMarkup(
   };
   const serializedAttributes = Object.entries(extraAttributes)
     .filter(([, value]) => value !== null && value !== undefined && value !== false)
-    .map(([key, value]) => value === true ? key : `${key}="${escapeAttribute(String(value))}"`);
+    .map(([key, value]) => (value === true ? key : `${key}="${escapeAttribute(String(value))}"`));
 
   return [
     '<span',
@@ -57,7 +57,8 @@ export function createFormulaMarkup(
     ' tabindex="0"',
     serializedAttributes.length ? ` ${serializedAttributes.join(' ')}` : '',
     '>',
-    options.renderHtml ?? `<span class="${escapeAttribute(className)}__render">${escapeHtml(latex || '\\square')}</span>`,
+    options.renderHtml
+      ?? `<span class="${escapeAttribute(className)}__render">${escapeHtml(latex || '\\square')}</span>`,
     '</span>',
   ].join('');
 }
@@ -110,7 +111,9 @@ export function isFormulaElement(node: unknown): node is HTMLElement {
 }
 
 export function findFormulaElement(node: Node | null): HTMLElement | null {
-  if (!node) return null;
+  if (!node) {
+    return null;
+  }
 
   const element = node.nodeType === 1
     ? node as HTMLElement

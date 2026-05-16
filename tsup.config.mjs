@@ -22,6 +22,7 @@ export default defineConfig({
   alias: {
     '@formulaxjs/editor': path.resolve(__dirname, 'packages/editor/src/index.ts'),
     '@formulaxjs/renderer': path.resolve(__dirname, 'packages/renderer/src/index.ts'),
+    '@formulaxjs/renderer-kity': path.resolve(__dirname, 'packages/renderer-kity/src/index.ts'),
     '@formulaxjs/kity-runtime': path.resolve(__dirname, 'packages/kity-runtime/src/index.ts'),
   },
 });

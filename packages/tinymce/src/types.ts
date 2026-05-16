@@ -1,5 +1,6 @@
 import type { FormulaState } from '@formulaxjs/core';
-import type { KityEditorAssets } from '@formulaxjs/kity-runtime';
+import type { FormulaXEditorOptions } from '@formulaxjs/editor';
+import type { FormulaRenderer } from '@formulaxjs/renderer';
 
 export interface TinyMceLike {
   PluginManager?: {
@@ -60,19 +61,10 @@ export interface FormulaXTinyMceOptions {
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderMode?: 'text' | 'html';
+  renderer?: FormulaRenderer;
   modal?: FormulaXModalOptions;
   initialLatex?: string;
-  editor?: FormulaXEditorOptions;
-}
-
-export interface FormulaXEditorOptions {
-  mode?: 'kity';
-  height?: number | string;
-  autofocus?: boolean;
-  assets?: Partial<KityEditorAssets>;
-  render?: {
-    fontsize?: number;
-  };
+  editor?: Omit<FormulaXEditorOptions, 'initialLatex'>;
 }
 
 export interface FormulaXModalOptions {
@@ -96,8 +88,9 @@ export interface RequiredFormulaXTinyMceOptions {
   formulaAttributeName: string;
   renderMode: 'text' | 'html';
   initialLatex: string;
+  renderer: FormulaRenderer;
   modal: Required<FormulaXModalOptions>;
-  editor: Required<FormulaXEditorOptions>;
+  editor: Required<Omit<FormulaXEditorOptions, 'initialLatex'>>;
 }
 
 export interface FormulaXModalOpenOptions {

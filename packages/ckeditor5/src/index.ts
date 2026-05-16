@@ -2,7 +2,7 @@ export {
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
   FORMULA_FLAG_ATTRIBUTE,
-} from '@formulaxjs/editor';
+} from '@formulaxjs/renderer';
 
 export {
   DEFAULT_BUTTON_NAME,

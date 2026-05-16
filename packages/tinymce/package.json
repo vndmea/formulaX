@@ -38,8 +38,8 @@
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/editor": "workspace:*",
-    "@formulaxjs/kity-runtime": "workspace:*",
-    "@formulaxjs/renderer": "workspace:*"
+    "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/renderer-kity": "workspace:*"
   },
   "peerDependencies": {
     "tinymce": ">=5 <9"

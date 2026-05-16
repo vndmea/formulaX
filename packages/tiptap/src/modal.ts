@@ -1,9 +1,11 @@
 import {
   ensureFormulaXModalStyles,
+} from '@formulaxjs/editor';
+import {
   escapeAttribute,
   escapeHtml,
-  mountFormulaXEditor,
-} from '@formulaxjs/editor';
+} from '@formulaxjs/renderer';
+import { mountFormulaXEditor } from '@formulaxjs/editor';
 import type { FormulaXPayload, RequiredFormulaXTiptapOptions } from './types';
 
 export interface OpenFormulaXTiptapModalInput {

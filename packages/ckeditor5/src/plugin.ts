@@ -11,9 +11,10 @@ import {
   DEFAULT_FORMULA_CLASS,
   FORMULA_FLAG_ATTRIBUTE,
   createFormulaMarkup,
-  ensureFormulaXModalStyles,
-  mountFormulaXEditor,
-} from '@formulaxjs/editor';
+  ensureFormulaXBaseStyles,
+} from '@formulaxjs/renderer';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { ensureFormulaXModalStyles } from '@formulaxjs/editor';
 import { openFormulaXModal } from './modal';
 import type {
   FormulaXCKEditor5Options,
@@ -35,6 +36,11 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
     cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? DEFAULT_FORMULA_CLASS,
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
+    renderer: options.renderer ?? createKityFormulaRenderer({
+      fontSize: options.editor?.render?.fontsize ?? 40,
+      height: options.editor?.height ?? '100%',
+      assets: options.editor?.assets ?? {},
+    }),
     modal: {
       title: options.modal?.title ?? 'FormulaX Editor',
       insertText: options.modal?.insertText ?? 'Insert',
@@ -103,6 +109,7 @@ export class FormulaX extends Plugin {
       return;
     }
 
+    ensureFormulaXBaseStyles(document);
     ensureFormulaXModalStyles(document);
     defineFormulaSchema(editor, options.name);
     defineFormulaConverters(editor, options);
@@ -357,8 +364,6 @@ function readFormulaLatexFromView(viewElement: any, options: RequiredFormulaXCKE
   );
 }
 
-const formulaRenderCache = new Map<string, Promise<string>>();
-
 async function renderFormulaIntoElement(
   domElement: HTMLElement,
   latex: string,
@@ -373,12 +378,14 @@ async function renderFormulaIntoElement(
   }
 
   try {
-    const markup = await renderFormulaSvgMarkup(trimmedLatex, options);
+    const result = await options.renderer.renderLatex(trimmedLatex, {
+      fontSize: options.editor.render.fontsize,
+    });
     if (domElement.dataset.renderToken !== renderToken) {
       return;
     }
 
-    domElement.innerHTML = markup;
+    domElement.innerHTML = result.html;
   } catch (error) {
     if (domElement.dataset.renderToken !== renderToken) {
       return;
@@ -386,52 +393,4 @@ async function renderFormulaIntoElement(
 
     console.error('[FormulaX] Failed to render CKEditor5 formula widget:', error);
   }
-}
-
-function renderFormulaSvgMarkup(
-  latex: string,
-  options: RequiredFormulaXCKEditor5Options,
-): Promise<string> {
-  const cached = formulaRenderCache.get(latex);
-  if (cached) {
-    return cached;
-  }
-
-  const pending = (async () => {
-    const host = document.createElement('div');
-    host.style.position = 'fixed';
-    host.style.left = '-100000px';
-    host.style.top = '0';
-    host.style.width = '1px';
-    host.style.height = '1px';
-    host.style.opacity = '0';
-    host.style.pointerEvents = 'none';
-    host.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(host);
-
-    const mounted = mountFormulaXEditor(host, {
-      initialLatex: latex,
-      height: options.editor.height,
-      autofocus: false,
-      assets: options.editor.assets,
-      render: {
-        fontsize: options.editor.render.fontsize,
-      },
-    });
-
-    try {
-      return await mounted.getRenderHtml();
-    } finally {
-      mounted.destroy();
-      host.remove();
-    }
-  })();
-
-  formulaRenderCache.set(latex, pending);
-  pending.catch(() => {
-    if (formulaRenderCache.get(latex) === pending) {
-      formulaRenderCache.delete(latex);
-    }
-  });
-  return pending;
 }

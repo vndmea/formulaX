@@ -12,7 +12,7 @@ import {
   isFormulaElement,
   replaceFormulaElement,
   type CreateFormulaMarkupOptions,
-} from '@formulaxjs/editor';
+} from '@formulaxjs/renderer';
 
 export type { CreateFormulaMarkupOptions };
 

@@ -73,7 +73,11 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
 
   const submit = async (): Promise<void> => {
     const latex = await mounted.getLatex();
-    const renderHtml = mounted.getRenderHtml ? await mounted.getRenderHtml() : undefined;
+    const renderHtml = latex.trim()
+      ? (await options.renderer.renderLatex(latex, {
+          fontSize: options.editor.render?.fontsize ?? 40,
+        })).html
+      : undefined;
 
     runEditorTransaction(editor, () => {
       if (target) {

@@ -1,9 +1,5 @@
-import {
-  ensureFormulaXModalStyles,
-  escapeAttribute,
-  escapeHtml,
-  mountFormulaXEditor,
-} from '@formulaxjs/editor';
+import { ensureFormulaXModalStyles, mountFormulaXEditor } from '@formulaxjs/editor';
+import { escapeAttribute, escapeHtml } from '@formulaxjs/renderer';
 import type { FormulaXPayload, RequiredFormulaXCKEditor5Options } from './types';
 
 export interface OpenFormulaXModalInput {

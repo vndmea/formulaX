@@ -1,16 +1,16 @@
 {
-  "name": "@formulaxjs/editor",
-  "version": "0.2.0",
+  "name": "@formulaxjs/renderer-kity",
+  "version": "0.1.0",
   "private": false,
   "type": "module",
   "license": "MIT",
-  "description": "Modern formula editor foundation for FormulaX.",
+  "description": "Kity runtime based SVG renderer for FormulaX.",
   "keywords": [
     "formulax",
     "formula",
-    "math-editor",
-    "editor",
-    "dom"
+    "renderer",
+    "kity",
+    "svg"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -32,13 +32,10 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/editor/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulaxjs/core": "workspace:*",
     "@formulaxjs/renderer": "workspace:*",
-    "@formulaxjs/renderer-kity": "workspace:*",
     "@formulaxjs/kity-runtime": "workspace:*"
   }
 }
