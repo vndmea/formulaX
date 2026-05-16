@@ -1,5 +1,6 @@
 import { legacyBaseUtils } from '../vendor/legacy-utils';
 import { legacyInputFilter } from '../vendor/legacy-input-filter';
+import { legacySysconf } from '../vendor/legacy-sysconf';
 import { getLegacyKity } from '../vendor/runtime-interop';
 import type { LegacyEditorInstance } from './editor';
 
@@ -50,7 +51,23 @@ const KEY_CODE = {
   INPUT: 229,
 };
 
+const CURSOR_CHAR = legacySysconf.cursorCharacter;
 const kity = getLegacyKity();
+
+function insertCursorMarkers(value: string, selectionStart: number | null, selectionEnd: number | null) {
+  const normalizedStart = Math.max(0, Math.min(selectionStart ?? value.length, value.length));
+  const normalizedEnd = Math.max(0, Math.min(selectionEnd ?? normalizedStart, value.length));
+  const rangeStart = Math.min(normalizedStart, normalizedEnd);
+  const rangeEnd = Math.max(normalizedStart, normalizedEnd);
+
+  return (
+    value.slice(0, rangeStart) +
+    CURSOR_CHAR +
+    value.slice(rangeStart, rangeEnd) +
+    CURSOR_CHAR +
+    value.slice(rangeEnd)
+  );
+}
 
 const InputComponent = kity.createClass('InputComponent', {
   constructor(this: InputComponentInstance, parentComponent: unknown, kfEditor: LegacyEditorInstance) {
@@ -268,7 +285,13 @@ const InputComponent = kity.createClass('InputComponent', {
   },
 
   processingInput(this: InputComponentInstance) {
-    this.restruct(this.inputBox.value);
+    const latexWithCursor = insertCursorMarkers(
+      this.inputBox.value,
+      this.inputBox.selectionStart,
+      this.inputBox.selectionEnd,
+    );
+
+    this.restruct(latexWithCursor);
     this.kfEditor.requestService('ui.update.canvas.view');
   },
 
