@@ -37,7 +37,6 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? 'formulax-math',
     formulaAttributeName: options.formulaAttributeName ?? 'data-formulax-latex',
-    renderMode: options.renderMode ?? 'text',
     initialLatex: options.initialLatex ?? '',
     renderer: options.renderer ?? createKityFormulaRenderer({
       fontSize: options.editor?.render?.fontsize ?? 40,

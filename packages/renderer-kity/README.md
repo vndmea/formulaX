@@ -18,6 +18,7 @@ pnpm add @formulaxjs/renderer-kity
 - `renderLatexToSvgMarkup`
 - `serializeKityFormulaFromRoot`
 - `waitForKityFormulaSvgLayout`
+- cache-safe asset overrides through `assetsVersion`
 
 ## Example
 
@@ -33,6 +34,8 @@ const result = await renderer.renderLatex('\\frac{a}{b}');
 console.log(result.engine); // kity
 console.log(result.html);   // inline SVG markup
 ```
+
+If you pass custom runtime asset overrides and want caching to stay enabled, also pass an `assetsVersion` string so different asset sets do not share the same cache entry.
 
 ## Package role
 

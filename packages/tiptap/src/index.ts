@@ -381,6 +381,7 @@ async function renderFormulaIntoElement(
   try {
     const result = await options.renderer.renderLatex(latex, {
       fontSize: options.editor.render.fontsize,
+      className: options.formulaClassName,
     });
     if (dom.dataset.renderToken !== renderToken) {
       return;

@@ -176,7 +176,6 @@ interface FormulaXTinyMceOptions {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
-  renderMode?: 'text' | 'html';
   renderer?: FormulaRenderer;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
@@ -194,7 +193,6 @@ interface FormulaXTinyMceOptions {
 | `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
-| `renderMode` | `text` | 实验性的渲染模式配置。 |
 | `renderer` | `createKityFormulaRenderer()` | 插件在需要运行时公式 HTML 时使用的 renderer。 |
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
 | `modal` | 见下方 | 弹窗标题、按钮文本、尺寸和关闭行为。 |

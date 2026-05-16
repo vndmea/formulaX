@@ -60,7 +60,6 @@ export interface FormulaXTinyMceOptions {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
-  renderMode?: 'text' | 'html';
   renderer?: FormulaRenderer;
   modal?: FormulaXModalOptions;
   initialLatex?: string;
@@ -86,7 +85,6 @@ export interface RequiredFormulaXTinyMceOptions {
   cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;
-  renderMode: 'text' | 'html';
   initialLatex: string;
   renderer: FormulaRenderer;
   modal: Required<FormulaXModalOptions>;

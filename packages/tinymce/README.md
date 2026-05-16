@@ -176,7 +176,6 @@ interface FormulaXTinyMceOptions {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
-  renderMode?: 'text' | 'html';
   renderer?: FormulaRenderer;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
@@ -194,7 +193,6 @@ interface FormulaXTinyMceOptions {
 | `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
-| `renderMode` | `text` | Experimental render mode option. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used when the plugin needs runtime formula HTML. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
 | `modal` | see below | Modal labels, dimensions, and closing behavior. |

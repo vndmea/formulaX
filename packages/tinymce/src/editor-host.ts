@@ -2,7 +2,6 @@ import {
   mountFormulaXEditor,
   type FormulaXEditorOptions,
 } from '@formulaxjs/editor';
-import { serializeSvgForInsertion } from '@formulaxjs/renderer';
 import type { MountedFormulaXEditor, RequiredFormulaXTinyMceOptions } from './types';
 
 export interface MountFormulaXEditorOptions {
@@ -25,5 +24,3 @@ export function mountFormulaXEditorInModal(
   };
   return mountFormulaXEditor(root, options);
 }
-
-export { serializeSvgForInsertion };

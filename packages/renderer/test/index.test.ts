@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
-import { readRenderedFormulaSvgBox, serializeSvgForInsertion } from '../src';
+import {
+  createFormulaMarkup,
+  readRenderedFormulaSvgBox,
+  serializeSvgForInsertion,
+} from '../src';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -17,6 +21,22 @@ function createMatrix(
 }
 
 describe('renderer svg', () => {
+  it('creates a formula node with shared semantics and caller extra attributes', () => {
+    const markup = createFormulaMarkup('\\sqrt{x}', {
+      extraAttributes: {
+        'data-mce-contenteditable': 'false',
+      },
+    });
+
+    expect(markup).toContain('class="formulax-math"');
+    expect(markup).toContain('data-formulax="true"');
+    expect(markup).toContain('data-formulax-latex="\\sqrt{x}"');
+    expect(markup).toContain('data-mce-contenteditable="false"');
+    expect(markup).toContain('role="button"');
+    expect(markup).toContain('style="cursor: pointer"');
+    expect(markup).toContain('tabindex="0"');
+  });
+
   it('reads the rendered formula box from the content group when available', () => {
     const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
     const content = document.createElementNS(SVG_NS, 'g');
@@ -95,5 +115,22 @@ describe('renderer svg', () => {
     expect(markup).toContain('style="width:2.971em; height:0.875em"');
     expect(markup).not.toContain('outer-wrap');
     expect(markup).not.toContain('data-type="kf-container"');
+  });
+
+  it('falls back to sizing the original svg when no formula content box is present', () => {
+    const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    svg.setAttribute('viewBox', '0 0 100 20');
+    svg.appendChild(document.createElementNS(SVG_NS, 'g'));
+
+    Object.defineProperty(svg, 'getBoundingClientRect', {
+      value: () => ({ width: 200, height: 40 }),
+    });
+
+    const markup = serializeSvgForInsertion(svg);
+
+    expect(markup).toContain('viewBox="0 0 100 20"');
+    expect(markup).toContain('width="100"');
+    expect(markup).toContain('height="20"');
+    expect(markup).toContain('style="width:4.375em; height:0.875em"');
   });
 });

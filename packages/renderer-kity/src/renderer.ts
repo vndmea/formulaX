@@ -3,7 +3,7 @@ import {
   type FormulaRenderer,
   type FormulaRenderResult,
 } from '@formulaxjs/renderer';
-import { mountKityEditor } from '@formulaxjs/kity-runtime';
+import { mountKityEditor, type KityEditorAssets } from '@formulaxjs/kity-runtime';
 import { createHiddenRenderHost } from './dom';
 import {
   serializeKityFormulaFromRoot,
@@ -12,6 +12,10 @@ import {
 import type { KityFormulaRenderOptions } from './types';
 
 const renderCache = new Map<string, Promise<FormulaRenderResult>>();
+
+function hasCustomAssetOverrides(assets?: Partial<KityEditorAssets>): boolean {
+  return Boolean(assets && Object.keys(assets).length > 0);
+}
 
 export function createKityFormulaRenderer(
   defaults: KityFormulaRenderOptions = {},
@@ -31,6 +35,8 @@ export function renderLatexToSvgMarkup(
   options: KityFormulaRenderOptions = {},
 ): Promise<FormulaRenderResult> {
   const normalizedLatex = latex.trim();
+  const shouldUseCache = options.cache !== false
+    && !(hasCustomAssetOverrides(options.assets) && !options.assetsVersion);
 
   if (!normalizedLatex) {
     return Promise.resolve({
@@ -48,9 +54,10 @@ export function renderLatexToSvgMarkup(
     fontSize: options.fontSize,
     displayMode: options.displayMode,
     className: options.className,
+    assetsVersion: options.assetsVersion,
   });
 
-  if (options.cache !== false) {
+  if (shouldUseCache) {
     const cached = renderCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -59,7 +66,7 @@ export function renderLatexToSvgMarkup(
 
   const pending = renderLatexToSvgMarkupUncached(normalizedLatex, options);
 
-  if (options.cache !== false) {
+  if (shouldUseCache) {
     renderCache.set(cacheKey, pending);
     pending.catch(() => {
       if (renderCache.get(cacheKey) === pending) {

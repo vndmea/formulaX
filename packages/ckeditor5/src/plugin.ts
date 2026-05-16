@@ -380,6 +380,7 @@ async function renderFormulaIntoElement(
   try {
     const result = await options.renderer.renderLatex(trimmedLatex, {
       fontSize: options.editor.render.fontsize,
+      className: options.formulaClassName,
     });
     if (domElement.dataset.renderToken !== renderToken) {
       return;

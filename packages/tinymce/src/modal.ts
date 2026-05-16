@@ -76,6 +76,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
     const renderHtml = latex.trim()
       ? (await options.renderer.renderLatex(latex, {
           fontSize: options.editor.render?.fontsize ?? 40,
+          className: options.formulaClassName,
         })).html
       : undefined;
 

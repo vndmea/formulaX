@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
-import { serializeSvgForInsertion } from '../src/editor-host';
+import { serializeSvgForInsertion } from '@formulaxjs/renderer';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
