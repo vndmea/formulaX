@@ -136,6 +136,8 @@ export const formulaXModalStyles = `
 }
 
 .fx-formula-kity-host .kf-editor {
+  box-sizing: border-box;
+  width: 100%;
   height: var(--fx-formula-editor-body-height) !important;
   overflow: visible !important;
 }
