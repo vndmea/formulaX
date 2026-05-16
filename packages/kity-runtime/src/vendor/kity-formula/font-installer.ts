@@ -36,17 +36,11 @@ export class FontInstallerModule {
           count += 1;
           fontInfo.meta.src = resolveFontSource(this.fonts, this.resource, fontInfo.meta.src);
           this.createFontStyle(fontInfo);
-          preloadFont(this.doc, fontInfo)
-            .then(() => {
-              applyFonts(this.doc, fontInfo);
-            })
-            .catch(() => undefined)
-            .finally(() => {
-              count -= 1;
-              if (count === 0) {
-                complete(this.doc, callback);
-              }
-            });
+          applyFonts(this.doc, fontInfo);
+          count -= 1;
+          if (count === 0) {
+            complete(this.doc, callback);
+          }
         });
       },
       createFontStyle: function (fontInfo: FontInfo) {
@@ -60,14 +54,6 @@ export class FontInstallerModule {
         this.doc.head.appendChild(stylesheet);
       }
     });
-
-    function preloadFont(doc: Document, fontInfo: FontInfo) {
-      const view = doc.defaultView ?? window;
-      if (view.fetch) {
-        return view.fetch(fontInfo.meta.src, { method: "GET" }).then(() => undefined);
-      }
-      return Promise.resolve();
-    }
 
     function resolveFontSource(
       fonts: Record<string, string>,
