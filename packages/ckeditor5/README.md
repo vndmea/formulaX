@@ -17,6 +17,7 @@ CKEditor 5 integration adapter for FormulaX.
 - Double-click editing for existing formulas
 - Persist only LaTeX source in the CKEditor 5 model
 - Runtime SVG rendering in the editing view
+- Default read-only rendering through `@formulaxjs/renderer-kity`
 - Upcast and downcast support for formula markup in editor data
 - Direct modal helper export through `openFormulaXModal`
 
@@ -61,6 +62,7 @@ import {
 import 'ckeditor5/ckeditor5.css';
 
 import { FormulaX } from '@formulaxjs/ckeditor5';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -76,6 +78,9 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
     modal: {
       title: 'FormulaX Editor',
     },
+    renderer: createKityFormulaRenderer({
+      fontSize: 40,
+    }),
     editor: {
       render: {
         fontsize: 40,
@@ -161,6 +166,10 @@ When editor data is downcast to HTML, generated formula nodes are marked with `d
 
 The editing view renders formula SVG at runtime from the persisted LaTeX. The exact rendered inner HTML is internal and may evolve. Consumers should rely on the plugin and exported options rather than hard-coding the full markup shape.
 
+## Custom renderer
+
+The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer-kity`.
+
 ## Options
 
 ```ts
@@ -172,6 +181,7 @@ interface FormulaXCKEditor5Options {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  renderer?: FormulaRenderer;
   modal?: {
     title?: string;
     insertText?: string;
@@ -199,6 +209,7 @@ interface FormulaXCKEditor5Options {
 | `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
+| `renderer` | `createKityFormulaRenderer()` | Renderer used for runtime SVG output in the editing view. |
 | `modal` | see below | Modal labels and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |
 

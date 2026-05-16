@@ -4,7 +4,7 @@ English | [简体中文](./README.zh-CN.md)
 
 Tiptap integration adapter for FormulaX.
 
-`@formulaxjs/tiptap` provides a FormulaX inline node extension for Tiptap and a modal-based formula editing flow. The extension persists only LaTeX in the document model and renders formula output at runtime.
+`@formulaxjs/tiptap` provides a FormulaX inline node extension for Tiptap and a modal-based formula editing flow. The extension persists only LaTeX in the document model and renders formula output at runtime through the shared FormulaX renderer interface.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -16,6 +16,7 @@ Tiptap integration adapter for FormulaX.
 - Double-click editing for existing formulas
 - Persist only LaTeX in node attrs
 - Runtime SVG rendering in the node view
+- Default read-only rendering through `@formulaxjs/renderer-kity`
 - Modal helper export through `openFormulaXTiptapModal`
 - Compatible peer dependency range for Tiptap 2 and 3
 
@@ -107,6 +108,21 @@ The Tiptap node stores only the LaTeX source:
 
 The node view renders formula SVG at runtime from the stored LaTeX. Generated DOM markup includes `data-formulax="true"` and `data-formulax-latex`, but that rendered DOM is not the persisted source of truth.
 
+## Custom renderer
+
+The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer-kity`.
+
+```ts
+import { createFormulaXNode } from '@formulaxjs/tiptap';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+const formulaNode = createFormulaXNode(undefined, {
+  renderer: createKityFormulaRenderer({
+    fontSize: 44,
+  }),
+});
+```
+
 ## Options
 
 ```ts
@@ -116,6 +132,7 @@ interface FormulaXTiptapOptions {
   formulaAttributeName?: string;
   cursorStyle?: string;
   initialLatex?: string;
+  renderer?: FormulaRenderer;
   modal?: {
     title?: string;
     insertText?: string;
@@ -141,6 +158,7 @@ interface FormulaXTiptapOptions {
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used in rendered DOM for the source LaTeX. |
 | `cursorStyle` | `pointer` | Cursor style applied to rendered formula nodes. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
+| `renderer` | `createKityFormulaRenderer()` | Renderer used for read-only formula output in the node view. |
 | `modal` | see below | Modal labels and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |
 

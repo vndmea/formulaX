@@ -1,8 +1,8 @@
 # @formulaxjs/editor
 
-Public editor entry and integration helpers for FormulaX.
+Modal-oriented FormulaX editor UI helpers.
 
-`@formulaxjs/editor` provides the public FormulaX editor entry backed by the Kity compatibility runtime, along with shared formula markup helpers and modal wiring used by richer host integrations.
+`@formulaxjs/editor` provides the browser-side modal styling and embedded editing helpers used by host integrations. It is no longer the shared markup layer or the read-only renderer layer.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -14,21 +14,34 @@ pnpm add @formulaxjs/editor
 
 ## Highlights
 
-- `FormulaXEditor` as the public runtime-backed editor entry
-- `mountFormulaXEditor` for modal-based Kity editing flows
-- `formulaXModalStyles` for shared modal styling
-- Formula node helpers for host-editor markup integration
+- `ensureFormulaXModalStyles`
+- `formulaXModalStyles`
+- `mountFormulaXEditor`
+- `getLatex()`, `getState()`, and `getRenderHtml()` on the mounted editor handle
 
 ## Example
 
 ```ts
-import { FormulaXEditor } from '@formulaxjs/editor';
+import {
+  ensureFormulaXModalStyles,
+  mountFormulaXEditor,
+} from '@formulaxjs/editor';
 
-new FormulaXEditor({
-  el: '#app',
+ensureFormulaXModalStyles(document);
+
+const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLElement, {
+  initialLatex: '\\sqrt{x}',
+  autofocus: true,
 });
+
+const latex = await mounted.getLatex();
+const html = await mounted.getRenderHtml();
 ```
 
 ## Package role
 
-Use this package as the main application-facing FormulaX editor entry. If you are integrating FormulaX into TinyMCE, CKEditor 5, or Tiptap, prefer the dedicated adapter packages instead.
+Use this package for modal-based editing flows and embedded FormulaX editor UI.
+
+- If you need shared markup or base formula styles, use `@formulaxjs/renderer`.
+- If you need Kity-based read-only rendering, use `@formulaxjs/renderer-kity`.
+- If you need the low-level legacy runtime entry, use `@formulaxjs/kity-runtime`.

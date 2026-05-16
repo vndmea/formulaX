@@ -1,0 +1,43 @@
+# @formulaxjs/renderer-kity
+
+Kity-based read-only renderer for FormulaX.
+
+`@formulaxjs/renderer-kity` turns LaTeX into inline SVG markup by using the legacy Kity runtime behind the shared `@formulaxjs/renderer` contract. It is the current concrete renderer package for adapters that want runtime SVG output without depending on editor UI helpers.
+
+> Status: experimental. Public APIs may change before the first stable release.
+
+## Install
+
+```bash
+pnpm add @formulaxjs/renderer-kity
+```
+
+## Highlights
+
+- `createKityFormulaRenderer`
+- `renderLatexToSvgMarkup`
+- `serializeKityFormulaFromRoot`
+- `waitForKityFormulaSvgLayout`
+
+## Example
+
+```ts
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+const renderer = createKityFormulaRenderer({
+  fontSize: 40,
+});
+
+const result = await renderer.renderLatex('\\frac{a}{b}');
+
+console.log(result.engine); // kity
+console.log(result.html);   // inline SVG markup
+```
+
+## Package role
+
+Use this package when you want a concrete FormulaX renderer implementation today.
+
+- It depends on `@formulaxjs/renderer` for shared renderer contracts and SVG helpers.
+- It depends on `@formulaxjs/kity-runtime` for the legacy Kity backend.
+- It does not depend on `@formulaxjs/editor`.

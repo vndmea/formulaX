@@ -18,6 +18,7 @@ TinyMCE integration adapter for FormulaX.
 - TinyMCE compatibility layer for versions `>=5 <9`
 - LaTeX persistence through `data-formulax-latex`
 - Markup helpers for creating, parsing, serializing, finding, and replacing formula elements
+- Default read-only rendering through `@formulaxjs/renderer-kity`
 
 ## Compatibility
 
@@ -64,7 +65,6 @@ registerFormulaXTinyMcePlugin(tinymce, {
     title: 'FormulaX Editor',
   },
   editor: {
-    mode: 'kity',
     height: '100%',
     autofocus: true,
     render: { fontsize: 40 },
@@ -148,6 +148,22 @@ A generated formula node stores the source LaTeX in `data-formulax-latex` and is
 
 The exact generated markup is internal and may evolve. Consumers should rely on the exported helper functions where possible.
 
+## Custom renderer
+
+The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer-kity`.
+
+```ts
+import tinymce from 'tinymce';
+import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+registerFormulaXTinyMcePlugin(tinymce, {
+  renderer: createKityFormulaRenderer({
+    fontSize: 44,
+  }),
+});
+```
+
 ## Options
 
 ```ts
@@ -161,6 +177,7 @@ interface FormulaXTinyMceOptions {
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderMode?: 'text' | 'html';
+  renderer?: FormulaRenderer;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
   editor?: FormulaXEditorOptions;
@@ -178,6 +195,7 @@ interface FormulaXTinyMceOptions {
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `renderMode` | `text` | Experimental render mode option. |
+| `renderer` | `createKityFormulaRenderer()` | Renderer used when the plugin needs runtime formula HTML. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
 | `modal` | see below | Modal labels, dimensions, and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |
@@ -198,7 +216,6 @@ interface FormulaXTinyMceOptions {
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `mode` | `kity` | Formula editor runtime mode. |
 | `height` | `100%` | Embedded editor height. |
 | `autofocus` | `true` | Whether the embedded editor should autofocus. |
 | `assets` | `{}` | Optional Kity runtime asset overrides. |

@@ -2,23 +2,22 @@
 
 [English](./README.md) | 简体中文
 
-现代公式编辑器 workspace，兼容旧版 KityFormula，并支持模块化运行时加载、静态渲染和编辑器集成。
+现代公式编辑器 workspace，兼容旧版 KityFormula，并支持模块化运行时加载、共享渲染协议和富文本编辑器集成。
 
 ## 什么是 FormulaX？
 
-FormulaX 是一个现代化的公式编辑器项目。当前实现包含从 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 适配的兼容运行时，同时逐步将旧代码模块化以适配现代前端工具链、npm 包、懒加载和编辑器集成。
+FormulaX 是一个现代化的公式编辑器项目。当前实现保留了从 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 适配而来的兼容运行时，同时逐步把核心模型、渲染协议、只读渲染和宿主编辑器适配层拆分成更清晰的 packages。
 
-FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为旧版兼容层保留在 `@formulaxjs/kity-runtime` 包中。
+FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为旧版兼容后端，保存在 `@formulaxjs/kity-runtime` 中。
 
 ## 功能特性
 
 - 基于 KityFormula 兼容运行时的公式编辑
-- LaTeX 输入与渲染
-- 模块化包结构，支持懒加载模块
-- 基于 SVG 的公式渲染
-- PNG/JPG 导出（按需加载 canvg 运行时）
-- 支持渲染器和编辑器适配器扩展
-- 编辑器集成：TipTap、TinyMCE、CKEditor 5
+- 面向未来渲染引擎切换的共享 renderer 协议
+- 通过独立包提供的 Kity 只读 SVG 渲染
+- 模块化包结构和懒加载运行时 chunk
+- PNG/JPG 导出按需加载
+- Tiptap、TinyMCE、CKEditor 5 富文本集成
 
 ## Workspace 包
 
@@ -26,11 +25,12 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 | 包 | 描述 |
 | --- | --- |
-| `@formulaxjs/core` | FormulaX 核心数据模型和公共工具 |
-| `@formulaxjs/renderer` | 面向富文本适配器的静态公式渲染器 |
-| `@formulaxjs/editor` | 对外公开的 FormulaX 编辑器入口和共享集成辅助层 |
-| `@formulaxjs/kity-runtime` | 作为编辑器后端使用的 KityFormula 旧版底层兼容运行时 |
-| `@formulaxjs/tiptap` | TipTap 集成适配器 |
+| `@formulaxjs/core` | 核心数据模型、LaTeX 解析和纯逻辑 |
+| `@formulaxjs/renderer` | 共享 renderer 协议、公式 markup、基础样式、cache helper 和 SVG 工具 |
+| `@formulaxjs/renderer-kity` | 基于 Kity 的只读渲染器，将 LaTeX 转成可内联的 SVG markup |
+| `@formulaxjs/editor` | 基于 runtime 的弹窗编辑 UI 辅助层 |
+| `@formulaxjs/kity-runtime` | 旧版 KityFormula 兼容运行时、内置资源和低层编辑器工厂 |
+| `@formulaxjs/tiptap` | Tiptap 集成适配器 |
 | `@formulaxjs/tinymce` | TinyMCE 集成适配器 |
 | `@formulaxjs/ckeditor5` | CKEditor 5 集成适配器 |
 
@@ -40,40 +40,43 @@ FormulaX **不是** KityFormula 的官方项目。KityFormula 相关代码作为
 
 ## 架构设计
 
-FormulaX 通过 `@formulaxjs/editor` 暴露面向应用的编辑器 API，同时将旧版 KityFormula 运行时隔离在 `@formulaxjs/kity-runtime` 中。较大的旧版模块会逐步拆分为懒加载模块：
+现在的 FormulaX 已经把共享渲染能力、Kity 只读渲染和弹窗编辑 UI 分开：
 
-```
+```txt
 FormulaX workspace
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
-├── @formulaxjs/renderer（静态公式渲染器）
-├── @formulaxjs/editor（对外编辑器入口和共享集成辅助层）
-├── @formulaxjs/kity-runtime（旧版兼容层和内置静态资源）
+├── @formulaxjs/renderer（renderer 协议、markup、styles、svg helpers）
+├── @formulaxjs/renderer-kity（基于 Kity 的 LaTeX -> inline SVG 渲染器）
+├── @formulaxjs/editor（弹窗 UI 和内嵌编辑器编排）
+├── @formulaxjs/kity-runtime（旧版兼容运行时和内置静态资源）
 │   ├── KityFormula 运行时（懒加载 chunk）
 │   ├── Parser 运行时（懒加载 chunk）
 │   ├── 字体映射、sprite 位置映射和静态资源
 │   └── canvg 导出运行时（懒加载，仅在导出 PNG/JPG 时加载）
-├── @formulaxjs/tiptap（TipTap 适配器）
+├── @formulaxjs/tiptap（Tiptap 适配器）
 ├── @formulaxjs/tinymce（TinyMCE 适配器）
 └── @formulaxjs/ckeditor5（CKEditor 5 适配器）
 ```
 
-这种架构可以实现：
-- 默认入口保持轻量，不会提前把旧版运行时整体打包进来
-- 仅在启用公式编辑器时懒加载旧版运行时
-- 导出图片时按需加载 canvg，不影响主包体积
-- 未来可替换 KityFormula 运行时为现代渲染器
+这种划分带来的好处：
+
+- 各适配器可以共用一套 renderer 接口
+- Kity 特有的只读渲染被隔离在 `@formulaxjs/renderer-kity`
+- 弹窗编辑 UI 不再混入只读渲染职责
+- 未来引入 `renderer-katex` 时，无需整体重写适配器
 
 ## KityFormula 旧版兼容性
 
-当前编辑运行时基于百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态适配的旧版兼容层。
+当前编辑运行时仍然基于百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态兼容层。
 
-FormulaX 将这部分代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其作为公开 `@formulaxjs/editor` 入口背后的**兼容后端**，而不是长期对外架构的一部分。
+FormulaX 将这部分代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其视为兼容后端，而不是长期对外架构本体。
 
-这种做法：
-- 保留现有公式渲染行为
-- 现代化打包和懒加载
-- 为未来渲染器实现做准备
-- 支持与现代编辑器和框架集成
+这样做可以：
+
+- 保留现有编辑和渲染行为
+- 继续现代化打包和懒加载
+- 避免宿主适配器直接依赖 Kity runtime 细节
+- 为未来渲染器实现预留空间
 
 ## 快速开始
 
@@ -115,18 +118,41 @@ pnpm build
 
 ## 使用方式
 
-当前 API 仍处于实验阶段，在首个稳定 npm 版本发布前可能发生变化。
+当前 API 仍处于实验阶段，在首个稳定版本发布前可能发生变化。
 
-### 独立 Playground
-
-```bash
-pnpm dev
-```
-
-### 独立编辑器包
+### 共享渲染器
 
 ```ts
-import { FormulaXEditor } from '@formulaxjs/editor';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+const renderer = createKityFormulaRenderer({
+  fontSize: 40,
+});
+
+const { html } = await renderer.renderLatex('\\frac{a}{b}');
+```
+
+### 弹窗编辑 UI
+
+```ts
+import {
+  ensureFormulaXModalStyles,
+  mountFormulaXEditor,
+} from '@formulaxjs/editor';
+
+ensureFormulaXModalStyles(document);
+
+const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLElement, {
+  initialLatex: '\\sqrt{x}',
+});
+
+const latex = await mounted.getLatex();
+```
+
+### 低层 Kity Runtime 入口
+
+```ts
+import { FormulaXEditor } from '@formulaxjs/kity-runtime';
 
 const editor = new FormulaXEditor({
   el: '#app',
@@ -142,65 +168,7 @@ const doc = parseLatex('\\frac{a}{\\sqrt{b}}');
 const latex = serializeLatex(doc);
 ```
 
-### React 集成
-
-```tsx
-import { useEffect, useRef } from 'react';
-import { FormulaXEditor } from '@formulaxjs/editor';
-
-export function FormulaXReactExample() {
-  const hostRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!hostRef.current) {
-      return;
-    }
-
-    const editor = new FormulaXEditor({
-      el: hostRef.current,
-    });
-
-    return () => {
-      void editor.destroy();
-    };
-  }, []);
-
-  return <div ref={hostRef} />;
-}
-```
-
-### Vue 3 集成
-
-```vue
-<script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { FormulaXEditor } from '@formulaxjs/editor';
-
-const hostRef = ref<HTMLDivElement | null>(null);
-let editor: FormulaXEditor | null = null;
-
-onMounted(() => {
-  if (!hostRef.value) {
-    return;
-  }
-
-  editor = new FormulaXEditor({
-    el: hostRef.value,
-  });
-});
-
-onBeforeUnmount(() => {
-  void editor?.destroy();
-  editor = null;
-});
-</script>
-
-<template>
-  <div ref="hostRef" />
-</template>
-```
-
-### TipTap 集成
+### Tiptap 集成
 
 ```ts
 import StarterKit from '@tiptap/starter-kit';
@@ -242,7 +210,7 @@ ClassicEditor.create(document.querySelector('#editor'), {
 
 - `pnpm dev` - 启动独立 FormulaX playground
 - `pnpm dev:ckeditor5` - 启动 CKEditor 5 demo
-- `pnpm dev:tiptap` - 启动 TipTap demo
+- `pnpm dev:tiptap` - 启动 Tiptap demo
 - `pnpm dev:tinymce` - 启动 TinyMCE demo
 - `pnpm build` - 构建所有 packages 和演示应用
 - `pnpm build:packages` - 仅构建 workspace 中的 packages
@@ -257,48 +225,3 @@ ClassicEditor.create(document.querySelector('#editor'), {
 FormulaX 包含改编自百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态的代码。
 
 KityFormula 相关代码和资源保留其原始版权和许可声明。
-
-原始 KityFormula 项目提供了为 `@formulaxjs/kity-runtime` 中旧版兼容运行时提供支持的公式渲染引擎和交互模型基础。
-
-FormulaX 中的 KityFormula 相关代码：
-- 隔离在 `@formulaxjs/kity-runtime` 作为旧版兼容层
-- 不是 FormulaX 的长期架构
-- 计划在未来版本中替换或大幅重构
-
-FormulaX 与百度或原始 KityFormula 项目无关。
-
-## 发布方向
-
-在正式发布到 npm 之前，以下方面仍需要进一步打磨：
-
-- 各 package 稳定的公共 API
-- 包级 changelog 和发布说明
-- 类型声明输出清理和导出强化
-- 浏览器兼容性矩阵
-- 文档格式变更的语义化版本策略
-
-## 设计原则
-
-- 语义逻辑放在 `core`
-- 对外编辑器入口放在 `editor`
-- 旧版运行时隔离在 `kity-runtime`
-- 渲染适配器保持轻薄
-- 宿主集成保持轻薄
-
-## 协议
-
-**注意**：在正式发布到 npm 之前，应审查并最终确定 FormulaX 及所有第三方组件的许可信息。
-
-KityFormula 相关代码和资源保留其原始版权和许可声明。
-
-## 待办事项
-
-- 添加 MathML 导入/导出支持
-- 扩展 AST 支持矩阵、求和、积分和更丰富的符号库
-- 改进光标移动和嵌套选择行为
-- 添加 IME 友好的文本编辑行为
-- 添加更丰富的命令 API 用于结构化编辑
-- 改进 LaTeX 解析器的错误恢复
-- 添加协作事务钩子
-- 完成 Playwright 浏览器测试（需下载浏览器）
-- 准备 npm 发布流程，以及基于 Changesets 的自动化发版

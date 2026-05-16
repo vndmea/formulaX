@@ -4,7 +4,7 @@
 
 FormulaX 的 Tiptap 集成适配器。
 
-`@formulaxjs/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。该扩展在文档模型中只持久化 LaTeX，并在运行时渲染公式展示结果。
+`@formulaxjs/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。该扩展在文档模型中只持久化 LaTeX，并通过共享的 FormulaX renderer 接口在运行时渲染公式展示结果。
 
 > 状态：实验阶段。在首个稳定版本发布前，公共 API 仍可能调整。
 
@@ -16,6 +16,7 @@ FormulaX 的 Tiptap 集成适配器。
 - 支持双击编辑已有公式
 - 节点 attrs 中仅持久化 LaTeX
 - 在 node view 中运行时渲染 SVG
+- 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
 - 直接导出弹窗工具函数 `openFormulaXTiptapModal`
 - 兼容 Tiptap 2 和 3 的 peer dependency 范围
 
@@ -107,6 +108,21 @@ Tiptap 节点中只保存 LaTeX 源内容：
 
 节点视图会根据保存的 LaTeX 在运行时渲染 SVG。生成的 DOM 会带有 `data-formulax="true"` 和 `data-formulax-latex`，但这些渲染后的 DOM 不是持久化数据的真实来源。
 
+## 自定义 renderer
+
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer-kity` 的 `createKityFormulaRenderer()`。
+
+```ts
+import { createFormulaXNode } from '@formulaxjs/tiptap';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+const formulaNode = createFormulaXNode(undefined, {
+  renderer: createKityFormulaRenderer({
+    fontSize: 44,
+  }),
+});
+```
+
 ## 配置项
 
 ```ts
@@ -116,6 +132,7 @@ interface FormulaXTiptapOptions {
   formulaAttributeName?: string;
   cursorStyle?: string;
   initialLatex?: string;
+  renderer?: FormulaRenderer;
   modal?: {
     title?: string;
     insertText?: string;
@@ -141,6 +158,7 @@ interface FormulaXTiptapOptions {
 | `formulaAttributeName` | `data-formulax-latex` | 渲染后 DOM 中保存 LaTeX 源内容的属性名。 |
 | `cursorStyle` | `pointer` | 渲染后公式节点的鼠标光标样式。 |
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
+| `renderer` | `createKityFormulaRenderer()` | node view 中用于只读公式输出的 renderer。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |
 | `editor` | 见下方 | 内嵌 FormulaX 编辑器配置。 |
 

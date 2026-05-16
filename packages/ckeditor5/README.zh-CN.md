@@ -17,6 +17,7 @@ FormulaX 的 CKEditor 5 集成适配器。
 - 支持双击编辑已有公式
 - 在 CKEditor 5 model 中仅持久化 LaTeX 源内容
 - 在 editing view 中运行时渲染 SVG
+- 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
 - 支持在编辑器数据中对公式 markup 进行 upcast 和 downcast
 - 直接导出弹窗工具函数 `openFormulaXModal`
 
@@ -61,6 +62,7 @@ import {
 import 'ckeditor5/ckeditor5.css';
 
 import { FormulaX } from '@formulaxjs/ckeditor5';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -76,6 +78,9 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
     modal: {
       title: 'FormulaX 公式编辑器',
     },
+    renderer: createKityFormulaRenderer({
+      fontSize: 40,
+    }),
     editor: {
       render: {
         fontsize: 40,
@@ -161,6 +166,10 @@ CKEditor 5 的 model 层只保存公式的 LaTeX 源内容：
 
 编辑态中的 SVG 由持久化的 LaTeX 在运行时生成。用于渲染公式的内部 HTML 结构属于实现细节，后续可能演进。业务侧应优先依赖插件能力和导出的配置项，而不是写死完整 markup 结构。
 
+## 自定义 renderer
+
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer-kity` 的 `createKityFormulaRenderer()`。
+
 ## 配置项
 
 ```ts
@@ -172,6 +181,7 @@ interface FormulaXCKEditor5Options {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  renderer?: FormulaRenderer;
   modal?: {
     title?: string;
     insertText?: string;
@@ -199,6 +209,7 @@ interface FormulaXCKEditor5Options {
 | `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
+| `renderer` | `createKityFormulaRenderer()` | editing view 中运行时 SVG 输出使用的 renderer。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |
 | `editor` | 见下方 | 内嵌 FormulaX 编辑器配置。 |
 

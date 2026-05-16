@@ -18,6 +18,7 @@ FormulaX 的 TinyMCE 集成适配器。
 - 面向 TinyMCE `>=5 <9` 的兼容层
 - 通过 `data-formulax-latex` 持久化 LaTeX 源内容
 - 提供创建、解析、序列化、查找和替换公式元素的 markup 工具函数
+- 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
 
 ## 兼容性
 
@@ -64,7 +65,6 @@ registerFormulaXTinyMcePlugin(tinymce, {
     title: 'FormulaX 公式编辑器',
   },
   editor: {
-    mode: 'kity',
     height: '100%',
     autofocus: true,
     render: { fontsize: 40 },
@@ -148,6 +148,22 @@ if (isFormulaElement(element)) {
 
 具体生成的 HTML 结构属于内部实现，后续可能演进。业务侧应优先依赖导出的工具函数。
 
+## 自定义 renderer
+
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer-kity` 的 `createKityFormulaRenderer()`。
+
+```ts
+import tinymce from 'tinymce';
+import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+registerFormulaXTinyMcePlugin(tinymce, {
+  renderer: createKityFormulaRenderer({
+    fontSize: 44,
+  }),
+});
+```
+
 ## 配置项
 
 ```ts
@@ -161,6 +177,7 @@ interface FormulaXTinyMceOptions {
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderMode?: 'text' | 'html';
+  renderer?: FormulaRenderer;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
   editor?: FormulaXEditorOptions;
@@ -178,6 +195,7 @@ interface FormulaXTinyMceOptions {
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
 | `renderMode` | `text` | 实验性的渲染模式配置。 |
+| `renderer` | `createKityFormulaRenderer()` | 插件在需要运行时公式 HTML 时使用的 renderer。 |
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
 | `modal` | 见下方 | 弹窗标题、按钮文本、尺寸和关闭行为。 |
 | `editor` | 见下方 | 内嵌 FormulaX 编辑器配置。 |
@@ -198,7 +216,6 @@ interface FormulaXTinyMceOptions {
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `mode` | `kity` | 公式编辑器运行时模式。 |
 | `height` | `100%` | 内嵌编辑器高度。 |
 | `autofocus` | `true` | 内嵌编辑器是否自动聚焦。 |
 | `assets` | `{}` | 可选的 Kity runtime 资源覆盖配置。 |

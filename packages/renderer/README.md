@@ -1,8 +1,8 @@
 # @formulaxjs/renderer
 
-Static rendering helpers for FormulaX rich-text integrations.
+Shared renderer contracts and formula markup utilities for FormulaX.
 
-`@formulaxjs/renderer` contains DOM-level helpers for working with rendered SVG formulas, including reading the rendered box and serializing SVG for inline insertion.
+`@formulaxjs/renderer` is the renderer-common layer. It does not bind to Kity, KaTeX, or any host editor. Instead, it provides shared types, formula DOM helpers, base styles, cache helpers, and SVG post-processing utilities that concrete renderer packages and editor adapters can reuse.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -14,23 +14,37 @@ pnpm add @formulaxjs/renderer
 
 ## Highlights
 
-- `readRenderedFormulaSvgBox` for measuring rendered formula bounds
-- `serializeSvgForInsertion` for producing inline-safe SVG markup
-- `FormulaRenderMode` type for renderer mode selection
+- `FormulaRenderer`, `FormulaRenderOptions`, and `FormulaRenderResult`
+- `createFormulaMarkup` and `createFormulaElement`
+- `ensureFormulaXBaseStyles`
+- `createFormulaRenderCacheKey`
+- `readRenderedFormulaSvgBox` and `serializeSvgForInsertion`
 
 ## Example
 
 ```ts
-import { readRenderedFormulaSvgBox, serializeSvgForInsertion } from '@formulaxjs/renderer';
+import {
+  createFormulaMarkup,
+  ensureFormulaXBaseStyles,
+  serializeSvgForInsertion,
+} from '@formulaxjs/renderer';
+
+ensureFormulaXBaseStyles(document);
+
+const markup = createFormulaMarkup('\\sqrt{x}');
 
 const svg = document.querySelector('svg');
-
 if (svg instanceof SVGSVGElement) {
-  console.log(readRenderedFormulaSvgBox(svg));
   console.log(serializeSvgForInsertion(svg));
 }
 ```
 
 ## Package role
 
-Use this package in rich-text editor adapters or export pipelines that need to post-process FormulaX-generated SVG output.
+Use this package when you need shared renderer-facing primitives:
+
+- host-editor adapters that need stable formula markup helpers
+- concrete renderer packages such as `@formulaxjs/renderer-kity`
+- export or post-processing flows that work with rendered SVG
+
+If you need a concrete Kity-backed renderer, use `@formulaxjs/renderer-kity`.
