@@ -18,6 +18,7 @@ FormulaX 的 CKEditor 5 集成适配器。
 - 在 CKEditor 5 model 中仅持久化 LaTeX 源内容
 - 在 editing view 中运行时渲染 SVG
 - 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
+- 支持在首次打开弹窗前预加载 runtime
 - 支持在编辑器数据中对公式 markup 进行 upcast 和 downcast
 - 直接导出弹窗工具函数 `openFormulaXModal`
 
@@ -182,6 +183,7 @@ interface FormulaXCKEditor5Options {
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderer?: FormulaRenderer;
+  preload?: FormulaXEditorPreloadMode;
   modal?: {
     title?: string;
     insertText?: string;
@@ -210,6 +212,7 @@ interface FormulaXCKEditor5Options {
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
 | `renderer` | `createKityFormulaRenderer()` | editing view 中运行时 SVG 输出使用的 renderer。 |
+| `preload` | `idle` | 控制在浏览器空闲时、宿主 hover/focus 时，或完全不预加载 FormulaX runtime。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |
 | `editor` | 见下方 | 内嵌 FormulaX 编辑器配置。 |
 

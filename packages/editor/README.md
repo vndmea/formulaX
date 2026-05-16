@@ -17,6 +17,7 @@ pnpm add @formulaxjs/editor
 - `ensureFormulaXModalStyles`
 - `formulaXModalStyles`
 - `mountFormulaXEditor`
+- `preloadFormulaXEditor` and `scheduleFormulaXEditorPreload`
 - `getLatex()`, `getState()`, and `getRenderHtml()` on the mounted editor handle
 
 ## Example
@@ -37,6 +38,24 @@ const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLEleme
 const latex = await mounted.getLatex();
 const html = await mounted.getRenderHtml();
 ```
+
+## Preloading
+
+If you want the FormulaX runtime to start loading before the user opens the modal, use the preload helpers:
+
+```ts
+import { scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
+
+const cleanup = scheduleFormulaXEditorPreload('hover', document.querySelector('#open-formula'));
+
+// Call cleanup() if the host UI is torn down before preload triggers.
+```
+
+Supported preload modes:
+
+- `idle` schedules runtime loading when the browser is idle.
+- `hover` waits for `pointerenter` or `focusin` on the provided target.
+- `false` disables preloading.
 
 ## Package role
 

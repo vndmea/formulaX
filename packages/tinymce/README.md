@@ -19,6 +19,7 @@ TinyMCE integration adapter for FormulaX.
 - LaTeX persistence through `data-formulax-latex`
 - Markup helpers for creating, parsing, serializing, finding, and replacing formula elements
 - Default read-only rendering through `@formulaxjs/renderer-kity`
+- Optional runtime preload before the first modal open
 
 ## Compatibility
 
@@ -177,6 +178,7 @@ interface FormulaXTinyMceOptions {
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderer?: FormulaRenderer;
+  preload?: FormulaXEditorPreloadMode;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
   editor?: FormulaXEditorOptions;
@@ -194,6 +196,7 @@ interface FormulaXTinyMceOptions {
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used when the plugin needs runtime formula HTML. |
+| `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
 | `modal` | see below | Modal labels, dimensions, and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |

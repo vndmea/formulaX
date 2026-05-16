@@ -16,6 +16,7 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 - 面向未来渲染引擎切换的共享 renderer 协议
 - 通过独立包提供的 Kity 只读 SVG 渲染
 - 模块化包结构和懒加载运行时 chunk
+- 支持空闲时或悬停时预加载，减少首次打开编辑器的等待
 - PNG/JPG 导出按需加载
 - Tiptap、TinyMCE、CKEditor 5 富文本集成
 
@@ -75,6 +76,7 @@ FormulaX 将这部分代码保留在独立运行时包（`@formulaxjs/kity-runti
 
 - 保留现有编辑和渲染行为
 - 继续现代化打包和懒加载
+- 让宿主适配器能在首次打开弹窗前预加载 runtime
 - 避免宿主适配器直接依赖 Kity runtime 细节
 - 为未来渲染器实现预留空间
 

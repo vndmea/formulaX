@@ -16,6 +16,7 @@ It is **not** an official KityFormula project. KityFormula-related code is treat
 - Shared renderer protocol for future engine swapping
 - Kity-based read-only SVG rendering through a dedicated renderer package
 - Modular package structure with lazy-loaded runtime chunks
+- Optional idle or hover preloading to reduce the first editor-open delay
 - PNG/JPG export support loaded on demand
 - Rich-text editor integrations for Tiptap, TinyMCE, and CKEditor 5
 
@@ -75,6 +76,7 @@ This approach:
 
 - Preserves existing editing and rendering behavior
 - Modernizes packaging and lazy loading
+- Allows host adapters to preload the runtime before the first modal open
 - Keeps host adapters decoupled from direct Kity runtime usage
 - Prepares for future renderer implementations
 

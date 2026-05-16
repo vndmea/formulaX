@@ -1,4 +1,4 @@
-# @formulaxjs/tinymce
+# @formulaxjs/renderer-kity
 
 ## 0.2.0
 
@@ -9,21 +9,5 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @formulaxjs/editor@0.3.0
+  - @formulaxjs/kity-runtime@0.3.0
   - @formulaxjs/renderer@0.2.0
-  - @formulaxjs/renderer-kity@0.2.0
-
-## 0.1.2
-
-### Patch Changes
-
-- Updated dependencies
-  - @formulaxjs/editor@0.2.0
-
-## 0.1.1
-
-### Patch Changes
-
-- Updated dependencies
-  - @formulaxjs/kity-runtime@0.2.0
-  - @formulaxjs/editor@0.1.1

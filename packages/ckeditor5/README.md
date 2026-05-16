@@ -18,6 +18,7 @@ CKEditor 5 integration adapter for FormulaX.
 - Persist only LaTeX source in the CKEditor 5 model
 - Runtime SVG rendering in the editing view
 - Default read-only rendering through `@formulaxjs/renderer-kity`
+- Optional runtime preload before the first modal open
 - Upcast and downcast support for formula markup in editor data
 - Direct modal helper export through `openFormulaXModal`
 
@@ -182,6 +183,7 @@ interface FormulaXCKEditor5Options {
   formulaClassName?: string;
   formulaAttributeName?: string;
   renderer?: FormulaRenderer;
+  preload?: FormulaXEditorPreloadMode;
   modal?: {
     title?: string;
     insertText?: string;
@@ -210,6 +212,7 @@ interface FormulaXCKEditor5Options {
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used for runtime SVG output in the editing view. |
+| `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `modal` | see below | Modal labels and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |
 

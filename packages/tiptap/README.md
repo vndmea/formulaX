@@ -17,6 +17,7 @@ Tiptap integration adapter for FormulaX.
 - Persist only LaTeX in node attrs
 - Runtime SVG rendering in the node view
 - Default read-only rendering through `@formulaxjs/renderer-kity`
+- Optional runtime preload before the first modal open
 - Modal helper export through `openFormulaXTiptapModal`
 - Compatible peer dependency range for Tiptap 2 and 3
 
@@ -133,6 +134,7 @@ interface FormulaXTiptapOptions {
   cursorStyle?: string;
   initialLatex?: string;
   renderer?: FormulaRenderer;
+  preload?: FormulaXEditorPreloadMode;
   modal?: {
     title?: string;
     insertText?: string;
@@ -159,6 +161,7 @@ interface FormulaXTiptapOptions {
 | `cursorStyle` | `pointer` | Cursor style applied to rendered formula nodes. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used for read-only formula output in the node view. |
+| `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `modal` | see below | Modal labels and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |
 
