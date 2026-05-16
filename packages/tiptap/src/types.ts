@@ -1,4 +1,4 @@
-import type { FormulaXEditorOptions } from '@formulaxjs/editor';
+import type { FormulaXEditorOptions, FormulaXEditorPreloadMode } from '@formulaxjs/editor';
 import type { FormulaRenderer } from '@formulaxjs/renderer';
 
 export interface FormulaXPayload {
@@ -12,6 +12,7 @@ export interface FormulaXTiptapOptions {
   cursorStyle?: string;
   initialLatex?: string;
   renderer?: FormulaRenderer;
+  preload?: FormulaXEditorPreloadMode;
   modal?: {
     title?: string;
     insertText?: string;
@@ -29,6 +30,7 @@ export interface RequiredFormulaXTiptapOptions {
   cursorStyle: string;
   initialLatex: string;
   renderer: FormulaRenderer;
+  preload: FormulaXEditorPreloadMode;
   modal: {
     title: string;
     insertText: string;

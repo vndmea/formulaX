@@ -14,7 +14,7 @@ import {
   ensureFormulaXBaseStyles,
 } from '@formulaxjs/renderer';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
-import { ensureFormulaXModalStyles } from '@formulaxjs/editor';
+import { ensureFormulaXModalStyles, scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
 import { openFormulaXModal } from './modal';
 import type {
   FormulaXCKEditor5Options,
@@ -41,6 +41,7 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
       height: options.editor?.height ?? '100%',
       assets: options.editor?.assets ?? {},
     }),
+    preload: options.preload ?? 'idle',
     modal: {
       title: options.modal?.title ?? 'FormulaX Editor',
       insertText: options.modal?.insertText ?? 'Insert',
@@ -89,6 +90,8 @@ export class FormulaXCommand extends Command {
 }
 
 export class FormulaX extends Plugin {
+  private preloadCleanup: (() => void) | null = null;
+
   static get pluginName(): string {
     return 'FormulaX';
   }
@@ -111,6 +114,10 @@ export class FormulaX extends Plugin {
 
     ensureFormulaXBaseStyles(document);
     ensureFormulaXModalStyles(document);
+    this.preloadCleanup = scheduleFormulaXEditorPreload(
+      options.preload,
+      getEditorPreloadTarget(editor),
+    );
     defineFormulaSchema(editor, options.name);
     defineFormulaConverters(editor, options);
     editor.editing.mapper.on(
@@ -135,6 +142,12 @@ export class FormulaX extends Plugin {
 
       return button;
     });
+  }
+
+  override destroy(): void {
+    this.preloadCleanup?.();
+    this.preloadCleanup = null;
+    super.destroy();
   }
 }
 
@@ -345,6 +358,12 @@ function extractInnerHtml(markup: string): string {
   const wrapper = document.createElement('span');
   wrapper.innerHTML = markup;
   return wrapper.firstElementChild?.innerHTML ?? '';
+}
+
+function getEditorPreloadTarget(editor: any): EventTarget | null {
+  return editor?.ui?.getEditableElement?.()
+    ?? editor?.ui?.view?.editable?.element
+    ?? null;
 }
 
 function getSelectedFormulaModelElement(editor: any, modelName: string): any | null {

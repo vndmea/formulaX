@@ -1,4 +1,13 @@
-import { ensureFormulaXModalStyles, mountFormulaXEditor } from '@formulaxjs/editor';
+import {
+  clearFormulaXPerfMarks,
+  ensureFormulaXModalStyles,
+  markFormulaXPerf,
+  measureFormulaXPerf,
+  mountFormulaXEditor,
+  recordFormulaXPerfPoint,
+  renderFormulaXEditorLoadingState,
+  waitForFormulaXAnimationFrame,
+} from '@formulaxjs/editor';
 import { escapeAttribute, escapeHtml } from '@formulaxjs/renderer';
 import type { FormulaXPayload, RequiredFormulaXCKEditor5Options } from './types';
 
@@ -9,6 +18,8 @@ export interface OpenFormulaXModalInput {
 }
 
 export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<FormulaXPayload | null> {
+  recordFormulaXPerfPoint('fx:modal:open:start');
+  const modalOpenStart = markFormulaXPerf('fx:modal:open:start:scope');
   ensureFormulaXModalStyles(document);
 
   const root = document.createElement('div');
@@ -36,30 +47,67 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
 
   document.body.appendChild(root);
   document.body.classList.add('fx-formula-modal-open');
+  const modalDomReadyMark = markFormulaXPerf('fx:modal:dom-ready');
+  measureFormulaXPerf('fx:modal:dom-ready', modalOpenStart, modalDomReadyMark);
+  clearFormulaXPerfMarks(modalDomReadyMark);
 
   const host = root.querySelector<HTMLElement>('.fx-formula-editor-host');
   if (!host) {
     root.remove();
+    clearFormulaXPerfMarks(modalOpenStart);
     return Promise.reject(new Error('[FormulaX] CKEditor 5 modal host not found.'));
   }
 
-  const mounted = mountFormulaXEditor(host, {
-    initialLatex: input.initialLatex,
-    height: input.options.editor.height,
-    autofocus: input.options.editor.autofocus,
-    assets: input.options.editor.assets,
-    render: {
-      fontsize: input.options.editor.render.fontsize,
-    },
-  });
+  renderFormulaXEditorLoadingState(host);
   let closed = false;
+  let mounted: ReturnType<typeof mountFormulaXEditor> | null = null;
+
+  const mountedPromise = waitForFormulaXAnimationFrame()
+    .then(() => {
+      if (closed) {
+        clearFormulaXPerfMarks(modalOpenStart);
+        return null;
+      }
+
+      const mountStartMark = markFormulaXPerf('fx:modal:editor-mount-start');
+      measureFormulaXPerf('fx:modal:editor-mount-start', modalOpenStart, mountStartMark);
+      clearFormulaXPerfMarks(mountStartMark);
+
+      const nextMounted = mountFormulaXEditor(host, {
+        initialLatex: input.initialLatex,
+        height: input.options.editor.height,
+        autofocus: input.options.editor.autofocus,
+        assets: input.options.editor.assets,
+        render: {
+          fontsize: input.options.editor.render.fontsize,
+        },
+      });
+
+      mounted = nextMounted;
+
+      const mountedMark = markFormulaXPerf('fx:modal:editor-mounted');
+      measureFormulaXPerf('fx:modal:editor-mounted', modalOpenStart, mountedMark);
+      clearFormulaXPerfMarks(mountedMark, modalOpenStart);
+
+      queueMicrotask(() => {
+        if (!closed) {
+          nextMounted.root.focus();
+        }
+      });
+
+      return nextMounted;
+    })
+    .catch((error) => {
+      clearFormulaXPerfMarks(modalOpenStart);
+      throw error;
+    });
 
   return new Promise((resolve) => {
     const close = (payload: FormulaXPayload | null): void => {
       if (closed) return;
       closed = true;
 
-      mounted.destroy();
+      mounted?.destroy();
       root.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKeydown, true);
       root.remove();
@@ -69,7 +117,12 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
 
     const submit = async (): Promise<void> => {
       try {
-        const latex = await mounted.getLatex();
+        const activeMounted = mounted ?? await mountedPromise;
+        if (!activeMounted) {
+          return;
+        }
+
+        const latex = await activeMounted.getLatex();
         close({ latex });
       } catch (error) {
         host.innerHTML = `
@@ -109,9 +162,5 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
 
     root.addEventListener('click', onClick);
     document.addEventListener('keydown', onKeydown, true);
-
-    queueMicrotask(() => {
-      mounted.root.focus();
-    });
   });
 }

@@ -8,7 +8,7 @@ import {
   getFormulaLatexFromElement,
 } from '@formulaxjs/renderer';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
-import { ensureFormulaXModalStyles } from '@formulaxjs/editor';
+import { ensureFormulaXModalStyles, scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
 import { openFormulaXTiptapModal } from './modal';
 import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
 
@@ -38,6 +38,7 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
       height: options.editor?.height ?? '100%',
       assets: options.editor?.assets ?? {},
     }),
+    preload: options.preload ?? 'idle',
     modal: {
       title: options.modal?.title ?? 'FormulaX Editor',
       insertText: options.modal?.insertText ?? 'Insert',
@@ -81,12 +82,33 @@ function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
     addOptions() {
       return options;
     },
+    addStorage() {
+      return {
+        preloadCleanup: null as null | (() => void),
+      };
+    },
     onCreate() {
       warnDuplicateNodeName(this);
 
       if (typeof document !== 'undefined') {
         ensureFormulaXBaseStyles(document);
         ensureFormulaXModalStyles(document);
+      }
+
+      const preloadCleanup = scheduleFormulaXEditorPreload(
+        options.preload,
+        this.editor?.view?.dom ?? null,
+      );
+
+      if (this.storage) {
+        this.storage.preloadCleanup = preloadCleanup;
+      }
+    },
+    onDestroy() {
+      this.storage?.preloadCleanup?.();
+
+      if (this.storage) {
+        this.storage.preloadCleanup = null;
       }
     },
     addAttributes() {

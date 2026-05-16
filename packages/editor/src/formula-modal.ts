@@ -5,6 +5,12 @@ import {
   serializeKityFormulaFromRoot,
   waitForKityFormulaSvgLayout,
 } from '@formulaxjs/renderer-kity';
+import {
+  clearFormulaXPerfMarks,
+  markFormulaXPerf,
+  measureFormulaXPerf,
+  recordFormulaXPerfPoint,
+} from './perf';
 
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
 const STYLE_ID = 'fx-formula-modal-styles';
@@ -250,21 +256,30 @@ export function ensureFormulaXModalStyles(doc: Document = document): void {
   doc.head.appendChild(style);
 }
 
-export function mountFormulaXEditor(
-  root: HTMLElement,
-  options: FormulaXEditorOptions = {},
-): MountedFormulaXEditor {
-  let destroyed = false;
-  let latestLatex = options.initialLatex ?? '';
-  let handle: KityEditorHandle | null = null;
-  const initialLatex = latestLatex.trim() ? latestLatex : EMPTY_FORMULA_PLACEHOLDER;
-
+export function renderFormulaXEditorLoadingState(root: HTMLElement): void {
   root.classList.add('fx-formula-kity-host');
   root.innerHTML = `
     <div class="fx-formula-editor-loading" role="status" aria-live="polite">
       Loading FormulaX editor...
     </div>
   `;
+}
+
+export function mountFormulaXEditor(
+  root: HTMLElement,
+  options: FormulaXEditorOptions = {},
+): MountedFormulaXEditor {
+  recordFormulaXPerfPoint('fx:formula-editor:mount:start');
+  const mountStart = markFormulaXPerf('fx:formula-editor:mount:start:scope');
+  let destroyed = false;
+  let latestLatex = options.initialLatex ?? '';
+  let handle: KityEditorHandle | null = null;
+  const initialLatex = latestLatex.trim() ? latestLatex : EMPTY_FORMULA_PLACEHOLDER;
+
+  renderFormulaXEditorLoadingState(root);
+  const loadingVisibleMark = markFormulaXPerf('fx:formula-editor:loading-visible');
+  measureFormulaXPerf('fx:formula-editor:loading-visible', mountStart, loadingVisibleMark);
+  clearFormulaXPerfMarks(loadingVisibleMark);
 
   const readyPromise = mountKityEditor(root, {
     initialLatex,
@@ -281,6 +296,9 @@ export function mountFormulaXEditor(
         throw new Error('FormulaX editor mount cancelled');
       }
 
+      const readyMark = markFormulaXPerf('fx:kity-editor:ready');
+      measureFormulaXPerf('fx:kity-editor:ready', mountStart, readyMark);
+      clearFormulaXPerfMarks(readyMark);
       handle = nextHandle;
       return nextHandle;
     })
@@ -297,6 +315,9 @@ export function mountFormulaXEditor(
       }
 
       throw error;
+    })
+    .finally(() => {
+      clearFormulaXPerfMarks(mountStart);
     });
 
   const getCurrentLatex = async (): Promise<string> => {

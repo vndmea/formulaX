@@ -1,4 +1,12 @@
 import type { FormulaXModalOpenOptions, TinyMceEditorLike } from './types';
+import {
+  clearFormulaXPerfMarks,
+  markFormulaXPerf,
+  measureFormulaXPerf,
+  recordFormulaXPerfPoint,
+  renderFormulaXEditorLoadingState,
+  waitForFormulaXAnimationFrame,
+} from '@formulaxjs/editor';
 import { ensureTinyMceStyles } from './styles';
 import { mountFormulaXEditorInModal } from './editor-host';
 import {
@@ -15,6 +23,8 @@ export interface OpenFormulaXModalResult {
 }
 
 export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenFormulaXModalResult {
+  recordFormulaXPerfPoint('fx:modal:open:start');
+  const modalOpenStart = markFormulaXPerf('fx:modal:open:start:scope');
   ensureTinyMceStyles(document);
 
   const { editor, target, options } = input;
@@ -49,21 +59,57 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
 
   document.body.appendChild(root);
   document.body.classList.add('fx-formula-modal-open');
+  const modalDomReadyMark = markFormulaXPerf('fx:modal:dom-ready');
+  measureFormulaXPerf('fx:modal:dom-ready', modalOpenStart, modalDomReadyMark);
+  clearFormulaXPerfMarks(modalDomReadyMark);
 
   const host = root.querySelector<HTMLElement>('.fx-formula-editor-host');
   if (!host) {
     root.remove();
+    clearFormulaXPerfMarks(modalOpenStart);
     throw new Error('[FormulaX] Modal editor host not found.');
   }
 
-  const mounted = mountFormulaXEditorInModal(host, { initialLatex, options });
+  renderFormulaXEditorLoadingState(host);
   let closed = false;
+  let mounted: ReturnType<typeof mountFormulaXEditorInModal> | null = null;
+
+  const mountedPromise = waitForFormulaXAnimationFrame()
+    .then(() => {
+      if (closed) {
+        clearFormulaXPerfMarks(modalOpenStart);
+        return null;
+      }
+
+      const mountStartMark = markFormulaXPerf('fx:modal:editor-mount-start');
+      measureFormulaXPerf('fx:modal:editor-mount-start', modalOpenStart, mountStartMark);
+      clearFormulaXPerfMarks(mountStartMark);
+
+      const nextMounted = mountFormulaXEditorInModal(host, { initialLatex, options });
+      mounted = nextMounted;
+
+      const mountedMark = markFormulaXPerf('fx:modal:editor-mounted');
+      measureFormulaXPerf('fx:modal:editor-mounted', modalOpenStart, mountedMark);
+      clearFormulaXPerfMarks(mountedMark, modalOpenStart);
+
+      queueMicrotask(() => {
+        if (!closed) {
+          nextMounted.root.focus();
+        }
+      });
+
+      return nextMounted;
+    })
+    .catch((error) => {
+      clearFormulaXPerfMarks(modalOpenStart);
+      throw error;
+    });
 
   const close = (): void => {
     if (closed) return;
     closed = true;
 
-    mounted.destroy();
+    mounted?.destroy();
     root.removeEventListener('click', onClick);
     document.removeEventListener('keydown', onKeydown, true);
     root.remove();
@@ -72,7 +118,12 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
   };
 
   const submit = async (): Promise<void> => {
-    const latex = await mounted.getLatex();
+    const activeMounted = mounted ?? await mountedPromise;
+    if (!activeMounted) {
+      return;
+    }
+
+    const latex = await activeMounted.getLatex();
     const renderHtml = latex.trim()
       ? (await options.renderer.renderLatex(latex, {
           fontSize: options.editor.render?.fontsize ?? 40,
@@ -136,10 +187,6 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
 
   root.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeydown, true);
-
-  queueMicrotask(() => {
-    mounted.root.focus();
-  });
 
   return { close };
 }

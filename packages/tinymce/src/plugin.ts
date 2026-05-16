@@ -4,6 +4,7 @@ import type {
   TinyMceEditorLike,
   TinyMceLike,
 } from './types';
+import { scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import { createTinyMceCompat, warnUnsupportedTinyMceVersion } from './compat';
 import { findFormulaElement } from './markup';
@@ -43,6 +44,7 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
       height: options.editor?.height ?? '100%',
       assets: options.editor?.assets ?? {},
     }),
+    preload: options.preload ?? 'idle',
     modal: {
       title: options.modal?.title ?? 'FormulaX',
       insertText: options.modal?.insertText ?? 'Insert',
@@ -78,6 +80,7 @@ export function registerFormulaXTinyMcePlugin(
     resolved.pluginName,
     function FormulaXTinyMcePlugin(editor: TinyMceEditorLike): undefined {
       const compat = createTinyMceCompat(editor, tinymce);
+      let preloadCleanup: (() => void) | null = null;
       editor.schema?.addValidElements?.(FORMULAX_SVG_VALID_ELEMENTS);
 
       const open = (target?: HTMLElement | null): void => {
@@ -112,6 +115,11 @@ export function registerFormulaXTinyMcePlugin(
         if (editorDoc) {
           ensureTinyMceStyles(editorDoc);
         }
+
+        preloadCleanup = scheduleFormulaXEditorPreload(
+          resolved.preload,
+          editor.getBody?.() ?? null,
+        );
       });
 
       editor.on('dblclick', (event: unknown) => {
@@ -128,6 +136,11 @@ export function registerFormulaXTinyMcePlugin(
         if (!formula) return;
         e.preventDefault?.();
         open(formula);
+      });
+
+      editor.on('remove', () => {
+        preloadCleanup?.();
+        preloadCleanup = null;
       });
 
       return undefined;

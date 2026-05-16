@@ -16,6 +16,11 @@ import { legacyUiDef } from './vendor/legacy-ui-def';
 import { legacyUiUtils } from './vendor/legacy-ui-utils';
 import { legacyBaseUtils } from './vendor/legacy-utils';
 import { installKityRuntime } from './kity/index';
+import {
+  clearFormulaXPerfMarks,
+  markFormulaXPerf,
+  measureFormulaXPerf,
+} from './perf';
 import { setToolbarAssetUrls } from './toolbar-assets';
 
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
@@ -147,9 +152,9 @@ function resolveEditorAssets(assets?: Partial<KityEditorAssets>): KityEditorAsse
   };
 }
 
-function ensureKityStylesheet(doc: Document, href: string): void {
+function ensureKityStylesheet(doc: Document, href: string): boolean {
   if (doc.getElementById(KITY_STYLE_ID)) {
-    return;
+    return false;
   }
 
   const link = doc.createElement('link');
@@ -157,6 +162,7 @@ function ensureKityStylesheet(doc: Document, href: string): void {
   link.rel = 'stylesheet';
   link.href = href;
   doc.head.appendChild(link);
+  return true;
 }
 
 function hydrateLegacyKf(runtimeWindow: KityWindow) {
@@ -222,23 +228,57 @@ export async function ensureKityRuntime() {
   }
 
   runtimePromise = (async () => {
+    const runtimeTotalStart = markFormulaXPerf('fx:kity-runtime:total');
     const runtimeWindow = window as KityWindow;
 
     runtimeWindow.kf = runtimeWindow.kf ?? {};
 
     installKityRuntime(runtimeWindow);
 
-    const { installLegacyKityFormulaRuntime } = await import('./vendor/kity-formula/install');
-    installLegacyKityFormulaRuntime(runtimeWindow);
-    hydrateLegacyKf(runtimeWindow);
+    try {
+      const formulaImportStart = markFormulaXPerf('fx:kity-runtime:formula-import');
+      const { installLegacyKityFormulaRuntime } = await import('./vendor/kity-formula/install');
+      const formulaImportEnd = markFormulaXPerf('fx:kity-runtime:formula-import:end');
+      measureFormulaXPerf('fx:kity-runtime:formula-import', formulaImportStart, formulaImportEnd);
+      clearFormulaXPerfMarks(formulaImportStart, formulaImportEnd);
 
-    const { installLegacyParserRuntime } = await import('./vendor/kity-formula-parser/install');
-    installLegacyParserRuntime(runtimeWindow);
+      const formulaInstallStart = markFormulaXPerf('fx:kity-runtime:formula-install');
+      installLegacyKityFormulaRuntime(runtimeWindow);
+      hydrateLegacyKf(runtimeWindow);
+      const formulaInstallEnd = markFormulaXPerf('fx:kity-runtime:formula-install:end');
+      measureFormulaXPerf('fx:kity-runtime:formula-install', formulaInstallStart, formulaInstallEnd);
+      clearFormulaXPerfMarks(formulaInstallStart, formulaInstallEnd);
 
-    installLegacyRuntime(runtimeWindow);
+      const parserImportStart = markFormulaXPerf('fx:kity-runtime:parser-import');
+      const { installLegacyParserRuntime } = await import('./vendor/kity-formula-parser/install');
+      const parserImportEnd = markFormulaXPerf('fx:kity-runtime:parser-import:end');
+      measureFormulaXPerf('fx:kity-runtime:parser-import', parserImportStart, parserImportEnd);
+      clearFormulaXPerfMarks(parserImportStart, parserImportEnd);
 
-    const { installKityEditorStart } = await import('./boot/start');
-    installKityEditorStart(runtimeWindow);
+      const parserInstallStart = markFormulaXPerf('fx:kity-runtime:parser-install');
+      installLegacyParserRuntime(runtimeWindow);
+      const parserInstallEnd = markFormulaXPerf('fx:kity-runtime:parser-install:end');
+      measureFormulaXPerf('fx:kity-runtime:parser-install', parserInstallStart, parserInstallEnd);
+      clearFormulaXPerfMarks(parserInstallStart, parserInstallEnd);
+
+      installLegacyRuntime(runtimeWindow);
+
+      const bootImportStart = markFormulaXPerf('fx:kity-runtime:boot-import');
+      const { installKityEditorStart } = await import('./boot/start');
+      const bootImportEnd = markFormulaXPerf('fx:kity-runtime:boot-import:end');
+      measureFormulaXPerf('fx:kity-runtime:boot-import', bootImportStart, bootImportEnd);
+      clearFormulaXPerfMarks(bootImportStart, bootImportEnd);
+
+      const bootInstallStart = markFormulaXPerf('fx:kity-runtime:boot-install');
+      installKityEditorStart(runtimeWindow);
+      const bootInstallEnd = markFormulaXPerf('fx:kity-runtime:boot-install:end');
+      measureFormulaXPerf('fx:kity-runtime:boot-install', bootInstallStart, bootInstallEnd);
+      clearFormulaXPerfMarks(bootInstallStart, bootInstallEnd);
+    } finally {
+      const runtimeTotalEnd = markFormulaXPerf('fx:kity-runtime:total:end');
+      measureFormulaXPerf('fx:kity-runtime:total', runtimeTotalStart, runtimeTotalEnd);
+      clearFormulaXPerfMarks(runtimeTotalStart, runtimeTotalEnd);
+    }
   })();
 
   return runtimePromise;
@@ -248,58 +288,79 @@ export async function createKityEditor(
   container: HTMLElement,
   options: KityEditorOptions = {},
 ): Promise<KityEditorHandle> {
+  const createEditorStart = markFormulaXPerf('fx:create-kity-editor:total');
   const fontsize = options.render?.fontsize ?? 40;
   const editorHeight = normalizeCssSize(options.height, DEFAULT_EDITOR_HEIGHT);
   const assets = resolveEditorAssets(options.assets);
 
-  ensureKityStylesheet(document, assets.styles.editor);
-  setToolbarAssetUrls(assets.toolbar);
+  try {
+    const stylesheetInserted = ensureKityStylesheet(document, assets.styles.editor);
+    if (stylesheetInserted) {
+      const stylesheetInsertedMark = markFormulaXPerf('fx:kity-css:link-inserted');
+      measureFormulaXPerf('fx:kity-css:link-inserted', createEditorStart, stylesheetInsertedMark);
+      clearFormulaXPerfMarks(stylesheetInsertedMark);
+    }
 
-  await ensureKityRuntime();
+    setToolbarAssetUrls(assets.toolbar);
 
-  const runtimeWindow = window as KityWindow;
+    await ensureKityRuntime();
 
-  if (!runtimeWindow.kf?.EditorFactory) {
-    throw new Error('Kity editor runtime did not initialize');
+    const runtimeReadyMark = markFormulaXPerf('fx:kity-runtime:ready-for-editor');
+    measureFormulaXPerf('fx:kity-runtime:ready-for-editor', createEditorStart, runtimeReadyMark);
+    clearFormulaXPerfMarks(runtimeReadyMark);
+
+    const runtimeWindow = window as KityWindow;
+
+    if (!runtimeWindow.kf?.EditorFactory) {
+      throw new Error('Kity editor runtime did not initialize');
+    }
+
+    container.innerHTML = '';
+
+    const host = document.createElement('div');
+    host.className = 'kf-editor';
+    host.style.width = '100%';
+    host.style.height = editorHeight;
+
+    container.appendChild(host);
+
+    const factoryCreateStart = markFormulaXPerf('fx:kity-editor-factory:create');
+    const factory = runtimeWindow.kf.EditorFactory.create(host, {
+      render: {
+        fontsize,
+      },
+      resource: {
+        path: '',
+        fonts: assets.fonts,
+      },
+    });
+    const factoryCreateEnd = markFormulaXPerf('fx:kity-editor-factory:create:end');
+    measureFormulaXPerf('fx:kity-editor-factory:create', factoryCreateStart, factoryCreateEnd);
+    clearFormulaXPerfMarks(factoryCreateStart, factoryCreateEnd);
+
+    return {
+      ready: factory.ready.bind(factory),
+      execCommand(name, value) {
+        factory.ready(function execWhenReady() {
+          this.execCommand(name, value);
+        });
+      },
+      focus() {
+        factory.ready(function focusWhenReady() {
+          this.execCommand('focus');
+        });
+      },
+      destroy() {
+        container.innerHTML = '';
+      },
+      host,
+      raw: factory,
+    };
+  } finally {
+    const createEditorEnd = markFormulaXPerf('fx:create-kity-editor:total:end');
+    measureFormulaXPerf('fx:create-kity-editor:total', createEditorStart, createEditorEnd);
+    clearFormulaXPerfMarks(createEditorStart, createEditorEnd);
   }
-
-  container.innerHTML = '';
-
-  const host = document.createElement('div');
-  host.className = 'kf-editor';
-  host.style.width = '100%';
-  host.style.height = editorHeight;
-
-  container.appendChild(host);
-
-  const factory = runtimeWindow.kf.EditorFactory.create(host, {
-    render: {
-      fontsize,
-    },
-    resource: {
-      path: '',
-      fonts: assets.fonts,
-    },
-  });
-
-  return {
-    ready: factory.ready.bind(factory),
-    execCommand(name, value) {
-      factory.ready(function execWhenReady() {
-        this.execCommand(name, value);
-      });
-    },
-    focus() {
-      factory.ready(function focusWhenReady() {
-        this.execCommand('focus');
-      });
-    },
-    destroy() {
-      container.innerHTML = '';
-    },
-    host,
-    raw: factory,
-  };
 }
 
 export async function mountKityEditor(container: HTMLElement, options: KityEditorOptions = {}) {

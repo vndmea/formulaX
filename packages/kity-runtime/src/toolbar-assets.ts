@@ -1,4 +1,9 @@
-let toolbarAssetFileMap: Record<string, string> = {};
+import { kityToolbarAssets } from './asset-manifest';
+
+let toolbarAssetFileMap: Record<string, string> = {
+  'btn.png': kityToolbarAssets.btn,
+  'other.png': kityToolbarAssets.other,
+};
 
 export function setToolbarAssetUrls(assets: { btn: string; other: string }): void {
   toolbarAssetFileMap = {
