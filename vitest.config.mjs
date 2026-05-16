@@ -9,6 +9,7 @@ export default defineConfig({
       '@formulaxjs/core': fromRoot('./packages/core/src/index.ts'),
       '@formulaxjs/editor': fromRoot('./packages/editor/src/index.ts'),
       '@formulaxjs/renderer': fromRoot('./packages/renderer/src/index.ts'),
+      '@formulaxjs/renderer-kity': fromRoot('./packages/renderer-kity/src/index.ts'),
       '@formulaxjs/tiptap': fromRoot('./packages/tiptap/src/index.ts'),
       '@formulaxjs/tinymce': fromRoot('./packages/tinymce/src/index.ts'),
       '@formulaxjs/kity-runtime': fromRoot('./packages/kity-runtime/src/index.ts'),
