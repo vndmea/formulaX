@@ -59,15 +59,31 @@ import tinymce from 'tinymce';
 import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 
 registerFormulaXTinyMcePlugin(tinymce, {
+  pluginName: 'formulax', // TinyMCE 插件名，需要和 plugins 配置一致
+  buttonName: 'formulax', // 工具栏按钮名，需要和 toolbar 配置一致
+  menuItemName: 'formulax', // 如果菜单里也要出现该操作，可复用这个标识
   toolbarText: 'FormulaX',
   tooltip: '插入或编辑公式',
+  cursorStyle: 'pointer', // 应用于公式节点的鼠标样式
+  formulaClassName: 'formulax-math', // 公式外层 DOM class
+  formulaAttributeName: 'data-formulax-latex', // 保存源 LaTeX 的属性名
+  initialLatex: '\\sqrt{x}', // 新插入公式的默认内容
+  preload: 'idle', // 'idle' | 'hover' | false
   modal: {
     title: 'FormulaX 公式编辑器',
+    insertText: 'Insert',
+    updateText: 'Update',
+    cancelText: 'Cancel',
+    width: '1100px',
+    height: 'auto',
+    closeOnBackdrop: true,
   },
   editor: {
+    // 这些配置会透传给内嵌的 FormulaX 编辑器
     locale: 'zh_CN', // 可选，默认 en_US
-    height: '100%',
+    height: 320,
     autofocus: true,
+    assets: {},
     render: { fontsize: 40 },
   },
 });
@@ -181,7 +197,7 @@ interface FormulaXTinyMceOptions {
   preload?: FormulaXEditorPreloadMode;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
-  editor?: FormulaXEditorOptions;
+  editor?: Omit<FormulaXEditorOptions, 'initialLatex'>;
 }
 ```
 

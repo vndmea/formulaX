@@ -59,15 +59,31 @@ import tinymce from 'tinymce';
 import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 
 registerFormulaXTinyMcePlugin(tinymce, {
+  pluginName: 'formulax', // TinyMCE plugin id used in the plugins list
+  buttonName: 'formulax', // toolbar button id used in the toolbar string
+  menuItemName: 'formulax', // menu item id if you also expose the action in menus
   toolbarText: 'FormulaX',
   tooltip: 'Insert or edit formula',
+  cursorStyle: 'pointer', // cursor applied to generated formula nodes
+  formulaClassName: 'formulax-math', // DOM class written on formula wrappers
+  formulaAttributeName: 'data-formulax-latex', // attribute that stores source LaTeX
+  initialLatex: '\\sqrt{x}', // default LaTeX for newly inserted formulas
+  preload: 'idle', // 'idle' | 'hover' | false
   modal: {
     title: 'FormulaX Editor',
+    insertText: 'Insert',
+    updateText: 'Update',
+    cancelText: 'Cancel',
+    width: '1100px',
+    height: 'auto',
+    closeOnBackdrop: true,
   },
   editor: {
+    // forwarded to the embedded FormulaX editor instance
     locale: 'zh_CN', // optional, defaults to en_US
-    height: '100%',
+    height: 320,
     autofocus: true,
+    assets: {},
     render: { fontsize: 40 },
   },
 });
@@ -181,7 +197,7 @@ interface FormulaXTinyMceOptions {
   preload?: FormulaXEditorPreloadMode;
   initialLatex?: string;
   modal?: FormulaXModalOptions;
-  editor?: FormulaXEditorOptions;
+  editor?: Omit<FormulaXEditorOptions, 'initialLatex'>;
 }
 ```
 

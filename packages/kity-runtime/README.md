@@ -18,27 +18,35 @@ npm install @formulaxjs/kity-runtime
 
 - `ensureKityRuntime` for lazy runtime bootstrapping
 - `createKityEditor` and `mountKityEditor` for mounting a Kity editor into the DOM
+- `FormulaXEditor` for a promise-friendly wrapper around the low-level runtime handle
 - Legacy compatibility exports used by existing KityFormula-oriented integrations
 
 ## Example
 
 ```ts
-import { mountKityEditor } from '@formulaxjs/kity-runtime';
+import { FormulaXEditor } from '@formulaxjs/kity-runtime';
 
-const root = document.getElementById('editor');
-
-if (!root) {
-  throw new Error('Missing #editor');
-}
-
-const handle = await mountKityEditor(root, {
-  value: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
-  locale: 'zh_CN', // optional, defaults to en_US
+const editor = new FormulaXEditor({
+  el: '#editor', // HTMLElement or selector
+  initialLatex: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
+  height: 320, // optional runtime workspace height
+  autofocus: true, // focus after mount
+  assets: {
+    // optional partial overrides when runtime CSS / fonts / toolbar images live on your CDN
+    styles: {
+      editor: '/static/formulax/editor.css',
+    },
+  },
+  render: {
+    fontsize: 40, // preview / export font size
+  },
 });
 
-console.log(handle.getLatex());
+await editor.execCommand('render', '\\sqrt{x}');
+await editor.focus();
+await editor.destroy();
 ```
 
 ## Package role
 
-Use this package when you need the low-level legacy Kity editing runtime or compatibility with historical KityFormula behavior. For application-facing editor usage, prefer importing `FormulaXEditor` from `@formulaxjs/editor`. For host-editor integrations, prefer the dedicated adapter packages that already depend on this runtime.
+Use this package when you need the low-level legacy Kity editing runtime or compatibility with historical KityFormula behavior. For modal-oriented editing flows, prefer `mountFormulaXEditor()` from `@formulaxjs/editor`. For host-editor integrations, prefer the dedicated adapter packages that already depend on this runtime.

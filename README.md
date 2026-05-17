@@ -18,6 +18,7 @@ It is **not** an official KityFormula project. KityFormula-related code is treat
 - Modular package structure with lazy-loaded runtime chunks
 - Optional idle or hover preloading to reduce the first editor-open delay
 - PNG/JPG export support loaded on demand
+- Published adapter packages copy supporting CSS, images, and fonts into `dist` for bundler-friendly npm consumption
 - Rich-text editor integrations for Tiptap, TinyMCE, and CKEditor 5
 
 ## Packages
@@ -35,9 +36,16 @@ Some packages are experimental and not yet published to npm.
 | `@formulaxjs/tinymce` | TinyMCE integration adapter |
 | `@formulaxjs/ckeditor5` | CKEditor 5 integration adapter |
 
-## Playground
+## Demos
 
-Live demo: [https://vndmea.github.io/formulaX/playground/](https://vndmea.github.io/formulaX/playground/)
+- Demo hub: [https://vndmea.github.io/formulaX/](https://vndmea.github.io/formulaX/)
+- Playground: [https://vndmea.github.io/formulaX/playground/](https://vndmea.github.io/formulaX/playground/)
+- CKEditor 5 demo: [https://vndmea.github.io/formulaX/ckeditor5/](https://vndmea.github.io/formulaX/ckeditor5/)
+- Tiptap demo: [https://vndmea.github.io/formulaX/tiptap/](https://vndmea.github.io/formulaX/tiptap/)
+- TinyMCE demo: [https://vndmea.github.io/formulaX/tinymce/](https://vndmea.github.io/formulaX/tinymce/)
+- Vue 3 + TinyMCE demo: [https://vndmea.github.io/formulaX/vue/](https://vndmea.github.io/formulaX/vue/)
+- React + Tiptap v3 demo: [https://vndmea.github.io/formulaX/react/](https://vndmea.github.io/formulaX/react/)
+- Svelte + CKEditor 5 demo: [https://vndmea.github.io/formulaX/svelte/](https://vndmea.github.io/formulaX/svelte/)
 
 ## Architecture
 
@@ -108,8 +116,11 @@ Run editor integration demos:
 
 ```bash
 pnpm dev:ckeditor5
+pnpm dev:react
+pnpm dev:svelte
 pnpm dev:tiptap
 pnpm dev:tinymce
+pnpm dev:vue
 ```
 
 ### Build
@@ -123,16 +134,32 @@ pnpm build
 APIs are experimental and may change before the first stable npm release.
 Pass `locale: 'zh_CN'` when you need localized modal UI and legacy runtime labels. The default locale is `en_US`.
 
+The examples below intentionally show more optional fields than a minimal setup so you can see the current configuration surface in one place.
+
 ### Shared Renderer Usage
 
 ```ts
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 
 const renderer = createKityFormulaRenderer({
-  fontSize: 40,
+  fontSize: 40, // default font size used by the Kity-backed renderer
+  height: 320, // optional runtime workspace height when rendering
+  assetCacheKey: 'formulax-cdn-v1', // optional cache namespace when asset URLs change
+  assets: {
+    // optional partial overrides when fonts / toolbar sprites / CSS live on your CDN
+    styles: {
+      editor: '/static/formulax/editor.css',
+    },
+  },
 });
 
-const { html } = await renderer.renderLatex('\\frac{a}{b}');
+const { html } = await renderer.renderLatex('\\frac{a}{b}', {
+  displayMode: false, // inline by default; set true for block-style rendering
+  fontSize: 40, // per-render override
+  className: 'formulax-inline', // custom wrapper class for rendered output
+  throwOnError: false, // return fallback markup instead of throwing
+  cache: true, // enable renderer-level caching
+});
 ```
 
 ### Modal Editing UI
@@ -143,14 +170,29 @@ import {
   mountFormulaXEditor,
 } from '@formulaxjs/editor';
 
-ensureFormulaXModalStyles(document);
+ensureFormulaXModalStyles(document); // injects modal + base formula styles once
 
 const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLElement, {
-  initialLatex: '\\sqrt{x}',
+  initialLatex: '\\sqrt{x}', // optional initial formula
+  height: 320, // modal editor body height
+  autofocus: true, // focus editor after mount
   locale: 'zh_CN', // optional, defaults to en_US
+  assets: {
+    // optional partial asset override passed through to the Kity runtime
+    styles: {
+      editor: '/static/formulax/editor.css',
+    },
+  },
+  render: {
+    fontsize: 40, // font size used when generating preview HTML
+  },
 });
 
 const latex = await mounted.getLatex();
+const state = await mounted.getState();
+const renderHtml = await mounted.getRenderHtml();
+
+mounted.destroy();
 ```
 
 ### Low-Level Kity Runtime Entry
@@ -159,9 +201,24 @@ const latex = await mounted.getLatex();
 import { FormulaXEditor } from '@formulaxjs/kity-runtime';
 
 const editor = new FormulaXEditor({
-  el: '#app',
-  locale: 'zh_CN', // optional, defaults to en_US
+  el: '#app', // HTMLElement or selector
+  initialLatex: '\\int_0^1 x^2 dx', // optional starting content
+  height: 320, // runtime workspace height
+  autofocus: true, // focus after mount
+  assets: {
+    // optional partial asset override
+    styles: {
+      editor: '/static/formulax/editor.css',
+    },
+  },
+  render: {
+    fontsize: 40, // preview / export font size
+  },
 });
+
+await editor.execCommand('render', '\\frac{a}{b}'); // replace current formula content
+await editor.focus();
+await editor.destroy();
 ```
 
 ### Core Package
@@ -179,28 +236,99 @@ const latex = serializeLatex(doc);
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
 import { createFormulaXNode } from '@formulaxjs/tiptap';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+
+const formulaNode = createFormulaXNode(undefined, {
+  name: 'formulaX', // custom node name when avoiding schema collisions
+  formulaClassName: 'formulax-math', // wrapper class written to DOM
+  formulaAttributeName: 'data-formulax-latex', // where LaTeX is stored in the DOM
+  cursorStyle: 'pointer', // cursor for inline formula widgets
+  initialLatex: '\\placeholder ', // default content for newly inserted formulas
+  preload: 'idle', // 'idle' | 'hover' | false
+  renderer: createKityFormulaRenderer({
+    fontSize: 40,
+  }), // optional custom renderer
+  modal: {
+    title: 'FormulaX Editor',
+    insertText: 'Insert',
+    updateText: 'Update',
+    cancelText: 'Cancel',
+    closeOnBackdrop: true,
+  },
+  editor: {
+    height: 320,
+    autofocus: true,
+    locale: 'zh_CN',
+    assets: {},
+    render: {
+      fontsize: 40,
+    },
+  },
+});
 
 const editor = new Editor({
   element: document.querySelector('#editor'),
-  extensions: [StarterKit, createFormulaXNode(undefined, {
-    editor: {
-      locale: 'zh_CN', // optional, defaults to en_US
-    },
-  })],
+  extensions: [StarterKit, formulaNode],
+  content: '<p>Click the FormulaX toolbar button to insert a formula.</p>',
 });
+
+editor.commands.openFormulaX();
 ```
 
 ### TinyMCE Integration
 
 ```ts
 import tinymce from 'tinymce';
-import { createTinyMceFormulaMarkup } from '@formulaxjs/tinymce';
+import 'tinymce/icons/default';
+import 'tinymce/models/dom';
+import 'tinymce/themes/silver';
+import 'tinymce/skins/ui/oxide/skin';
+import 'tinymce/skins/content/default/content';
+import {
+  createTinyMceFormulaMarkup,
+  registerFormulaXTinyMcePlugin,
+} from '@formulaxjs/tinymce';
 
-tinymce.init({
-  target: document.querySelector('#tiny-host'),
+registerFormulaXTinyMcePlugin(tinymce, {
+  pluginName: 'formulax', // TinyMCE plugin id used in the plugins list
+  buttonName: 'formulax', // toolbar button id used in the toolbar string
+  menuItemName: 'formulax', // menu item id when adding the command to menus
+  toolbarText: 'FormulaX',
+  tooltip: 'Insert or edit formula',
+  cursorStyle: 'pointer',
+  formulaClassName: 'formulax-math',
+  formulaAttributeName: 'data-formulax-latex',
+  initialLatex: '\\sqrt{x}',
+  preload: 'idle', // 'idle' | 'hover' | false
+  modal: {
+    title: 'FormulaX Editor',
+    insertText: 'Insert',
+    updateText: 'Update',
+    cancelText: 'Cancel',
+    width: '1100px',
+    height: 'auto',
+    closeOnBackdrop: true,
+  },
+  editor: {
+    height: 320,
+    autofocus: true,
+    locale: 'zh_CN',
+    assets: {},
+    render: {
+      fontsize: 40,
+    },
+  },
 });
 
-const markup = createTinyMceFormulaMarkup('\\sqrt{x}');
+await tinymce.init({
+  target: document.querySelector('#tiny-host'),
+  plugins: 'formulax', // must match pluginName unless you customize both sides
+  toolbar: 'undo redo | formulax',
+  menubar: false,
+  license_key: 'gpl',
+});
+
+const html = createTinyMceFormulaMarkup('\\sqrt{x}'); // optional content-level helper
 ```
 
 ### CKEditor 5 Integration
@@ -209,21 +337,61 @@ const markup = createTinyMceFormulaMarkup('\\sqrt{x}');
 import { ClassicEditor, Essentials, Paragraph } from 'ckeditor5';
 import { FormulaX } from '@formulaxjs/ckeditor5';
 
-ClassicEditor.create(document.querySelector('#editor'), {
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  licenseKey: 'GPL',
   plugins: [Essentials, Paragraph, FormulaX],
-  toolbar: ['formulaX'],
+  toolbar: ['formulaX'], // must include buttonName when customized
+  formulaX: {
+    name: 'formulaX', // custom model name when avoiding schema collisions
+    buttonName: 'formulaX',
+    toolbarText: 'FormulaX',
+    tooltip: 'Insert or edit formula',
+    cursorStyle: 'pointer',
+    formulaClassName: 'formulax-math',
+    formulaAttributeName: 'data-formulax-latex',
+    preload: 'idle', // 'idle' | 'hover' | false
+    modal: {
+      title: 'FormulaX Editor',
+      insertText: 'Insert',
+      updateText: 'Update',
+      cancelText: 'Cancel',
+      closeOnBackdrop: true,
+    },
+    editor: {
+      height: 320,
+      autofocus: true,
+      locale: 'zh_CN',
+      assets: {},
+      render: {
+        fontsize: 40,
+      },
+    },
+  },
 });
 ```
+
+### Framework Demo References
+
+- `apps/vue-demo` shows Vue 3 + TinyMCE v7 using the published `@formulaxjs/tinymce` package directly
+- `apps/react-demo` shows React + Tiptap v3 using `@formulaxjs/tiptap`
+- `apps/svelte-demo` shows Svelte + CKEditor 5 using `@formulaxjs/ckeditor5`
 
 ## Workspace Scripts
 
 - `pnpm dev` - Start the standalone FormulaX playground
 - `pnpm dev:ckeditor5` - Start the CKEditor 5 demo
+- `pnpm dev:react` - Start the React + Tiptap v3 demo
+- `pnpm dev:svelte` - Start the Svelte + CKEditor 5 demo
 - `pnpm dev:tiptap` - Start the Tiptap demo
 - `pnpm dev:tinymce` - Start the TinyMCE demo
+- `pnpm dev:vue` - Start the Vue 3 + TinyMCE v7 demo
 - `pnpm build` - Build all packages and demo apps
 - `pnpm build:packages` - Build workspace packages only
 - `pnpm build:pages` - Build GitHub Pages demo hub
+- `pnpm changeset` - Create a changeset for package release notes and version intent
+- `pnpm changeset:version` - Apply pending changesets and update package versions/changelogs
+- `pnpm changeset:publish` - Publish versioned packages to npm
+- `pnpm release` - Build packages and publish via Changesets
 - `pnpm lint` - Run ESLint
 - `pnpm typecheck` - Run TypeScript type checking
 - `pnpm test` - Run Vitest unit tests

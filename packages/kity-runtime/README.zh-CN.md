@@ -18,27 +18,35 @@ npm install @formulaxjs/kity-runtime
 
 - `ensureKityRuntime`，用于懒加载 runtime 初始化
 - `createKityEditor` 与 `mountKityEditor`，用于将 Kity 编辑器挂载到 DOM
+- `FormulaXEditor`，对低层 runtime handle 提供更易用的 Promise 风格包装
 - 面向既有 KityFormula 集成保留的兼容性导出
 
 ## 示例
 
 ```ts
-import { mountKityEditor } from '@formulaxjs/kity-runtime';
+import { FormulaXEditor } from '@formulaxjs/kity-runtime';
 
-const root = document.getElementById('editor');
-
-if (!root) {
-  throw new Error('Missing #editor');
-}
-
-const handle = await mountKityEditor(root, {
-  value: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
-  locale: 'zh_CN', // 可选，默认 en_US
+const editor = new FormulaXEditor({
+  el: '#editor', // HTMLElement 或选择器字符串
+  initialLatex: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
+  height: 320, // 可选，runtime 工作区高度
+  autofocus: true, // 挂载后自动聚焦
+  assets: {
+    // 可选，当 runtime CSS / 字体 / 工具栏图片放在 CDN 时可局部覆盖
+    styles: {
+      editor: '/static/formulax/editor.css',
+    },
+  },
+  render: {
+    fontsize: 40, // 预览 / 导出字号
+  },
 });
 
-console.log(handle.getLatex());
+await editor.execCommand('render', '\\sqrt{x}');
+await editor.focus();
+await editor.destroy();
 ```
 
 ## 包职责
 
-当你需要低层旧版 Kity 编辑 runtime，或者需要兼容历史 KityFormula 行为时，请使用这个包。面向应用层的编辑器使用方式，更推荐从 `@formulaxjs/editor` 引入 `FormulaXEditor`；宿主编辑器集成则优先使用已经依赖该 runtime 的专用 adapter 包。
+当你需要低层旧版 Kity 编辑 runtime，或者需要兼容历史 KityFormula 行为时，请使用这个包。面向弹窗的编辑流程更推荐使用 `@formulaxjs/editor` 的 `mountFormulaXEditor()`；宿主编辑器集成则优先使用已经依赖该 runtime 的专用 adapter 包。
