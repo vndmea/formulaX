@@ -15,9 +15,12 @@ export default defineConfig({
   globalName: 'FormulaX',
   minify: false,
   loader: {
-    '.png': 'file',
-    '.woff': 'file',
-    '.css': 'file',
+    '.png': 'copy',
+    '.woff': 'copy',
+    '.css': 'copy',
+  },
+  esbuildOptions(options) {
+    options.assetNames = '[name]';
   },
   alias: {
     '@formulaxjs/editor': path.resolve(__dirname, 'packages/editor/src/index.ts'),

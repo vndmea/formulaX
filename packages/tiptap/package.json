@@ -35,7 +35,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup --config ../../tsup.config.mjs",
+    "build": "tsup --config ../../tsup.config.mjs && node ./scripts/postbuild.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
     "test": "vitest run packages/tiptap/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"

@@ -40,6 +40,30 @@ const apps = [
     title: 'TinyMCE Demo',
     description: 'Minimal TinyMCE integration showing FormulaX markup inserted into host content.',
   },
+  {
+    name: 'vue',
+    dir: 'apps/vue-demo',
+    basePath: `${basePrefix}/vue/`,
+    outputSubdir: 'vue',
+    title: 'Vue Demo',
+    description: 'Vue 3 + TinyMCE v7 integration with FormulaX managed through component lifecycle hooks.',
+  },
+  {
+    name: 'react',
+    dir: 'apps/react-demo',
+    basePath: `${basePrefix}/react/`,
+    outputSubdir: 'react',
+    title: 'React Demo',
+    description: 'React + Tiptap v3 integration with FormulaX exposed through a lightweight toolbar action.',
+  },
+  {
+    name: 'svelte',
+    dir: 'apps/svelte-demo',
+    basePath: `${basePrefix}/svelte/`,
+    outputSubdir: 'svelte',
+    title: 'Svelte Demo',
+    description: 'Svelte + CKEditor 5 integration with FormulaX mounted through the official plugin surface.',
+  },
 ];
 
 const ensureCleanDir = (dir) => {
