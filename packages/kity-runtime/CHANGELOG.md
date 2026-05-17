@@ -1,5 +1,11 @@
 # @formulaxjs/kity-runtime
 
+## 0.5.0
+
+### Minor Changes
+
+- Improve published asset output for FormulaX runtime and host-editor adapters, and add framework demo coverage for Vue, React, and Svelte consumption.
+
 ## 0.4.0
 
 ### Minor Changes
