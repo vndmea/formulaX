@@ -5,6 +5,8 @@
 ### Minor Changes
 
 - Restore locale support for the legacy Kity toolbar, default the runtime UI to `en_US`, and add explicit `zh_CN` locale handling for browser integrations.
+- Fix the legacy popup layout for longer English labels so toolbar groups, preset cards, and nested panels stay visible inside modal-sized hosts.
+- Correct runtime-owned placeholder and symbol data, including the `\\updownarrow` and `\\Updownarrow` toolbar entries.
 
 ## 0.3.0
 

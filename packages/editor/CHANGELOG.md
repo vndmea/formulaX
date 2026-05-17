@@ -4,6 +4,8 @@
 
 ### Patch Changes
 
+- Move shared modal copy into the editor layer so adapters resolve localized FormulaX dialog titles and actions from one place.
+- Improve the hosted FormulaX modal layout so the footer stays visible and nested runtime panels have enough room in tighter viewports.
 - Updated dependencies
   - @formulaxjs/kity-runtime@0.4.0
   - @formulaxjs/renderer-kity@0.2.1

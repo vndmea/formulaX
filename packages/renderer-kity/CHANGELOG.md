@@ -4,6 +4,7 @@
 
 ### Patch Changes
 
+- Pick up the refreshed `@formulaxjs/kity-runtime` browser runtime behavior, including the localized legacy UI fixes used by hosted editors.
 - Updated dependencies
   - @formulaxjs/kity-runtime@0.4.0
 

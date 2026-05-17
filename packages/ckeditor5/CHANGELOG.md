@@ -4,6 +4,7 @@
 
 ### Patch Changes
 
+- Pick up the localized FormulaX modal copy and the updated hosted runtime layout fixes through the editor stack.
 - @formulaxjs/editor@0.3.1
 - @formulaxjs/renderer-kity@0.2.1
 
