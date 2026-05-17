@@ -1,5 +1,7 @@
 # @formulaxjs/core
 
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/core/README.zh-CN.md)
+
 Core document model and shared utilities for FormulaX.
 
 `@formulaxjs/core` contains the AST, editor state, command helpers, traversal helpers, and LaTeX parse/serialize logic used by the higher-level FormulaX packages.

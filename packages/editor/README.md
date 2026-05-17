@@ -1,5 +1,7 @@
 # @formulaxjs/editor
 
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/editor/README.zh-CN.md)
+
 Modal-oriented FormulaX editor UI helpers.
 
 `@formulaxjs/editor` provides the browser-side modal styling and embedded editing helpers used by host integrations. It is no longer the shared markup layer or the read-only renderer layer.
@@ -32,6 +34,7 @@ ensureFormulaXModalStyles(document);
 
 const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLElement, {
   initialLatex: '\\sqrt{x}',
+  locale: 'zh_CN', // optional, defaults to en_US
   autofocus: true,
 });
 

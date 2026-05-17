@@ -1,5 +1,7 @@
 # @formulaxjs/renderer
 
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/renderer/README.zh-CN.md)
+
 Shared renderer contracts and formula markup utilities for FormulaX.
 
 `@formulaxjs/renderer` is the renderer-common layer. It does not bind to Kity, KaTeX, or any host editor. Instead, it provides shared types, formula DOM helpers, base styles, cache helpers, and SVG post-processing utilities that concrete renderer packages and editor adapters can reuse.

@@ -65,6 +65,7 @@ registerFormulaXTinyMcePlugin(tinymce, {
     title: 'FormulaX Editor',
   },
   editor: {
+    locale: 'zh_CN', // optional, defaults to en_US
     height: '100%',
     autofocus: true,
     render: { fontsize: 40 },
@@ -204,7 +205,7 @@ interface FormulaXTinyMceOptions {
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `title` | `FormulaX` | Modal title. |
+| `title` | `FormulaX Editor` | Modal title. |
 | `insertText` | `Insert` | Submit button text when inserting. |
 | `updateText` | `Update` | Submit button text when updating. |
 | `cancelText` | `Cancel` | Cancel button text. |
@@ -218,6 +219,7 @@ interface FormulaXTinyMceOptions {
 | --- | --- | --- |
 | `height` | `100%` | Embedded editor height. |
 | `autofocus` | `true` | Whether the embedded editor should autofocus. |
+| `locale` | `en_US` | Localizes the modal defaults and the embedded Kity runtime UI. |
 | `assets` | `{}` | Optional Kity runtime asset overrides. |
 | `render.fontsize` | `40` | Formula render font size. |
 

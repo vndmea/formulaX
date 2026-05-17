@@ -1,5 +1,7 @@
 # @formulaxjs/kity-runtime
 
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/kity-runtime/README.zh-CN.md)
+
 Legacy KityFormula runtime adapter for FormulaX.
 
 `@formulaxjs/kity-runtime` packages the compatibility runtime that powers FormulaX's Kity-based editing and rendering flows. It now includes the legacy fonts, toolbar images, and stylesheet assets needed by the runtime, and provides low-level helpers for mounting the editor in browser applications.
@@ -31,6 +33,7 @@ if (!root) {
 
 const handle = await mountKityEditor(root, {
   value: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}',
+  locale: 'zh_CN', // optional, defaults to en_US
 });
 
 console.log(handle.getLatex());

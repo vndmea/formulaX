@@ -1,5 +1,7 @@
 # @formulaxjs/renderer-kity
 
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/renderer-kity/README.zh-CN.md)
+
 Kity-based read-only renderer for FormulaX.
 
 `@formulaxjs/renderer-kity` turns LaTeX into inline SVG markup by using the legacy Kity runtime behind the shared `@formulaxjs/renderer` contract. It is the current concrete renderer package for adapters that want runtime SVG output without depending on editor UI helpers.

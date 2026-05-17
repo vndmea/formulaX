@@ -121,6 +121,7 @@ pnpm build
 ## 使用方式
 
 当前 API 仍处于实验阶段，在首个稳定版本发布前可能发生变化。
+如需切换弹窗 UI 和旧版 runtime 文案，可传入 `locale: 'zh_CN'`；默认值为 `en_US`。
 
 ### 共享渲染器
 
@@ -146,6 +147,7 @@ ensureFormulaXModalStyles(document);
 
 const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLElement, {
   initialLatex: '\\sqrt{x}',
+  locale: 'zh_CN', // 可选，默认 en_US
 });
 
 const latex = await mounted.getLatex();
@@ -158,6 +160,7 @@ import { FormulaXEditor } from '@formulaxjs/kity-runtime';
 
 const editor = new FormulaXEditor({
   el: '#app',
+  locale: 'zh_CN', // 可选，默认 en_US
 });
 ```
 
@@ -175,11 +178,15 @@ const latex = serializeLatex(doc);
 ```ts
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
-import { FormulaXNode } from '@formulaxjs/tiptap';
+import { createFormulaXNode } from '@formulaxjs/tiptap';
 
 const editor = new Editor({
   element: document.querySelector('#editor'),
-  extensions: [StarterKit, FormulaXNode],
+  extensions: [StarterKit, createFormulaXNode(undefined, {
+    editor: {
+      locale: 'zh_CN', // 可选，默认 en_US
+    },
+  })],
 });
 ```
 

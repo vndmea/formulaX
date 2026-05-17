@@ -82,6 +82,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
       fontSize: 40,
     }),
     editor: {
+      locale: 'zh_CN', // 可选，默认 en_US
       render: {
         fontsize: 40,
       },
@@ -193,6 +194,7 @@ interface FormulaXCKEditor5Options {
   editor?: {
     height?: number | string;
     autofocus?: boolean;
+    locale?: FormulaXLocale;
     assets?: Partial<KityEditorAssets>;
     render?: {
       fontsize?: number;
@@ -231,6 +233,7 @@ interface FormulaXCKEditor5Options {
 | --- | --- | --- |
 | `height` | `100%` | 内嵌编辑器高度。 |
 | `autofocus` | `true` | 内嵌编辑器是否自动聚焦。 |
+| `locale` | `en_US` | 同时切换弹窗默认文案和内嵌 Kity runtime UI。 |
 | `assets` | `{}` | 可选的 Kity runtime 资源覆盖配置。 |
 | `render.fontsize` | `40` | 公式渲染字号。 |
 

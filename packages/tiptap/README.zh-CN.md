@@ -61,7 +61,11 @@ const editor = new Editor({
   element: document.querySelector('#editor')!,
   extensions: [
     StarterKit,
-    createFormulaXNode(),
+    createFormulaXNode(undefined, {
+      editor: {
+        locale: 'zh_CN', // 可选，默认 en_US
+      },
+    }),
   ],
   content: '<p>点击工具栏按钮插入公式。</p>',
 });
@@ -116,7 +120,7 @@ Tiptap 节点中只保存 LaTeX 源内容：
 import { createFormulaXNode } from '@formulaxjs/tiptap';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 
-const formulaNode = createFormulaXNode(undefined, {
+const formulaXNode = createFormulaXNode(undefined, {
   renderer: createKityFormulaRenderer({
     fontSize: 44,
   }),
@@ -144,6 +148,7 @@ interface FormulaXTiptapOptions {
   editor?: {
     height?: number | string;
     autofocus?: boolean;
+    locale?: FormulaXLocale;
     assets?: Partial<KityEditorAssets>;
     render?: {
       fontsize?: number;
@@ -180,6 +185,7 @@ interface FormulaXTiptapOptions {
 | --- | --- | --- |
 | `height` | `100%` | 内嵌编辑器高度。 |
 | `autofocus` | `true` | 内嵌编辑器是否自动聚焦。 |
+| `locale` | `en_US` | 同时切换弹窗默认文案和内嵌 Kity runtime UI。 |
 | `assets` | `{}` | 可选的 Kity runtime 资源覆盖配置。 |
 | `render.fontsize` | `40` | 公式渲染字号。 |
 

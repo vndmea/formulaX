@@ -65,6 +65,7 @@ registerFormulaXTinyMcePlugin(tinymce, {
     title: 'FormulaX 公式编辑器',
   },
   editor: {
+    locale: 'zh_CN', // 可选，默认 en_US
     height: '100%',
     autofocus: true,
     render: { fontsize: 40 },
@@ -204,7 +205,7 @@ interface FormulaXTinyMceOptions {
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `title` | `FormulaX` | 弹窗标题。 |
+| `title` | `FormulaX Editor` | 弹窗标题。 |
 | `insertText` | `Insert` | 插入公式时的提交按钮文本。 |
 | `updateText` | `Update` | 更新公式时的提交按钮文本。 |
 | `cancelText` | `Cancel` | 取消按钮文本。 |
@@ -218,6 +219,7 @@ interface FormulaXTinyMceOptions {
 | --- | --- | --- |
 | `height` | `100%` | 内嵌编辑器高度。 |
 | `autofocus` | `true` | 内嵌编辑器是否自动聚焦。 |
+| `locale` | `en_US` | 同时切换弹窗默认文案和内嵌 Kity runtime UI。 |
 | `assets` | `{}` | 可选的 Kity runtime 资源覆盖配置。 |
 | `render.fontsize` | `40` | 公式渲染字号。 |
 

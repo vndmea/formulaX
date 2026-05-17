@@ -121,6 +121,7 @@ pnpm build
 ## Usage
 
 APIs are experimental and may change before the first stable npm release.
+Pass `locale: 'zh_CN'` when you need localized modal UI and legacy runtime labels. The default locale is `en_US`.
 
 ### Shared Renderer Usage
 
@@ -146,6 +147,7 @@ ensureFormulaXModalStyles(document);
 
 const mounted = mountFormulaXEditor(document.querySelector('#host') as HTMLElement, {
   initialLatex: '\\sqrt{x}',
+  locale: 'zh_CN', // optional, defaults to en_US
 });
 
 const latex = await mounted.getLatex();
@@ -158,6 +160,7 @@ import { FormulaXEditor } from '@formulaxjs/kity-runtime';
 
 const editor = new FormulaXEditor({
   el: '#app',
+  locale: 'zh_CN', // optional, defaults to en_US
 });
 ```
 
@@ -175,11 +178,15 @@ const latex = serializeLatex(doc);
 ```ts
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
-import { FormulaXNode } from '@formulaxjs/tiptap';
+import { createFormulaXNode } from '@formulaxjs/tiptap';
 
 const editor = new Editor({
   element: document.querySelector('#editor'),
-  extensions: [StarterKit, FormulaXNode],
+  extensions: [StarterKit, createFormulaXNode(undefined, {
+    editor: {
+      locale: 'zh_CN', // optional, defaults to en_US
+    },
+  })],
 });
 ```
 
