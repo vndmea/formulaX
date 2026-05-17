@@ -2,6 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@formulaxjs/ckeditor5": ["packages/ckeditor5/src/index.ts"],
       "@formulaxjs/core": ["packages/core/src/index.ts"],
