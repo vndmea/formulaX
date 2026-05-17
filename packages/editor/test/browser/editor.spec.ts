@@ -15,6 +15,7 @@ type BrowserEditorOptions = {
   initialLatex?: string;
   height?: number | string;
   autofocus?: boolean;
+  locale?: 'en_US' | 'zh_CN';
   render?: {
     fontsize?: number;
   };
@@ -251,11 +252,22 @@ test.describe('FormulaX Editor', () => {
     await input.fill('abc');
 
     await expectNoRuntimeErrors(page, async () => {
-      await page.locator('#stale-cursor-test .kf-editor-toolbar').getByText('分数').first().click();
+      await page.locator('#stale-cursor-test .kf-editor-toolbar').getByText('Fraction').first().click();
       await page.locator('#stale-cursor-test .kf-editor-ui-box-item[data-value="\\\\frac \\\\placeholder\\\\placeholder"]').first().click();
     }, [/favicon/i]);
 
     await expect.poll(() => getEditorSource(page, 'stale-cursor-test')).toContain('\\frac');
+  });
+
+  test('locale option supports zh_CN toolbar labels', async ({ page }) => {
+    await page.goto('/');
+    const localizedEditor = await mountEditor(page, 'locale-zh-editor', {
+      autofocus: false,
+      locale: 'zh_CN',
+    });
+
+    await expect(localizedEditor).toBeVisible();
+    await expect(page.locator('#locale-zh-editor .kf-editor-toolbar').getByText('分数').first()).toBeVisible();
   });
 
   test('invalid selector throws error', async ({ page }) => {

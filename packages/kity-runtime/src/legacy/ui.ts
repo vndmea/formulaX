@@ -5,7 +5,8 @@ import { getLegacyKity } from '../vendor/runtime-interop';
 import type { LegacyEditorInstance } from './editor';
 import Toolbar from './toolbar';
 import Scrollbar from './scrollbar';
-import ELEMENT_LIST from './toolbar-config';
+import createToolbarConfig from './toolbar-config';
+import { normalizeFormulaXLocale } from '../i18n';
 
 type ViewState = (typeof legacyUiDef.VIEW_STATE)[keyof typeof legacyUiDef.VIEW_STATE];
 
@@ -79,7 +80,9 @@ const UIComponent = kity.createClass('UIComponent', {
   },
 
   initComponents(this: UIComponentInstance) {
-    this.components.toolbar = new (Toolbar as any)(this, this.kfEditor, ELEMENT_LIST);
+    const toolbarConfig = createToolbarConfig(normalizeFormulaXLocale(this.options.locale));
+
+    this.components.toolbar = new (Toolbar as any)(this, this.kfEditor, toolbarConfig);
 
     this.components.scrollbar = new (Scrollbar as any)(this, this.kfEditor);
   },

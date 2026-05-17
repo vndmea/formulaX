@@ -22,6 +22,11 @@ import {
   measureFormulaXPerf,
 } from './perf';
 import { setToolbarAssetUrls } from './toolbar-assets';
+import {
+  DEFAULT_FORMULAX_LOCALE,
+  normalizeFormulaXLocale,
+  type FormulaXLocale,
+} from './i18n';
 
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
 const DEFAULT_EDITOR_HEIGHT = 'auto';
@@ -38,6 +43,7 @@ type EditorFactory = {
     container: HTMLElement,
     options: {
       render: { fontsize: number };
+      ui?: { locale?: FormulaXLocale };
       resource: { path: string; fonts?: KityFontAssetMap };
     },
   ) => EditorRuntimeFactory;
@@ -92,6 +98,7 @@ export type KityEditorOptions = {
   height?: number | string;
   initialLatex?: string;
   autofocus?: boolean;
+  locale?: FormulaXLocale;
   assets?: Partial<KityEditorAssets>;
   render?: {
     fontsize?: number;
@@ -291,6 +298,7 @@ export async function createKityEditor(
   const createEditorStart = markFormulaXPerf('fx:create-kity-editor:total');
   const fontsize = options.render?.fontsize ?? 40;
   const editorHeight = normalizeCssSize(options.height, DEFAULT_EDITOR_HEIGHT);
+  const locale = normalizeFormulaXLocale(options.locale ?? DEFAULT_FORMULAX_LOCALE);
   const assets = resolveEditorAssets(options.assets);
 
   try {
@@ -328,6 +336,9 @@ export async function createKityEditor(
     const factory = runtimeWindow.kf.EditorFactory.create(host, {
       render: {
         fontsize,
+      },
+      ui: {
+        locale,
       },
       resource: {
         path: '',

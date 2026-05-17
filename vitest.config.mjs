@@ -26,6 +26,7 @@ export default defineConfig({
           name: 'node',
           include: [
             'packages/core/test/**/*.test.ts',
+            'packages/kity-runtime/test/**/*.test.ts',
             'packages/renderer/test/**/*.test.ts',
             'packages/tiptap/test/**/*.test.ts',
           ],

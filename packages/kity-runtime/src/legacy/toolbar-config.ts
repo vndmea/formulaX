@@ -4,6 +4,11 @@ import { legacyEleType } from '../vendor/legacy-ele-type';
 import { legacyOtherPosition } from '../vendor/other-position';
 import { resolveToolbarAssetPath } from '../toolbar-assets';
 import { resolveUnicode } from '../formula-symbols';
+import {
+  DEFAULT_FORMULAX_LOCALE,
+  normalizeFormulaXLocale,
+  type FormulaXLocale,
+} from '../i18n';
 
 type ToolbarConfig = Record<string, any>;
 
@@ -12,6 +17,41 @@ type ToolbarCollection = ToolbarConfig[];
 const UI_ELE_TYPE = legacyEleType;
 const BOX_TYPE = legacyBoxType;
 const OTHER_POSITION = legacyOtherPosition;
+
+const zhCnToEnUsText = new Map<string, string>([
+  ['预设', 'Presets'],
+  ['预设公式', 'Preset formulas'],
+  ['二次公式', 'Quadratic formula'],
+  ['二项式定理', 'Binomial theorem'],
+  ['勾股定理', 'Pythagorean theorem'],
+  ['基础数学', 'Basic math'],
+  ['希腊字母', 'Greek letters'],
+  ['求反关系运算符', 'Negated operators'],
+  ['字母类符号', 'Letter-like symbols'],
+  ['箭头', 'Arrows'],
+  ['手写体', 'Script'],
+  ['分数', 'Fraction'],
+  ['常用分数', 'Common fractions'],
+  ['上下标', 'Scripts'],
+  ['上标和下标', 'Superscripts and subscripts'],
+  ['常用的上标和下标', 'Common superscripts and subscripts'],
+  ['根式', 'Radicals'],
+  ['常用根式', 'Common radicals'],
+  ['积分', 'Integrals'],
+  ['大型运算符', 'Large operators'],
+  ['求和', 'Summations'],
+  ['括号', 'Brackets'],
+  ['方括号', 'Brackets'],
+  ['函数', 'Functions'],
+  ['三角函数', 'Trigonometric functions'],
+  ['常用函数', 'Common functions'],
+  ['小写', 'Lowercase'],
+  ['大写', 'Uppercase'],
+  ['变体', 'Variants'],
+  ['花体', 'Fraktur'],
+  ['双线', 'Double-struck'],
+  ['罗马', 'Roman'],
+]);
 
 function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: number | string) => void) {
   if (Array.isArray(list)) {
@@ -22,7 +62,46 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
   Object.keys(list).forEach((key) => callback(list[key], key));
 }
 
-    const config: ToolbarCollection = [ {
+function translateToolbarText(value: string, locale: FormulaXLocale) {
+  if (locale === 'zh_CN') {
+    return value;
+  }
+
+  const normalizedValue = value.replace(/<br\s*\/?>/gi, '').trim();
+  const translatedValue = zhCnToEnUsText.get(normalizedValue);
+
+  if (!translatedValue) {
+    return value;
+  }
+
+  const lineBreakMatch = value.match(/<br\s*\/?>/i);
+  return lineBreakMatch ? `${translatedValue}${lineBreakMatch[0]}` : translatedValue;
+}
+
+function localizeToolbarConfig(value: unknown, locale: FormulaXLocale): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => localizeToolbarConfig(item, locale));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const result: Record<string, unknown> = {};
+
+  for (const [key, currentValue] of Object.entries(value)) {
+    if ((key === 'label' || key === 'title') && typeof currentValue === 'string') {
+      result[key] = translateToolbarText(currentValue, locale);
+      continue;
+    }
+
+    result[key] = localizeToolbarConfig(currentValue, locale);
+  }
+
+  return result;
+}
+
+const baseToolbarConfig: ToolbarCollection = [ {
         type: UI_ELE_TYPE.DRAPDOWN_BOX,
         options: {
             button: {
@@ -434,7 +513,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
             otherImageSrc = resolveToolbarAssetPath("other.png"),
             currentConf = [];
 
-        each( config, function ( conf ) {
+        each( baseToolbarConfig, function ( conf ) {
 
             if ( conf.type === UI_ELE_TYPE.DELIMITER ) {
                 return;
@@ -487,7 +566,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
                 "beth", "blacksquare"
 
             ],
-            configList = config[ 2 ].options.box.group[ 0 ].items;
+            configList = baseToolbarConfig[ 2 ].options.box.group[ 0 ].items;
 
         configList.push( {
             title: "基础数学",
@@ -509,7 +588,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
                 title: "变体",
                 values: [ "digamma", "varepsilon", "varkappa", "varphi", "varpi", "varrho", "varsigma", "vartheta" ]
             } ],
-            greekConfigList = config[ 2 ].options.box.group[ 1 ].items;
+            greekConfigList = baseToolbarConfig[ 2 ].options.box.group[ 1 ].items;
 
         // Lowercase handling
         greekConfigList.push( {
@@ -545,7 +624,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
                     "nvDash", "nVDash", "nexists"
                 ]
             } ],
-            greekConfigList = config[ 2 ].options.box.group[ 2 ].items;
+            greekConfigList = baseToolbarConfig[ 2 ].options.box.group[ 2 ].items;
 
         greekConfigList.push( {
             title: greekList[ 0 ].title,
@@ -562,7 +641,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
                 "hslash", "mho", "partial", "wp", "circledS", "Bbbk", "Finv", "Game",
                 "Im", "Re"
             ],
-            configList = config[ 2 ].options.box.group[ 3 ].items;
+            configList = baseToolbarConfig[ 2 ].options.box.group[ 3 ].items;
 
         configList.push( {
             title: "字母类符号",
@@ -590,7 +669,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
                 "curvearrowright", "circlearrowleft", "circlearrowright", "multimap",
                 "leftrightsquigarrow", "twoheadleftarrow", "twoheadrightarrow", "rightsquigarrow"
             ],
-            configList = config[ 2 ].options.box.group[ 4 ].items;
+            configList = baseToolbarConfig[ 2 ].options.box.group[ 4 ].items;
 
         configList.push( {
             title: "箭头",
@@ -634,7 +713,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
                     "w", "x", "y", "z"
                 ]
             } ],
-            configList = config[ 2 ].options.box.group[ 5 ].items;
+            configList = baseToolbarConfig[ 2 ].options.box.group[ 5 ].items;
 
         each( list[ 0 ].values, function ( item, index ) {
 
@@ -711,4 +790,11 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
 
     }
 
-export default config;
+export function createToolbarConfig(locale: FormulaXLocale = DEFAULT_FORMULAX_LOCALE): ToolbarCollection {
+    return localizeToolbarConfig(
+        baseToolbarConfig,
+        normalizeFormulaXLocale(locale),
+    ) as ToolbarCollection;
+}
+
+export default createToolbarConfig;
