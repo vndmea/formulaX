@@ -1,5 +1,10 @@
 import { createEmptyState, parseLatex, type FormulaState } from '@formulaxjs/core';
-import { mountKityEditor, type KityEditorAssets, type KityEditorHandle } from '@formulaxjs/kity-runtime';
+import {
+  mountKityEditor,
+  type FormulaXLocale,
+  type KityEditorAssets,
+  type KityEditorHandle,
+} from '@formulaxjs/kity-runtime';
 import { escapeHtml, ensureFormulaXBaseStyles } from '@formulaxjs/renderer';
 import {
   serializeKityFormulaFromRoot,
@@ -19,6 +24,7 @@ export interface FormulaXEditorOptions {
   initialLatex?: string;
   height?: number | string;
   autofocus?: boolean;
+  locale?: FormulaXLocale;
   assets?: Partial<KityEditorAssets>;
   render?: {
     fontsize?: number;
@@ -43,8 +49,11 @@ export const formulaXModalStyles = `
   inset: 0;
   z-index: 2147483000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .fx-formula-modal-backdrop {
@@ -57,9 +66,10 @@ export const formulaXModalStyles = `
   --fx-formula-editor-body-height: 264px;
   --fx-formula-workspace-height: 168px;
   position: relative;
-  width: min(860px, calc(100vw - 32px));
+  width: min(920px, calc(100vw - 32px));
   height: auto;
-  max-height: calc(100vh - 32px);
+  max-height: none;
+  margin: 0 auto;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
@@ -287,6 +297,7 @@ export function mountFormulaXEditor(
     initialLatex,
     height: options.height ?? '100%',
     autofocus: options.autofocus ?? true,
+    locale: options.locale,
     assets: options.assets,
     render: {
       fontsize: options.render?.fontsize ?? 40,

@@ -40,27 +40,25 @@ app.innerHTML = `
       </select>
     </label>
 
-    <p id="runtime-status" class="fx-demo-status" data-tone="info">Loading editor runtime…</p>
-
-    <div id="editor" class="fx-tiptap-host"></div>
-
     <div class="fx-demo-actions">
       <button id="insert-formula" type="button">Open FormulaX</button>
     </div>
+
+    <div id="editor" class="fx-tiptap-host"></div>
   </main>
 `;
 
 const versionSelect = queryRequiredElement<HTMLSelectElement>('#tiptap-version');
 const host = queryRequiredElement<HTMLElement>('#editor');
 const button = queryRequiredElement<HTMLButtonElement>('#insert-formula');
-const status = queryRequiredElement<HTMLParagraphElement>('#runtime-status');
 
 let activeEditor: DemoEditor | null = null;
 let activeLoadToken = 0;
 
 function setStatus(message: string, tone: 'info' | 'success' | 'error'): void {
-  status.textContent = message;
-  status.dataset.tone = tone;
+  button.title = message;
+  button.dataset.tone = tone;
+  button.setAttribute('aria-label', `Open FormulaX. ${message}`);
 }
 
 function logNodeTree(reason: 'create' | 'update'): void {

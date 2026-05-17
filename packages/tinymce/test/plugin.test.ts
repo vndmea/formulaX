@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { registerFormulaXTinyMcePlugin } from '../src';
+import { registerFormulaXTinyMcePlugin, resolveOptions } from '../src';
 
 describe('registerFormulaXTinyMcePlugin', () => {
   it('registers plugin with constructable function for TinyMCE 5 compatibility', () => {
@@ -77,6 +77,24 @@ describe('registerFormulaXTinyMcePlugin', () => {
     expect(addValidElements.mock.calls[0]?.[0]).toContain('svg[');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('viewbox');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('preserveaspectratio');
+  });
+
+  it('localizes modal defaults from the editor locale', () => {
+    expect(resolveOptions({
+      editor: {
+        locale: 'zh_CN',
+      },
+    })).toMatchObject({
+      modal: {
+        title: 'FormulaX 编辑器',
+        insertText: '插入',
+        updateText: '更新',
+        cancelText: '取消',
+      },
+      editor: {
+        locale: 'zh_CN',
+      },
+    });
   });
 });
 

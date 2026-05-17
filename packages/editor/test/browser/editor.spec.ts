@@ -16,6 +16,9 @@ type BrowserEditorOptions = {
   height?: number | string;
   autofocus?: boolean;
   locale?: 'en_US' | 'zh_CN';
+  hostWidth?: string;
+  hostHeight?: string;
+  hostStyles?: Record<string, string>;
   render?: {
     fontsize?: number;
   };
@@ -40,6 +43,15 @@ async function mountEditor(
 
     const container = document.createElement('div');
     container.id = id;
+    if (options.hostWidth) {
+      container.style.width = options.hostWidth;
+    }
+    if (options.hostHeight) {
+      container.style.height = options.hostHeight;
+    }
+    if (options.hostStyles) {
+      Object.assign(container.style, options.hostStyles);
+    }
     document.body.appendChild(container);
 
     const editor = new Editor({
@@ -94,6 +106,13 @@ async function expectNoRuntimeErrors(page: Page, action: () => Promise<void>, ig
   }
 
   expect(errors).toEqual([]);
+}
+
+async function openToolbarPopupByText(page: Page, editorId: string, label: string) {
+  await page.locator(`#${editorId} .kf-editor-toolbar`).getByText(label).first().click();
+  const popup = page.locator(`#${editorId} .kf-editor-ui-box:visible`).first();
+  await expect(popup).toBeVisible();
+  return popup;
 }
 
 test.describe('FormulaX Editor', () => {
@@ -268,6 +287,157 @@ test.describe('FormulaX Editor', () => {
 
     await expect(localizedEditor).toBeVisible();
     await expect(page.locator('#locale-zh-editor .kf-editor-toolbar').getByText('分数').first()).toBeVisible();
+  });
+
+  test('default en_US toolbar stays compact and dropdowns remain visible in modal-sized hosts', async ({ page }) => {
+    await page.goto('/');
+    const localizedEditor = await mountEditor(page, 'locale-en-editor', {
+      hostWidth: '860px',
+      hostHeight: '264px',
+      height: '100%',
+      hostStyles: {
+        position: 'fixed',
+        top: '16px',
+        left: '16px',
+        zIndex: '9999',
+        background: '#fff',
+      },
+    });
+
+    await expect(localizedEditor).toBeVisible();
+
+    const toolbarHeight = await page.locator('#locale-en-editor .kf-editor-toolbar').evaluate((node) => {
+      return Math.round(node.getBoundingClientRect().height);
+    });
+    expect(toolbarHeight).toBeLessThanOrEqual(104);
+
+    await page.locator('#locale-en-editor .kf-editor-toolbar').getByText('Fraction').first().click();
+    const presetsBox = page.locator('#locale-en-editor .kf-editor-ui-box:visible').first();
+    await expect(presetsBox).toBeVisible();
+
+    const boxRect = await presetsBox.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return {
+        top: Math.round(rect.top),
+        bottom: Math.round(rect.bottom),
+      };
+    });
+    const viewportHeight = await page.evaluate(() => window.innerHeight);
+
+    expect(boxRect.top).toBeGreaterThanOrEqual(0);
+    expect(boxRect.bottom).toBeLessThanOrEqual(viewportHeight);
+  });
+
+  test('presets dropdown keeps formula cards stacked vertically', async ({ page }) => {
+    await page.goto('/');
+    const localizedEditor = await mountEditor(page, 'presets-layout-editor', {
+      hostWidth: '860px',
+      hostHeight: '264px',
+      height: '100%',
+      hostStyles: {
+        position: 'fixed',
+        top: '16px',
+        left: '16px',
+        zIndex: '9999',
+        background: '#fff',
+      },
+    });
+
+    await expect(localizedEditor).toBeVisible();
+    await page.locator('#presets-layout-editor .kf-editor-ui-yushe-btn').first().click();
+
+    const itemTops = await page.locator('#presets-layout-editor .kf-editor-ui-box:visible .kf-editor-ui-box-item').evaluateAll((nodes) => {
+      return nodes.slice(0, 3).map((node) => Math.round(node.getBoundingClientRect().top));
+    });
+
+    expect(itemTops).toHaveLength(3);
+    expect(itemTops[1]).toBeGreaterThan(itemTops[0]);
+    expect(itemTops[2]).toBeGreaterThan(itemTops[1]);
+  });
+
+  test('all toolbar dropdown panels stay visible in modal-sized hosts', async ({ page }) => {
+    await page.goto('/');
+    const editor = await mountEditor(page, 'all-popups-editor', {
+      hostWidth: '860px',
+      hostHeight: '264px',
+      height: '100%',
+      hostStyles: {
+        position: 'fixed',
+        top: '16px',
+        left: '16px',
+        zIndex: '9999',
+        background: '#fff',
+      },
+    });
+
+    await expect(editor).toBeVisible();
+
+    const labels = ['Presets', 'Fraction', 'Scripts', 'Radicals', 'Integrals', 'Large', 'Brackets', 'Functions'];
+
+    for (const label of labels) {
+      const popup = await openToolbarPopupByText(page, 'all-popups-editor', label);
+      const metrics = await popup.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          top: Math.round(rect.top),
+          bottom: Math.round(rect.bottom),
+          width: Math.round(rect.width),
+          itemCount: node.querySelectorAll('.kf-editor-ui-box-item').length,
+        };
+      });
+
+      const viewportHeight = await page.evaluate(() => window.innerHeight);
+      expect(metrics.width).toBeGreaterThan(100);
+      expect(metrics.itemCount).toBeGreaterThan(0);
+      expect(metrics.top).toBeGreaterThanOrEqual(0);
+      expect(metrics.bottom).toBeLessThanOrEqual(viewportHeight);
+
+      await page.mouse.click(1200, 40);
+    }
+
+    await page.locator('#all-popups-editor .kf-editor-ui-area-button').click();
+    const areaPopup = page.locator('#all-popups-editor .kf-editor-ui-area-mount .kf-editor-ui-box:visible').first();
+    await expect(areaPopup).toBeVisible();
+
+    const areaMetrics = await areaPopup.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return {
+        top: Math.round(rect.top),
+        bottom: Math.round(rect.bottom),
+        itemCount: node.querySelectorAll('.kf-editor-ui-overlap-button, .kf-editor-ui-box-item').length,
+      };
+    });
+    const viewportHeight = await page.evaluate(() => window.innerHeight);
+
+    expect(areaMetrics.itemCount).toBeGreaterThan(0);
+    expect(areaMetrics.top).toBeGreaterThanOrEqual(0);
+    expect(areaMetrics.bottom).toBeLessThanOrEqual(viewportHeight);
+  });
+
+  test('integrals dropdown wraps items onto multiple rows when needed', async ({ page }) => {
+    await page.goto('/');
+    const editor = await mountEditor(page, 'integrals-wrap-editor', {
+      hostWidth: '860px',
+      hostHeight: '264px',
+      height: '100%',
+      hostStyles: {
+        position: 'fixed',
+        top: '16px',
+        left: '16px',
+        zIndex: '9999',
+        background: '#fff',
+      },
+    });
+
+    await expect(editor).toBeVisible();
+
+    const popup = await openToolbarPopupByText(page, 'integrals-wrap-editor', 'Integrals');
+    const itemTops = await popup.locator('.kf-editor-ui-box-item').evaluateAll((nodes) => {
+      return nodes.map((node) => Math.round(node.getBoundingClientRect().top));
+    });
+
+    const distinctRows = new Set(itemTops);
+    expect(distinctRows.size).toBeGreaterThan(1);
   });
 
   test('invalid selector throws error', async ({ page }) => {

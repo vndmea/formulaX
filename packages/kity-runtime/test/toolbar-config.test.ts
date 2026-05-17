@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
+import { resolveUnicode } from '../src/formula-symbols';
+import { getFormulaXRuntimeMessage, translateFormulaXText } from '../src/i18n';
 import { createToolbarConfig } from '../src/legacy/toolbar-config';
 
 function findButtonLabel(config: ReturnType<typeof createToolbarConfig>, label: string) {
@@ -34,5 +36,21 @@ describe('createToolbarConfig', () => {
     const fraction = findButtonLabel(config, 'Fraction<br/>');
 
     expect(fraction).toBeTruthy();
+  });
+
+  test('translates toolbar text through the shared i18n helper', () => {
+    expect(translateFormulaXText('toolbar', '积分<br/>', 'en_US')).toBe('Integrals<br/>');
+    expect(translateFormulaXText('toolbar', '大型<br/>运算符', 'en_US')).toBe('Large<br/>ops');
+    expect(translateFormulaXText('toolbar', '积分<br/>', 'zh_CN')).toBe('积分<br/>');
+  });
+
+  test('resolves runtime placeholder messages by locale', () => {
+    expect(getFormulaXRuntimeMessage('editor.placeholder.root', 'en_US')).toBe('Type formula here');
+    expect(getFormulaXRuntimeMessage('editor.placeholder.root', 'zh_CN')).toBe('请输入公式');
+  });
+
+  test('resolves vertical arrow unicode symbols correctly', () => {
+    expect(resolveUnicode('\\updownarrow')).toEqual({ char: '\u2195' });
+    expect(resolveUnicode('\\Updownarrow')).toEqual({ char: '\u21D5' });
   });
 });

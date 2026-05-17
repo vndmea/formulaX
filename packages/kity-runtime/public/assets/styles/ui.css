@@ -20,6 +20,20 @@
 /* Button */
 .kf-editor-inner-toolbar {
     width: 100%;
+    white-space: nowrap;
+}
+
+.kf-editor-ui-button-mount-point,
+.kf-editor-ui-area-mount,
+.kf-editor-ui-box,
+.kf-editor-ui-box-container,
+.kf-editor-ui-box-group,
+.kf-editor-ui-box-group-item-container,
+.kf-editor-ui-overlap-container,
+.kf-editor-ui-wrap-group,
+.kf-editor-ui-list,
+.kf-editor-ui-list-item-container {
+    white-space: normal;
 }
 
 .kf-editor-ui-button {
@@ -58,6 +72,7 @@
     display: block;
     font-size: 12px;
     line-height: 20px;
+    white-space: nowrap;
 }
 
 .kf-editor-ui-overlap-button .kf-editor-ui-button-label {
@@ -157,12 +172,13 @@
 
 .kf-editor-ui-box-group-title {
     background-color: #f7f6f0;
-    height: 23px;
-    line-height: 23px;
+    min-height: 23px;
+    line-height: 1.35;
     font-size: 12px;
     border: 1px solid #ebeae4;
     border-width: 1px 0;
-    padding-left: 12px;
+    padding: 4px 12px;
+    white-space: normal;
 }
 
 .kf-editor-ui-box-group-item-container {
@@ -185,8 +201,22 @@
 }
 
 .kf-editor-ui-yushe-btn .kf-editor-ui-box-item {
+    display: block;
     border: 1px solid transparent;
     padding: 5px;
+    margin: 0 0 12px;
+}
+
+.kf-editor-ui-yushe-btn .kf-editor-ui-box-item:last-child {
+    margin-bottom: 0;
+}
+
+.kf-editor-ui-yushe-btn .kf-editor-ui-box-item-content {
+    display: block;
+}
+
+.kf-editor-ui-yushe-btn .kf-editor-ui-box-item-val {
+    display: block;
 }
 
 .kf-editor-ui-box-item {
@@ -222,6 +252,8 @@
 
 .kf-editor-ui-box-item-label {
     margin-bottom: 5px;
+    line-height: 1.35;
+    white-space: normal;
 }
 
 .kf-editor-ui-box-item-content {

@@ -77,6 +77,7 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
         initialLatex: input.initialLatex,
         height: input.options.editor.height,
         autofocus: input.options.editor.autofocus,
+        locale: input.options.editor.locale,
         assets: input.options.editor.assets,
         render: {
           fontsize: input.options.editor.render.fontsize,

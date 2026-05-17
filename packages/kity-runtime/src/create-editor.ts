@@ -24,6 +24,7 @@ import {
 import { setToolbarAssetUrls } from './toolbar-assets';
 import {
   DEFAULT_FORMULAX_LOCALE,
+  getFormulaXRuntimeMessage,
   normalizeFormulaXLocale,
   type FormulaXLocale,
 } from './i18n';
@@ -302,6 +303,8 @@ export async function createKityEditor(
   const assets = resolveEditorAssets(options.assets);
 
   try {
+    legacySysconf.rootPlaceholder.content = getFormulaXRuntimeMessage('editor.placeholder.root', locale);
+
     const stylesheetInserted = ensureKityStylesheet(document, assets.styles.editor);
     if (stylesheetInserted) {
       const stylesheetInsertedMark = markFormulaXPerf('fx:kity-css:link-inserted');

@@ -35,23 +35,6 @@
   background: #fff;
 }
 
-.fx-demo-status {
-  margin: 0 0 16px;
-  font-size: 14px;
-}
-
-.fx-demo-status[data-tone="info"] {
-  color: #1d4ed8;
-}
-
-.fx-demo-status[data-tone="success"] {
-  color: #047857;
-}
-
-.fx-demo-status[data-tone="error"] {
-  color: #b91c1c;
-}
-
 .fx-tiptap-host {
   min-height: 320px;
   border: 1px solid #d1d5db;
@@ -67,7 +50,7 @@
 }
 
 .fx-demo-actions {
-  margin-top: 16px;
+  margin: 0 0 16px;
 }
 
 #insert-formula {

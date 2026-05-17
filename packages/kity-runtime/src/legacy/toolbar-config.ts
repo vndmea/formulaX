@@ -7,6 +7,7 @@ import { resolveUnicode } from '../formula-symbols';
 import {
   DEFAULT_FORMULAX_LOCALE,
   normalizeFormulaXLocale,
+  translateFormulaXText,
   type FormulaXLocale,
 } from '../i18n';
 
@@ -18,41 +19,6 @@ const UI_ELE_TYPE = legacyEleType;
 const BOX_TYPE = legacyBoxType;
 const OTHER_POSITION = legacyOtherPosition;
 
-const zhCnToEnUsText = new Map<string, string>([
-  ['预设', 'Presets'],
-  ['预设公式', 'Preset formulas'],
-  ['二次公式', 'Quadratic formula'],
-  ['二项式定理', 'Binomial theorem'],
-  ['勾股定理', 'Pythagorean theorem'],
-  ['基础数学', 'Basic math'],
-  ['希腊字母', 'Greek letters'],
-  ['求反关系运算符', 'Negated operators'],
-  ['字母类符号', 'Letter-like symbols'],
-  ['箭头', 'Arrows'],
-  ['手写体', 'Script'],
-  ['分数', 'Fraction'],
-  ['常用分数', 'Common fractions'],
-  ['上下标', 'Scripts'],
-  ['上标和下标', 'Superscripts and subscripts'],
-  ['常用的上标和下标', 'Common superscripts and subscripts'],
-  ['根式', 'Radicals'],
-  ['常用根式', 'Common radicals'],
-  ['积分', 'Integrals'],
-  ['大型运算符', 'Large operators'],
-  ['求和', 'Summations'],
-  ['括号', 'Brackets'],
-  ['方括号', 'Brackets'],
-  ['函数', 'Functions'],
-  ['三角函数', 'Trigonometric functions'],
-  ['常用函数', 'Common functions'],
-  ['小写', 'Lowercase'],
-  ['大写', 'Uppercase'],
-  ['变体', 'Variants'],
-  ['花体', 'Fraktur'],
-  ['双线', 'Double-struck'],
-  ['罗马', 'Roman'],
-]);
-
 function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: number | string) => void) {
   if (Array.isArray(list)) {
     list.forEach((item, index) => callback(item, index));
@@ -63,19 +29,7 @@ function each<T>(list: T[] | Record<string, T>, callback: (item: T, index: numbe
 }
 
 function translateToolbarText(value: string, locale: FormulaXLocale) {
-  if (locale === 'zh_CN') {
-    return value;
-  }
-
-  const normalizedValue = value.replace(/<br\s*\/?>/gi, '').trim();
-  const translatedValue = zhCnToEnUsText.get(normalizedValue);
-
-  if (!translatedValue) {
-    return value;
-  }
-
-  const lineBreakMatch = value.match(/<br\s*\/?>/i);
-  return lineBreakMatch ? `${translatedValue}${lineBreakMatch[0]}` : translatedValue;
+  return translateFormulaXText('toolbar', value, locale);
 }
 
 function localizeToolbarConfig(value: unknown, locale: FormulaXLocale): unknown {

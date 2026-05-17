@@ -1,4 +1,5 @@
 import { Node } from '@tiptap/core';
+import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
 import { parseLatex, serializeLatex, type FormulaDoc } from '@formulaxjs/core';
 import {
   createFormulaElement,
@@ -8,7 +9,11 @@ import {
   getFormulaLatexFromElement,
 } from '@formulaxjs/renderer';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
-import { ensureFormulaXModalStyles, scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
+import {
+  ensureFormulaXModalStyles,
+  getFormulaXEditorMessage,
+  scheduleFormulaXEditorPreload,
+} from '@formulaxjs/editor';
 import { openFormulaXTiptapModal } from './modal';
 import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
 
@@ -27,6 +32,8 @@ declare module '@tiptap/core' {
 }
 
 export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFormulaXTiptapOptions {
+  const locale = options.editor?.locale ?? DEFAULT_FORMULAX_LOCALE;
+
   return {
     name: options.name ?? FORMULAX_NODE_NAME,
     formulaClassName: options.formulaClassName ?? DEFAULT_FORMULA_CLASS,
@@ -40,15 +47,16 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
     }),
     preload: options.preload ?? 'idle',
     modal: {
-      title: options.modal?.title ?? 'FormulaX Editor',
-      insertText: options.modal?.insertText ?? 'Insert',
-      updateText: options.modal?.updateText ?? 'Update',
-      cancelText: options.modal?.cancelText ?? 'Cancel',
+      title: options.modal?.title ?? getFormulaXEditorMessage('modal.title', locale),
+      insertText: options.modal?.insertText ?? getFormulaXEditorMessage('modal.insert', locale),
+      updateText: options.modal?.updateText ?? getFormulaXEditorMessage('modal.update', locale),
+      cancelText: options.modal?.cancelText ?? getFormulaXEditorMessage('modal.cancel', locale),
       closeOnBackdrop: options.modal?.closeOnBackdrop ?? true,
     },
     editor: {
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
+      locale,
       assets: options.editor?.assets ?? {},
       render: {
         fontsize: options.editor?.render?.fontsize ?? 40,

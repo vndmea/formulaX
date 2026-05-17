@@ -9,4 +9,4 @@ export const legacySysconf = {
     padding: 5,
     step: 150,
   },
-} as const;
+};

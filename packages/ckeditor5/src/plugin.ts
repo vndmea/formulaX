@@ -6,6 +6,7 @@ import {
   toWidget,
   viewToModelPositionOutsideModelElement,
 } from 'ckeditor5';
+import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
 import {
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
@@ -14,7 +15,11 @@ import {
   ensureFormulaXBaseStyles,
 } from '@formulaxjs/renderer';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
-import { ensureFormulaXModalStyles, scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
+import {
+  ensureFormulaXModalStyles,
+  getFormulaXEditorMessage,
+  scheduleFormulaXEditorPreload,
+} from '@formulaxjs/editor';
 import { openFormulaXModal } from './modal';
 import type {
   FormulaXCKEditor5Options,
@@ -28,6 +33,8 @@ const DEFAULT_MODEL_NAME = 'formulaX';
 export { DEFAULT_BUTTON_NAME, DEFAULT_MODEL_NAME };
 
 export function resolveOptions(options: FormulaXCKEditor5Options = {}): RequiredFormulaXCKEditor5Options {
+  const locale = options.editor?.locale ?? DEFAULT_FORMULAX_LOCALE;
+
   return {
     name: options.name ?? DEFAULT_MODEL_NAME,
     buttonName: options.buttonName ?? DEFAULT_BUTTON_NAME,
@@ -43,15 +50,16 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
     }),
     preload: options.preload ?? 'idle',
     modal: {
-      title: options.modal?.title ?? 'FormulaX Editor',
-      insertText: options.modal?.insertText ?? 'Insert',
-      updateText: options.modal?.updateText ?? 'Update',
-      cancelText: options.modal?.cancelText ?? 'Cancel',
+      title: options.modal?.title ?? getFormulaXEditorMessage('modal.title', locale),
+      insertText: options.modal?.insertText ?? getFormulaXEditorMessage('modal.insert', locale),
+      updateText: options.modal?.updateText ?? getFormulaXEditorMessage('modal.update', locale),
+      cancelText: options.modal?.cancelText ?? getFormulaXEditorMessage('modal.cancel', locale),
       closeOnBackdrop: options.modal?.closeOnBackdrop ?? true,
     },
     editor: {
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
+      locale,
       assets: options.editor?.assets ?? {},
       render: {
         fontsize: options.editor?.render?.fontsize ?? 40,

@@ -41,6 +41,7 @@ export interface RequiredFormulaXTiptapOptions {
   editor: {
     height: number | string;
     autofocus: boolean;
+    locale: FormulaXEditorOptions['locale'];
     assets: FormulaXEditorOptions['assets'];
     render: {
       fontsize: number;

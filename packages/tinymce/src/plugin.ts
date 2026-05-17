@@ -4,7 +4,8 @@ import type {
   TinyMceEditorLike,
   TinyMceLike,
 } from './types';
-import { scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
+import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
+import { getFormulaXEditorMessage, scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import { createTinyMceCompat, warnUnsupportedTinyMceVersion } from './compat';
 import { findFormulaElement } from './markup';
@@ -29,6 +30,8 @@ const FORMULAX_SVG_VALID_ELEMENTS = [
 ].join(',');
 
 export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFormulaXTinyMceOptions {
+  const locale = options.editor?.locale ?? DEFAULT_FORMULAX_LOCALE;
+
   return {
     pluginName: options.pluginName ?? 'formulax',
     buttonName: options.buttonName ?? 'formulax',
@@ -46,10 +49,10 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     }),
     preload: options.preload ?? 'idle',
     modal: {
-      title: options.modal?.title ?? 'FormulaX',
-      insertText: options.modal?.insertText ?? 'Insert',
-      updateText: options.modal?.updateText ?? 'Update',
-      cancelText: options.modal?.cancelText ?? 'Cancel',
+      title: options.modal?.title ?? getFormulaXEditorMessage('modal.title', locale),
+      insertText: options.modal?.insertText ?? getFormulaXEditorMessage('modal.insert', locale),
+      updateText: options.modal?.updateText ?? getFormulaXEditorMessage('modal.update', locale),
+      cancelText: options.modal?.cancelText ?? getFormulaXEditorMessage('modal.cancel', locale),
       width: options.modal?.width ?? '1100px',
       height: options.modal?.height ?? 'auto',
       closeOnBackdrop: options.modal?.closeOnBackdrop ?? true,
@@ -57,6 +60,7 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     editor: {
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
+      locale,
       assets: options.editor?.assets ?? {},
       render: {
         fontsize: options.editor?.render?.fontsize ?? 40,

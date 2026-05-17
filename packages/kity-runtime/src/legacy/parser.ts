@@ -49,7 +49,6 @@ type ParserComponentInstance = {
 };
 
 const CURSOR_CHAR = legacySysconf.cursorCharacter;
-const ROOT_P_TEXT = legacySysconf.rootPlaceholder.content;
 const COMBINATION_NAME = 'combination';
 const PID_PREFIX = '_kf_editor_';
 
@@ -101,6 +100,10 @@ function createGroup(parser: ParserComponentInstance): LegacyTreeNode {
     },
     operand: [],
   };
+}
+
+function getRootPlaceholderText() {
+  return legacySysconf.rootPlaceholder.content;
 }
 
 function processRootGroup(parser: ParserComponentInstance, tree: LegacyTreeNode) {
@@ -168,7 +171,7 @@ function supplementTree(parser: ParserComponentInstance, tree: LegacyTreeNode, p
   if (isRoot) {
     processRootGroup(parser, tree);
   } else if (parentTree?.attr?.['data-root'] && tree.name === 'placeholder' && onlyPlaceholder(parentTree.operand)) {
-    tree.attr.label = ROOT_P_TEXT;
+    tree.attr.label = getRootPlaceholderText();
   }
 
   for (let i = 0; i < tree.operand.length; i += 1) {

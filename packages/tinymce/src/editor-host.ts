@@ -17,6 +17,7 @@ export function mountFormulaXEditorInModal(
     initialLatex: input.initialLatex,
     height: input.options.editor.height ?? '100%',
     autofocus: input.options.editor.autofocus ?? true,
+    locale: input.options.editor.locale,
     assets: input.options.editor.assets,
     render: {
       fontsize: input.options.editor.render?.fontsize ?? 40,

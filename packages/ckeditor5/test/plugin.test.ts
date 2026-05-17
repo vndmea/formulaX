@@ -13,6 +13,24 @@ describe('ckeditor5 adapter', () => {
     expect(resolveOptions({ name: 'inlineMath' }).name).toBe('inlineMath');
   });
 
+  it('localizes modal defaults from the editor locale', () => {
+    expect(resolveOptions({
+      editor: {
+        locale: 'zh_CN',
+      },
+    })).toMatchObject({
+      modal: {
+        title: 'FormulaX 编辑器',
+        insertText: '插入',
+        updateText: '更新',
+        cancelText: '取消',
+      },
+      editor: {
+        locale: 'zh_CN',
+      },
+    });
+  });
+
   it('logs and aborts initialization when the model name already exists', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const register = vi.fn();

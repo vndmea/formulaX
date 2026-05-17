@@ -59,4 +59,22 @@ describe('tiptap adapter', () => {
       },
     });
   });
+
+  it('localizes tiptap modal defaults from the editor locale', () => {
+    expect(resolveOptions({
+      editor: {
+        locale: 'zh_CN',
+      },
+    })).toMatchObject({
+      modal: {
+        title: 'FormulaX 编辑器',
+        insertText: '插入',
+        updateText: '更新',
+        cancelText: '取消',
+      },
+      editor: {
+        locale: 'zh_CN',
+      },
+    });
+  });
 });
