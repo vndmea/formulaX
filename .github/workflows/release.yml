@@ -33,9 +33,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
+
+      - name: Check tool versions
+        run: |
+          node -v
+          npm -v
+          corepack pnpm -v
+          npm config get registry
 
       - name: Install dependencies
         run: corepack pnpm install --frozen-lockfile
@@ -56,7 +63,7 @@ jobs:
           commit: Version Packages
           title: Version Packages
           version: corepack pnpm changeset:version
-          publish: corepack pnpm release
+          publish: corepack pnpm release:publish
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

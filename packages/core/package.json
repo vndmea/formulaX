@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "Core data model and shared utilities for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/core"
+  },
   "keywords": [
     "formulax",
     "formula",

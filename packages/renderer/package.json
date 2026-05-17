@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "SVG formula rendering helpers for FormulaX rich-text adapters.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/renderer"
+  },
   "keywords": [
     "formulax",
     "formula",

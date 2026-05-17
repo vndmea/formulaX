@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "Legacy KityFormula runtime adapter for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/kity-runtime"
+  },
   "keywords": [
     "formulax",
     "kityformula",

@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "Modern formula editor foundation for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/editor"
+  },
   "keywords": [
     "formulax",
     "formula",

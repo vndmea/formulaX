@@ -41,6 +41,7 @@
     "npm:orphans:deprecate": "node scripts/deprecate-npm-orphans.mjs",
     "npm:orphans:report": "node scripts/report-npm-orphans.mjs",
     "release": "corepack pnpm build:packages && corepack pnpm changeset:publish",
+    "release:publish": "corepack pnpm changeset:publish",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:browser": "playwright test",

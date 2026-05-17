@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "CKEditor 5 integration adapter for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/ckeditor5"
+  },
   "keywords": [
     "formulax",
     "formula",

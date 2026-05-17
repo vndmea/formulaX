@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "TinyMCE integration adapter for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/tinymce"
+  },
   "keywords": [
     "formulax",
     "formula",

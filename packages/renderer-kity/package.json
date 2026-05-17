@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "description": "Kity runtime based SVG renderer for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/renderer-kity"
+  },
   "keywords": [
     "formulax",
     "formula",
