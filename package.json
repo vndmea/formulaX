@@ -38,6 +38,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "lint": "eslint .",
+    "release": "corepack pnpm build:packages && corepack pnpm changeset:publish",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:browser": "playwright test",
