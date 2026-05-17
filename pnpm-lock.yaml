@@ -84,8 +84,8 @@ importers:
   apps/react-demo:
     dependencies:
       '@formulaxjs/tiptap':
-        specifier: 0.3.1
-        version: 0.3.1(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))
+        specifier: 0.4.0
+        version: 0.4.0(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))
       '@tiptap/react':
         specifier: ^3.0.0
         version: 3.23.4(@floating-ui/dom@1.7.6)(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))(@tiptap/pm@3.23.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -112,8 +112,8 @@ importers:
   apps/svelte-demo:
     dependencies:
       '@formulaxjs/ckeditor5':
-        specifier: 0.3.1
-        version: 0.3.1(ckeditor5@46.1.1)
+        specifier: 0.4.0
+        version: 0.4.0(ckeditor5@46.1.1)
       ckeditor5:
         specifier: ^46.1.1
         version: 46.1.1
@@ -146,8 +146,8 @@ importers:
   apps/vue-demo:
     dependencies:
       '@formulaxjs/tinymce':
-        specifier: 0.2.1
-        version: 0.2.1(tinymce@7.9.2)
+        specifier: 0.3.0
+        version: 0.3.0(tinymce@7.9.2)
       tinymce:
         specifier: ^7.7.1
         version: 7.9.2
@@ -984,8 +984,8 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@formulaxjs/ckeditor5@0.3.1':
-    resolution: {integrity: sha512-MYb8aNwhEDj39ChKXRso8H1r/kZjDoc1GnqSYmUiQzS2dOri5+yL29q/AGeLW8bNmeFdHOd2+gYbjKq1AkGj/A==}
+  '@formulaxjs/ckeditor5@0.4.0':
+    resolution: {integrity: sha512-ddYlUX7KVbAU8/u3HusJX2O7P3q9kCAQPpQbtAswO4B++gtgrRJ12nPtudvlDq1AGasA1yOxpnjeUnRSVl8O1w==}
     peerDependencies:
       ckeditor5: '>=42 <49'
     peerDependenciesMeta:
@@ -995,28 +995,28 @@ packages:
   '@formulaxjs/core@0.1.0':
     resolution: {integrity: sha512-+cS3MZbnvxRI6q4o5PU3kU2xor8X1pfWVy5LGzFEtHg2CVrHrfRdYo+2uoeg0ikfynr+0P3GBTjP0VpYcVSCpg==}
 
-  '@formulaxjs/editor@0.3.1':
-    resolution: {integrity: sha512-Zu8uV/vw20vnluqtPqrxKX6CTq0j7JqJVwQBG/k8oqedRmduFFqezGmYMt0y+WStbMv/ZtoYBpZ6lqrkcxTWZA==}
+  '@formulaxjs/editor@0.4.0':
+    resolution: {integrity: sha512-QOErN7dDIPys9a/ARPbVpltI6AmgBqJjxHNjXEiXUzjNMZYKfLvSAVk3TF92nYOcmLXstePOz+doixRW/IvmDg==}
 
-  '@formulaxjs/kity-runtime@0.4.0':
-    resolution: {integrity: sha512-1AixO8c2cOS0HQ+rkmfSOWsQGsCjDT+uNFGbQPdIMMR9PIBM8ouQEOtwvQ8aPSQ60OXL3ZrDvfbHV03n+ZdKSw==}
+  '@formulaxjs/kity-runtime@0.5.0':
+    resolution: {integrity: sha512-LBCIG2qLwA6/6KeTPb4/k/wMMhP9cVWm9jiZUoyXa25lp/UtdkMXY6t24Wfnx2eAUv6KvSuBiWmzPpptP0MtZw==}
 
-  '@formulaxjs/renderer-kity@0.2.1':
-    resolution: {integrity: sha512-+/xvdZoaLHERHfeQNanAGZOkHUvQ4VTseUtM7I8PB442jY0au951+f2ec4m/2fLVW3tSVnaUtt0vQ+03XTjgzg==}
+  '@formulaxjs/renderer-kity@0.3.0':
+    resolution: {integrity: sha512-VVesAz93ORs4zBHDSXAR7A+hhzES24HRM+xTgaxCuBptpBVJ5foctqBWKZy3yZv01O2nbRhEzVzdEIkNx6HRbw==}
 
   '@formulaxjs/renderer@0.2.0':
     resolution: {integrity: sha512-JbnK+LRKIoCEKS0/TlymIX3Dyu8ObN+eEXT0jGVWi/9BY5zRbLbtav75idLFm8GNAbProneDJWLfysetwX4DCA==}
 
-  '@formulaxjs/tinymce@0.2.1':
-    resolution: {integrity: sha512-AD8C9sRrJ7ZHGETlGMh6oO9oCPF1q1BsKwRw9/BTE4xWu8NhwkMLmBQtlzYwzLNEwKvEg3yfh2RWoEcsMcaP4A==}
+  '@formulaxjs/tinymce@0.3.0':
+    resolution: {integrity: sha512-u5jUYC87fs+J2+haPbD3oi1PKOd97S6bHTk9zEOsikh/C5Tzclp5APmcrIX+1rVH7kgdKPEfcULBUbe9uNfuzw==}
     peerDependencies:
       tinymce: '>=5 <9'
     peerDependenciesMeta:
       tinymce:
         optional: true
 
-  '@formulaxjs/tiptap@0.3.1':
-    resolution: {integrity: sha512-FXYlqnhOz8DdKhwlbgpknE2YNnqSOzzp3FZw18cK19CB4wa38ZvsE0QvR5/pWzjFGXOhPYrY4cnG4DrErci75Q==}
+  '@formulaxjs/tiptap@0.4.0':
+    resolution: {integrity: sha512-5lsk1VA5r/rcqNsP7oKTopwxtcQtGeWyq/bsItRf8ks+oYaLM/+AtUy/GNrBYeSof/DthoCyc7kcKnIbTtqhRg==}
     peerDependencies:
       '@tiptap/core': '>=2 <4'
     peerDependenciesMeta:
@@ -3655,6 +3655,8 @@ snapshots:
       '@ckeditor/ckeditor5-core': 46.1.1
       '@ckeditor/ckeditor5-upload': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-alignment@46.1.1':
     dependencies:
@@ -3762,6 +3764,8 @@ snapshots:
       '@ckeditor/ckeditor5-core': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-code-block@46.1.1':
     dependencies:
@@ -3783,8 +3787,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-watchdog': 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-easy-image@46.1.1':
     dependencies:
@@ -3804,6 +3806,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-editor-classic@46.1.1':
     dependencies:
@@ -3813,6 +3817,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-editor-decoupled@46.1.1':
     dependencies:
@@ -3822,6 +3828,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-editor-inline@46.1.1':
     dependencies:
@@ -3891,6 +3899,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-font@46.1.1':
     dependencies:
@@ -3945,6 +3955,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-html-embed@46.1.1':
     dependencies:
@@ -3990,8 +4002,6 @@ snapshots:
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-indent@46.1.1':
     dependencies:
@@ -4003,8 +4013,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-language@46.1.1':
     dependencies:
@@ -4028,8 +4036,6 @@ snapshots:
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-list@46.1.1':
     dependencies:
@@ -4043,8 +4049,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-markdown-gfm@46.1.1':
     dependencies:
@@ -4082,8 +4086,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-mention@46.1.1':
     dependencies:
@@ -4103,8 +4105,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-page-break@46.1.1':
     dependencies:
@@ -4114,8 +4114,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-paragraph@46.1.1':
     dependencies:
@@ -4139,8 +4137,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-restricted-editing@46.1.1':
     dependencies:
@@ -4166,8 +4162,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-source-editing@46.1.1':
     dependencies:
@@ -4198,8 +4192,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-table@46.1.1':
     dependencies:
@@ -4212,8 +4204,6 @@ snapshots:
       '@ckeditor/ckeditor5-widget': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-theme-lark@46.1.1':
     dependencies:
@@ -4238,8 +4228,6 @@ snapshots:
       color-parse: 2.0.2
       es-toolkit: 1.39.5
       vanilla-colorful: 0.7.2
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-undo@46.1.1':
     dependencies:
@@ -4258,8 +4246,6 @@ snapshots:
     dependencies:
       '@ckeditor/ckeditor5-ui': 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-watchdog@46.1.1':
     dependencies:
@@ -4287,8 +4273,6 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@csstools/color-helpers@5.1.0': {}
 
@@ -4526,50 +4510,50 @@ snapshots:
   '@floating-ui/utils@0.2.11':
     optional: true
 
-  '@formulaxjs/ckeditor5@0.3.1(ckeditor5@46.1.1)':
+  '@formulaxjs/ckeditor5@0.4.0(ckeditor5@46.1.1)':
     dependencies:
       '@formulaxjs/core': 0.1.0
-      '@formulaxjs/editor': 0.3.1
+      '@formulaxjs/editor': 0.4.0
       '@formulaxjs/renderer': 0.2.0
-      '@formulaxjs/renderer-kity': 0.2.1
+      '@formulaxjs/renderer-kity': 0.3.0
     optionalDependencies:
       ckeditor5: 46.1.1
 
   '@formulaxjs/core@0.1.0': {}
 
-  '@formulaxjs/editor@0.3.1':
+  '@formulaxjs/editor@0.4.0':
     dependencies:
       '@formulaxjs/core': 0.1.0
-      '@formulaxjs/kity-runtime': 0.4.0
+      '@formulaxjs/kity-runtime': 0.5.0
       '@formulaxjs/renderer': 0.2.0
-      '@formulaxjs/renderer-kity': 0.2.1
+      '@formulaxjs/renderer-kity': 0.3.0
 
-  '@formulaxjs/kity-runtime@0.4.0':
+  '@formulaxjs/kity-runtime@0.5.0':
     dependencies:
       lodash-es: 4.18.1
 
-  '@formulaxjs/renderer-kity@0.2.1':
+  '@formulaxjs/renderer-kity@0.3.0':
     dependencies:
-      '@formulaxjs/kity-runtime': 0.4.0
+      '@formulaxjs/kity-runtime': 0.5.0
       '@formulaxjs/renderer': 0.2.0
 
   '@formulaxjs/renderer@0.2.0': {}
 
-  '@formulaxjs/tinymce@0.2.1(tinymce@7.9.2)':
+  '@formulaxjs/tinymce@0.3.0(tinymce@7.9.2)':
     dependencies:
       '@formulaxjs/core': 0.1.0
-      '@formulaxjs/editor': 0.3.1
+      '@formulaxjs/editor': 0.4.0
       '@formulaxjs/renderer': 0.2.0
-      '@formulaxjs/renderer-kity': 0.2.1
+      '@formulaxjs/renderer-kity': 0.3.0
     optionalDependencies:
       tinymce: 7.9.2
 
-  '@formulaxjs/tiptap@0.3.1(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))':
+  '@formulaxjs/tiptap@0.4.0(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))':
     dependencies:
       '@formulaxjs/core': 0.1.0
-      '@formulaxjs/editor': 0.3.1
+      '@formulaxjs/editor': 0.4.0
       '@formulaxjs/renderer': 0.2.0
-      '@formulaxjs/renderer-kity': 0.2.1
+      '@formulaxjs/renderer-kity': 0.3.0
     optionalDependencies:
       '@tiptap/core': 3.23.4(@tiptap/pm@3.23.4)
 
