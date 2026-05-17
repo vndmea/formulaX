@@ -1,6 +1,6 @@
 # @formulaxjs/tinymce
 
-English | [简体中文](./README.zh-CN.md)
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/tinymce/README.zh-CN.md)
 
 TinyMCE integration adapter for FormulaX.
 

@@ -1,6 +1,6 @@
 # @formulaxjs/tiptap
 
-[English](./README.md) | 简体中文
+[English](https://github.com/vndmea/formulaX/blob/main/packages/tiptap/README.md) | 简体中文
 
 FormulaX 的 Tiptap 集成适配器。
 

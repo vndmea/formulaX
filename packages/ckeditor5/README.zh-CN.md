@@ -1,6 +1,6 @@
 # @formulaxjs/ckeditor5
 
-[English](./README.md) | 简体中文
+[English](https://github.com/vndmea/formulaX/blob/main/packages/ckeditor5/README.md) | 简体中文
 
 FormulaX 的 CKEditor 5 集成适配器。
 

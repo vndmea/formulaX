@@ -1,6 +1,6 @@
 # FormulaX
 
-[English](./README.md) | 简体中文
+[English](https://github.com/vndmea/formulaX/blob/main/README.md) | 简体中文
 
 现代公式编辑器 workspace，兼容旧版 KityFormula，并支持模块化运行时加载、共享渲染协议和富文本编辑器集成。
 

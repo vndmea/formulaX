@@ -1,6 +1,6 @@
 # FormulaX
 
-English | [简体中文](./README.zh-CN.md)
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/README.zh-CN.md)
 
 A modern formula editor workspace with legacy KityFormula compatibility, modular runtime loading, shared rendering protocols, and rich-text editor integrations.
 

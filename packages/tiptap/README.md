@@ -1,6 +1,6 @@
 # @formulaxjs/tiptap
 
-English | [简体中文](./README.zh-CN.md)
+English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/tiptap/README.zh-CN.md)
 
 Tiptap integration adapter for FormulaX.
 
