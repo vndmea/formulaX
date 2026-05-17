@@ -40,8 +40,7 @@ FormulaX 的 TinyMCE 集成适配器。
 包发布后可使用：
 
 ```bash
-pnpm add @formulaxjs/tinymce
-pnpm add tinymce
+npm install @formulaxjs/tinymce tinymce
 ```
 
 在 FormulaX 工作空间内，直接使用 workspace 包：

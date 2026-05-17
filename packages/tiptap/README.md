@@ -38,8 +38,7 @@ The workspace demo can switch between Tiptap 2 and 3 for compatibility verificat
 When the package is published:
 
 ```bash
-pnpm add @formulaxjs/tiptap
-pnpm add @tiptap/core
+npm install @formulaxjs/tiptap @tiptap/core
 ```
 
 Inside the FormulaX workspace, use the workspace package directly:

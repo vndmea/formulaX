@@ -38,8 +38,7 @@ FormulaX 的 Tiptap 集成适配器。
 包发布后可使用：
 
 ```bash
-pnpm add @formulaxjs/tiptap
-pnpm add @tiptap/core
+npm install @formulaxjs/tiptap @tiptap/core
 ```
 
 在 FormulaX 工作空间内，直接使用 workspace 包：

@@ -9,7 +9,7 @@ Core document model and shared utilities for FormulaX.
 ## Install
 
 ```bash
-pnpm add @formulaxjs/core
+npm install @formulaxjs/core
 ```
 
 ## Highlights

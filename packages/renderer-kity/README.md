@@ -9,7 +9,7 @@ Kity-based read-only renderer for FormulaX.
 ## Install
 
 ```bash
-pnpm add @formulaxjs/renderer-kity
+npm install @formulaxjs/renderer-kity
 ```
 
 ## Highlights

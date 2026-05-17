@@ -9,7 +9,7 @@ Legacy KityFormula runtime adapter for FormulaX.
 ## Install
 
 ```bash
-pnpm add @formulaxjs/kity-runtime
+npm install @formulaxjs/kity-runtime
 ```
 
 ## Highlights

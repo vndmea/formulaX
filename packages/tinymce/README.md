@@ -40,8 +40,7 @@ The workspace demo can dynamically load TinyMCE 5, 6, 7, or 8 from CDN for compa
 When the package is published:
 
 ```bash
-pnpm add @formulaxjs/tinymce
-pnpm add tinymce
+npm install @formulaxjs/tinymce tinymce
 ```
 
 Inside the FormulaX workspace, use the workspace package directly:

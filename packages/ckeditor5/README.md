@@ -39,8 +39,7 @@ Inside this workspace, the demo app currently uses CKEditor 5 `46.1.1`.
 When the package is published:
 
 ```bash
-pnpm add @formulaxjs/ckeditor5
-pnpm add ckeditor5
+npm install @formulaxjs/ckeditor5 ckeditor5
 ```
 
 Inside the FormulaX workspace, use the workspace package directly:

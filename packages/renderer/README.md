@@ -9,7 +9,7 @@ Shared renderer contracts and formula markup utilities for FormulaX.
 ## Install
 
 ```bash
-pnpm add @formulaxjs/renderer
+npm install @formulaxjs/renderer
 ```
 
 ## Highlights

@@ -9,7 +9,7 @@ Modal-oriented FormulaX editor UI helpers.
 ## Install
 
 ```bash
-pnpm add @formulaxjs/editor
+npm install @formulaxjs/editor
 ```
 
 ## Highlights
