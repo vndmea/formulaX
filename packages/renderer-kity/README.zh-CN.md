@@ -20,7 +20,7 @@ npm install @formulaxjs/renderer-kity
 - `renderLatexToSvgMarkup`
 - `serializeKityFormulaFromRoot`
 - `waitForKityFormulaSvgLayout`
-- 通过 `assetsVersion` 支持安全缓存的资源覆盖
+- 通过 `assetCacheKey` 支持安全缓存的资源覆盖
 
 ## 示例
 
@@ -37,7 +37,7 @@ console.log(result.engine); // kity
 console.log(result.html);   // inline SVG markup
 ```
 
-如果你传入了自定义 runtime 资源覆盖，并且希望继续启用缓存，请同时传入一个 `assetsVersion` 字符串，避免不同资源集共用同一条 cache 记录。
+如果你传入了自定义 runtime 资源覆盖，并且希望继续启用缓存，请同时传入一个 `assetCacheKey` 字符串，避免不同资源集共用同一条 cache 记录。
 
 ## 包职责
 

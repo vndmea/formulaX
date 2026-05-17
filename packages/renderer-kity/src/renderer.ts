@@ -36,7 +36,7 @@ export function renderLatexToSvgMarkup(
 ): Promise<FormulaRenderResult> {
   const normalizedLatex = latex.trim();
   const shouldUseCache = options.cache !== false
-    && !(hasCustomAssetOverrides(options.assets) && !options.assetsVersion);
+    && !(hasCustomAssetOverrides(options.assets) && !options.assetCacheKey);
 
   if (!normalizedLatex) {
     return Promise.resolve({
@@ -54,7 +54,7 @@ export function renderLatexToSvgMarkup(
     fontSize: options.fontSize,
     displayMode: options.displayMode,
     className: options.className,
-    assetsVersion: options.assetsVersion,
+    assetCacheKey: options.assetCacheKey,
   });
 
   if (shouldUseCache) {

@@ -5,7 +5,7 @@ export interface FormulaRenderCacheKeyInput {
   fontSize?: number;
   displayMode?: boolean;
   className?: string;
-  assetsVersion?: string;
+  assetCacheKey?: string;
 }
 
 export function createFormulaRenderCacheKey(input: FormulaRenderCacheKeyInput): string {
@@ -16,6 +16,6 @@ export function createFormulaRenderCacheKey(input: FormulaRenderCacheKeyInput): 
     fontSize: input.fontSize,
     displayMode: input.displayMode,
     className: input.className,
-    assetsVersion: input.assetsVersion,
+    assetCacheKey: input.assetCacheKey,
   });
 }
