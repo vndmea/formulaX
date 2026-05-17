@@ -1,5 +1,11 @@
 # @formulaxjs/kity-runtime
 
+## 0.4.0
+
+### Minor Changes
+
+- Restore locale support for the legacy Kity toolbar, default the runtime UI to `en_US`, and add explicit `zh_CN` locale handling for browser integrations.
+
 ## 0.3.0
 
 ### Minor Changes

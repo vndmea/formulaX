@@ -1,5 +1,13 @@
 # @formulaxjs/editor
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @formulaxjs/kity-runtime@0.4.0
+  - @formulaxjs/renderer-kity@0.2.1
+
 ## 0.3.0
 
 ### Minor Changes

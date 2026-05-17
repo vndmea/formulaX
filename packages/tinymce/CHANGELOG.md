@@ -1,5 +1,12 @@
 # @formulaxjs/tinymce
 
+## 0.2.1
+
+### Patch Changes
+
+- @formulaxjs/editor@0.3.1
+- @formulaxjs/renderer-kity@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

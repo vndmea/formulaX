@@ -1,5 +1,12 @@
 # @formulaxjs/renderer-kity
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @formulaxjs/kity-runtime@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes
