@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm', 'cjs', 'iife'],
-  dts: false,
+  dts: true,
   sourcemap: true,
   clean: true,
   outDir: 'dist',
