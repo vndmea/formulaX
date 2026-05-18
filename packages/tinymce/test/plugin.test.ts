@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { registerFormulaXTinyMcePlugin, resolveOptions } from '../src';
+import { createFormulaDisplayAttributes, createFormulaImageHtml } from '@formulaxjs/renderer-image';
+import {
+  createTinyMceFormulaMarkup,
+  registerFormulaXTinyMcePlugin,
+  resolveOptions,
+} from '../src';
 
 describe('registerFormulaXTinyMcePlugin', () => {
   it('registers plugin with constructable function for TinyMCE 5 compatibility', () => {
@@ -107,6 +112,42 @@ describe('registerFormulaXTinyMcePlugin', () => {
         locale: 'zh_CN',
       },
     });
+  });
+
+  it('creates TinyMCE image markup with persisted image attrs', () => {
+    const html = createTinyMceFormulaMarkup('\\sqrt{x}', {
+      renderHtml: createFormulaImageHtml({
+        src: 'http://localhost:3109/f/48231.png',
+        latex: '\\sqrt{x}',
+        className: 'formulax-math',
+        width: 128,
+        height: 48,
+        style: 'width:2.5em; height:0.94em',
+      }),
+      extraAttributes: createFormulaDisplayAttributes({
+        output: 'image',
+        latex: '\\sqrt{x}',
+        renderHtml: '',
+        source: {
+          engine: 'tinymce',
+          output: 'svg',
+          latex: '\\sqrt{x}',
+          html: '',
+        },
+        image: {
+          url: 'http://localhost:3109/f/48231.png',
+          width: 128,
+          height: 48,
+          displayStyle: 'width:2.5em; height:0.94em',
+        },
+      }),
+    });
+
+    expect(html).toContain('data-mce-contenteditable="false"');
+    expect(html).toContain('data-formulax-output="image"');
+    expect(html).toContain('data-formulax-image-url="http://localhost:3109/f/48231.png"');
+    expect(html).toContain('<img');
+    expect(html).toContain('data-formulax-image="true"');
   });
 });
 

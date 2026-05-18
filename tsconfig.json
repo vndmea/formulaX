@@ -12,7 +12,8 @@
       "@formulaxjs/renderer-kity": ["packages/renderer-kity/src/index.ts"],
       "@formulaxjs/tiptap": ["packages/tiptap/src/index.ts"],
       "@formulaxjs/tinymce": ["packages/tinymce/src/index.ts"],
-      "@formulaxjs/kity-runtime": ["packages/kity-runtime/src/index.ts"]
+      "@formulaxjs/kity-runtime": ["packages/kity-runtime/src/index.ts"],
+      "@formulaxjs/kity-runtime/canvg-runtime": ["packages/kity-runtime/src/canvg-runtime.ts"]
     }
   },
   "include": ["packages", "apps"]

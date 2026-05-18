@@ -15,7 +15,8 @@ FormulaX 的 CKEditor 5 集成适配器。
 - 通过 `editor.execute('formulaX')` 在代码中主动打开
 - 将公式作为行内 widget object 插入和更新
 - 支持双击编辑已有公式
-- 在 CKEditor 5 model 中仅持久化 LaTeX 源内容
+- 默认在 CKEditor 5 model 中持久化 LaTeX 源内容
+- 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片元数据
 - 在 editing view 中运行时渲染 SVG
 - 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
@@ -144,7 +145,7 @@ editor.execute('myFormulaX');
 
 ## 持久化数据与 markup
 
-CKEditor 5 的 model 层只保存公式的 LaTeX 源内容：
+默认情况下，CKEditor 5 的 model 层只保存公式的 LaTeX 源内容：
 
 ```ts
 <formulaX latex="\\sqrt{x}" />
@@ -165,7 +166,43 @@ CKEditor 5 的 model 层只保存公式的 LaTeX 源内容：
 ></span>
 ```
 
+启用 `output: 'image'` 后，model 还会保存 `output`、`imageUrl`、`imageWidth`、`imageHeight`、`imageStyle`，downcast 后的 HTML 会输出 `<img>`，同时外层 wrapper 继续保留源 LaTeX。
+
 编辑态中的 SVG 由持久化的 LaTeX 在运行时生成。用于渲染公式的内部 HTML 结构属于实现细节，后续可能演进。业务侧应优先依赖插件能力和导出的配置项，而不是写死完整 markup 结构。
+
+## PNG image output
+
+```ts
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+  formulaX: {
+    output: 'image',
+    image: {
+      upload: async ({ blob, filename, latex }) => {
+        const formData = new FormData();
+        formData.append('file', blob, filename);
+        formData.append('latex', latex);
+
+        const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Formula image upload failed: ${response.status}`);
+        }
+
+        const payload = await response.json() as { url?: string; location?: string };
+
+        return {
+          url: payload.url ?? payload.location ?? '',
+        };
+      },
+    },
+  },
+} as any);
+```
 
 ## 自定义 renderer
 
@@ -182,6 +219,8 @@ interface FormulaXCKEditor5Options {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  output?: 'svg' | 'image';
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   modal?: {
@@ -212,6 +251,8 @@ interface FormulaXCKEditor5Options {
 | `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
+| `output` | `svg` | 公式持久化为运行时 SVG 元数据，或上传后的 PNG 元数据。 |
+| `image` | `undefined` | 当 `output` 为 `image` 时使用的 PNG 上传配置。 |
 | `renderer` | `createKityFormulaRenderer()` | editing view 中运行时 SVG 输出使用的 renderer。 |
 | `preload` | `idle` | 控制在浏览器空闲时、宿主 hover/focus 时，或完全不预加载 FormulaX runtime。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |

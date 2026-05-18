@@ -30,6 +30,7 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 | `@formulaxjs/core` | 核心数据模型、LaTeX 解析和纯逻辑 |
 | `@formulaxjs/renderer` | 共享 renderer 协议、公式 markup、基础样式、cache helper 和 SVG 工具 |
 | `@formulaxjs/renderer-kity` | 基于 Kity 的只读渲染器，将 LaTeX 转成可内联的 SVG markup |
+| `@formulaxjs/renderer-image` | 用于 image output 持久化的 SVG 转 PNG 与上传辅助层 |
 | `@formulaxjs/editor` | 基于 runtime 的弹窗编辑 UI 辅助层 |
 | `@formulaxjs/kity-runtime` | 旧版 KityFormula 兼容运行时、内置资源和低层编辑器工厂 |
 | `@formulaxjs/tiptap` | Tiptap 集成适配器 |
@@ -56,6 +57,7 @@ FormulaX workspace
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
 ├── @formulaxjs/renderer（renderer 协议、markup、styles、svg helpers）
 ├── @formulaxjs/renderer-kity（基于 Kity 的 LaTeX -> inline SVG 渲染器）
+├── @formulaxjs/renderer-image（SVG -> PNG 上传辅助层，用于图片持久化）
 ├── @formulaxjs/editor（弹窗 UI 和内嵌编辑器编排）
 ├── @formulaxjs/kity-runtime（旧版兼容运行时和内置静态资源）
 │   ├── KityFormula 运行时（懒加载 chunk）
@@ -120,6 +122,7 @@ pnpm dev:react
 pnpm dev:svelte
 pnpm dev:tiptap
 pnpm dev:tinymce
+pnpm dev:upload
 pnpm dev:vue
 ```
 
@@ -221,6 +224,31 @@ await editor.focus();
 await editor.destroy();
 ```
 
+### 使用本地上传服务测试 image output
+
+FormulaX 适配器默认输出运行时 SVG。若你希望持久化 PNG 图片，可以改为 `output: 'image'` 并提供 `image.upload`。
+
+在当前 workspace 中做本地验证时，可直接运行：
+
+```bash
+pnpm dev:upload
+pnpm dev:tinymce
+pnpm dev:tiptap
+pnpm dev:ckeditor5
+```
+
+默认本地上传 endpoint：
+
+```txt
+http://localhost:3109/api/formula-image/upload
+```
+
+需要注意：
+
+- GitHub Pages 上的 demo 无法访问你自己机器上的 `http://localhost:3109` 上传服务。
+- image mode 主要用于本地开发验证，或业务侧已经提供了可访问上传接口的场景。
+- 即使是 image mode，适配器仍会保留源 LaTeX 元数据，方便后续再次编辑。
+
 ### Core 包
 
 ```ts
@@ -273,6 +301,36 @@ const editor = new Editor({
 });
 
 editor.commands.openFormulaX();
+```
+
+Tiptap 的 image mode 示例：
+
+```ts
+const formulaNode = createFormulaXNode(undefined, {
+  output: 'image',
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
+});
 ```
 
 ### TinyMCE 集成
@@ -331,6 +389,36 @@ await tinymce.init({
 const html = createTinyMceFormulaMarkup('\\sqrt{x}'); // 可选：直接生成可插入的公式 HTML
 ```
 
+TinyMCE 的 image mode 示例：
+
+```ts
+registerFormulaXTinyMcePlugin(tinymce, {
+  output: 'image',
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
+});
+```
+
 ### CKEditor 5 集成
 
 ```ts
@@ -370,6 +458,41 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 });
 ```
 
+CKEditor 5 的 image mode 示例：
+
+```ts
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  licenseKey: 'GPL',
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+  formulaX: {
+    output: 'image',
+    image: {
+      upload: async ({ blob, filename, latex }) => {
+        const formData = new FormData();
+        formData.append('file', blob, filename);
+        formData.append('latex', latex);
+
+        const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Formula image upload failed: ${response.status}`);
+        }
+
+        const payload = await response.json() as { url?: string; location?: string };
+
+        return {
+          url: payload.url ?? payload.location ?? '',
+        };
+      },
+    },
+  },
+} as any);
+```
+
 ### Framework Demo 参考
 
 - `apps/vue-demo` 演示 Vue 3 + TinyMCE v7，直接消费已发布的 `@formulaxjs/tinymce`
@@ -384,6 +507,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 - `pnpm dev:svelte` - 启动 Svelte + CKEditor 5 demo
 - `pnpm dev:tiptap` - 启动 Tiptap demo
 - `pnpm dev:tinymce` - 启动 TinyMCE demo
+- `pnpm dev:upload` - 启动 image mode demo 使用的本地上传服务
 - `pnpm dev:vue` - 启动 Vue 3 + TinyMCE v7 demo
 - `pnpm build` - 构建所有 packages 和演示应用
 - `pnpm build:packages` - 仅构建 workspace 中的 packages

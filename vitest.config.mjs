@@ -8,6 +8,7 @@ export default defineConfig({
     alias: {
       '@formulaxjs/core': fromRoot('./packages/core/src/index.ts'),
       '@formulaxjs/editor': fromRoot('./packages/editor/src/index.ts'),
+      '@formulaxjs/kity-runtime/canvg-runtime': fromRoot('./packages/kity-runtime/src/canvg-runtime.ts'),
       '@formulaxjs/renderer': fromRoot('./packages/renderer/src/index.ts'),
       '@formulaxjs/renderer-image': fromRoot('./packages/renderer-image/src/index.ts'),
       '@formulaxjs/renderer-kity': fromRoot('./packages/renderer-kity/src/index.ts'),

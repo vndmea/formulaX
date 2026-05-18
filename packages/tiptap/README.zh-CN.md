@@ -4,7 +4,7 @@
 
 FormulaX 的 Tiptap 集成适配器。
 
-`@formulaxjs/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。该扩展在文档模型中只持久化 LaTeX，并通过共享的 FormulaX renderer 接口在运行时渲染公式展示结果。
+`@formulaxjs/tiptap` 提供了一个 FormulaX 行内节点扩展和基于弹窗的公式编辑流程。默认情况下它在文档模型中持久化 LaTeX，并在运行时渲染 SVG；在 `output: 'image'` 模式下，还会在节点 attrs 中额外持久化上传后的 PNG 元数据。
 
 > 状态：实验阶段。在首个稳定版本发布前，公共 API 仍可能调整。
 
@@ -14,7 +14,8 @@ FormulaX 的 Tiptap 集成适配器。
 - 通过 `createFormulaXNode` 导出扩展工厂函数
 - 提供 `openFormulaX` 命令，便于接工具栏按钮或代码中主动打开
 - 支持双击编辑已有公式
-- 节点 attrs 中仅持久化 LaTeX
+- 默认在节点 attrs 中持久化 LaTeX
+- 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片元数据
 - 在 node view 中运行时渲染 SVG
 - 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
@@ -99,7 +100,7 @@ const editor = new Editor({
 
 ## 持久化数据
 
-Tiptap 节点中只保存 LaTeX 源内容：
+默认情况下，Tiptap 节点只保存 LaTeX 源内容：
 
 ```json
 {
@@ -111,6 +112,38 @@ Tiptap 节点中只保存 LaTeX 源内容：
 ```
 
 节点视图会根据保存的 LaTeX 在运行时渲染 SVG。生成的 DOM 会带有 `data-formulax="true"` 和 `data-formulax-latex`，但这些渲染后的 DOM 不是持久化数据的真实来源。
+
+启用 `output: 'image'` 后，节点 attrs 还会保存 `output`、`imageUrl`、`imageWidth`、`imageHeight`、`imageStyle`，渲染后的 DOM 会使用 `<img>`，同时继续在外层 wrapper 上保留源 LaTeX。
+
+## PNG image output
+
+```ts
+const formulaXNode = createFormulaXNode(undefined, {
+  output: 'image',
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
+});
+```
 
 ## 自定义 renderer
 
@@ -136,6 +169,8 @@ interface FormulaXTiptapOptions {
   formulaAttributeName?: string;
   cursorStyle?: string;
   initialLatex?: string;
+  output?: 'svg' | 'image';
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   modal?: {
@@ -164,6 +199,8 @@ interface FormulaXTiptapOptions {
 | `formulaAttributeName` | `data-formulax-latex` | 渲染后 DOM 中保存 LaTeX 源内容的属性名。 |
 | `cursorStyle` | `pointer` | 渲染后公式节点的鼠标光标样式。 |
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
+| `output` | `svg` | 公式持久化为运行时 SVG 元数据，或上传后的 PNG 元数据。 |
+| `image` | `undefined` | 当 `output` 为 `image` 时使用的 PNG 上传配置。 |
 | `renderer` | `createKityFormulaRenderer()` | node view 中用于只读公式输出的 renderer。 |
 | `preload` | `idle` | 控制在浏览器空闲时、宿主 hover/focus 时，或完全不预加载 FormulaX runtime。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |

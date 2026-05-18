@@ -379,7 +379,7 @@ async function drawSvgToCanvasWithCanvg(
   canvas: HTMLCanvasElement,
   svgMarkup: string,
 ): Promise<void> {
-  const { createCanvgRuntime } = await import('../../kity-runtime/src/vendor/kity-formula/canvg-runtime');
+  const { createCanvgRuntime } = await import('@formulaxjs/kity-runtime/canvg-runtime');
   const canvg = createCanvgRuntime();
   canvg(canvas, svgMarkup, {
     ignoreMouse: true,

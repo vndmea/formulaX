@@ -1,5 +1,16 @@
 # @formulaxjs/tinymce
 
+## 0.4.0
+
+### Minor Changes
+
+- Add image-output demo controls, documentation, and persistence tests across the renderer-image, TinyMCE, Tiptap, and CKEditor 5 packages.
+
+### Patch Changes
+
+- Updated dependencies
+  - @formulaxjs/renderer-image@0.2.0
+
 ## 0.3.1
 
 ### Patch Changes

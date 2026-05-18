@@ -28,5 +28,6 @@ export default defineConfig({
     '@formulaxjs/renderer-image': path.resolve(__dirname, 'packages/renderer-image/src/index.ts'),
     '@formulaxjs/renderer-kity': path.resolve(__dirname, 'packages/renderer-kity/src/index.ts'),
     '@formulaxjs/kity-runtime': path.resolve(__dirname, 'packages/kity-runtime/src/index.ts'),
+    '@formulaxjs/kity-runtime/canvg-runtime': path.resolve(__dirname, 'packages/kity-runtime/src/canvg-runtime.ts'),
   },
 });

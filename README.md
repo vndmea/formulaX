@@ -30,6 +30,7 @@ Some packages are experimental and not yet published to npm.
 | `@formulaxjs/core` | Core data model, LaTeX parsing, and shared pure logic |
 | `@formulaxjs/renderer` | Shared renderer contracts, formula markup helpers, base styles, cache helpers, and SVG utilities |
 | `@formulaxjs/renderer-kity` | Kity-based read-only renderer that turns LaTeX into inline SVG markup |
+| `@formulaxjs/renderer-image` | SVG-to-PNG upload helpers for image-based formula persistence |
 | `@formulaxjs/editor` | Modal-oriented FormulaX editor UI helpers built on top of the runtime |
 | `@formulaxjs/kity-runtime` | Legacy KityFormula compatibility runtime, embedded assets, and low-level editor factory |
 | `@formulaxjs/tiptap` | Tiptap integration adapter |
@@ -56,6 +57,7 @@ FormulaX workspace
 ├── @formulaxjs/core (document model, LaTeX parser/serializer)
 ├── @formulaxjs/renderer (renderer protocol, markup, styles, svg helpers)
 ├── @formulaxjs/renderer-kity (Kity-based LaTeX -> inline SVG renderer)
+├── @formulaxjs/renderer-image (SVG -> PNG upload helpers for persisted image output)
 ├── @formulaxjs/editor (modal UI and embedded editor orchestration)
 ├── @formulaxjs/kity-runtime (legacy compatibility runtime and embedded assets)
 │   ├── KityFormula runtime (lazy-loaded chunk)
@@ -120,6 +122,7 @@ pnpm dev:react
 pnpm dev:svelte
 pnpm dev:tiptap
 pnpm dev:tinymce
+pnpm dev:upload
 pnpm dev:vue
 ```
 
@@ -221,6 +224,31 @@ await editor.focus();
 await editor.destroy();
 ```
 
+### Image output with local upload demo
+
+FormulaX adapters default to runtime SVG output. When you need persisted PNG images instead, switch to `output: 'image'` and provide `image.upload`.
+
+For local verification inside this workspace:
+
+```bash
+pnpm dev:upload
+pnpm dev:tinymce
+pnpm dev:tiptap
+pnpm dev:ckeditor5
+```
+
+Default local upload endpoint:
+
+```txt
+http://localhost:3109/api/formula-image/upload
+```
+
+Important:
+
+- GitHub Pages demos cannot reach your own `http://localhost:3109` upload server.
+- Image mode is mainly intended for local development verification or applications with their own reachable upload API.
+- Even in image mode, adapters still preserve source LaTeX metadata for later editing.
+
 ### Core Package
 
 ```ts
@@ -273,6 +301,36 @@ const editor = new Editor({
 });
 
 editor.commands.openFormulaX();
+```
+
+Tiptap image mode:
+
+```ts
+const formulaNode = createFormulaXNode(undefined, {
+  output: 'image',
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
+});
 ```
 
 ### TinyMCE Integration
@@ -331,6 +389,36 @@ await tinymce.init({
 const html = createTinyMceFormulaMarkup('\\sqrt{x}'); // optional content-level helper
 ```
 
+TinyMCE image mode:
+
+```ts
+registerFormulaXTinyMcePlugin(tinymce, {
+  output: 'image',
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
+});
+```
+
 ### CKEditor 5 Integration
 
 ```ts
@@ -370,6 +458,41 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 });
 ```
 
+CKEditor 5 image mode:
+
+```ts
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  licenseKey: 'GPL',
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+  formulaX: {
+    output: 'image',
+    image: {
+      upload: async ({ blob, filename, latex }) => {
+        const formData = new FormData();
+        formData.append('file', blob, filename);
+        formData.append('latex', latex);
+
+        const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Formula image upload failed: ${response.status}`);
+        }
+
+        const payload = await response.json() as { url?: string; location?: string };
+
+        return {
+          url: payload.url ?? payload.location ?? '',
+        };
+      },
+    },
+  },
+} as any);
+```
+
 ### Framework Demo References
 
 - `apps/vue-demo` shows Vue 3 + TinyMCE v7 using the published `@formulaxjs/tinymce` package directly
@@ -384,6 +507,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 - `pnpm dev:svelte` - Start the Svelte + CKEditor 5 demo
 - `pnpm dev:tiptap` - Start the Tiptap demo
 - `pnpm dev:tinymce` - Start the TinyMCE demo
+- `pnpm dev:upload` - Start the local upload server used by image-mode demos
 - `pnpm dev:vue` - Start the Vue 3 + TinyMCE v7 demo
 - `pnpm build` - Build all packages and demo apps
 - `pnpm build:packages` - Build workspace packages only

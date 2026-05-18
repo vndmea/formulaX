@@ -26,10 +26,10 @@ function queryRequiredElement<T extends Element>(selector: string): T {
   return element;
 }
 
-function createDemoImageUpload(endpoint: string) {
-  const normalizedEndpoint = endpoint.trim();
-
+function createDemoImageUpload(getEndpoint: () => string) {
   return async ({ blob, filename, latex }: DemoUploadPayload): Promise<{ url: string }> => {
+    const normalizedEndpoint = getEndpoint().trim();
+
     if (!normalizedEndpoint) {
       throw new Error('Image mode requires an upload endpoint.');
     }
@@ -120,10 +120,6 @@ app.innerHTML = `
               aria-label="Image upload endpoint"
             >
           </label>
-
-          <div class="fx-demo-actions">
-            <button id="apply-config" type="button">Apply</button>
-          </div>
         </div>
 
         <p class="fx-demo-note">
@@ -140,7 +136,6 @@ const versionSelect = queryRequiredElement<HTMLSelectElement>('#tinymce-version'
 const outputModeSelect = queryRequiredElement<HTMLSelectElement>('#formulax-output-mode');
 const imageConfigPanel = queryRequiredElement<HTMLElement>('#image-config-panel');
 const uploadEndpointInput = queryRequiredElement<HTMLInputElement>('#image-upload-endpoint');
-const applyButton = queryRequiredElement<HTMLButtonElement>('#apply-config');
 const statusElement = queryRequiredElement<HTMLParagraphElement>('#demo-status');
 const textarea = queryRequiredElement<HTMLTextAreaElement>('#tiny-host');
 
@@ -154,7 +149,6 @@ function setControlsDisabled(disabled: boolean): void {
   versionSelect.disabled = disabled;
   outputModeSelect.disabled = disabled;
   uploadEndpointInput.disabled = disabled || getCurrentOutputMode() !== 'image';
-  applyButton.disabled = disabled;
 }
 
 function setStatus(message: string, tone: 'info' | 'success' | 'error'): void {
@@ -197,7 +191,7 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
       output: outputMode,
       image: outputMode === 'image'
         ? {
-            upload: createDemoImageUpload(uploadEndpoint),
+            upload: createDemoImageUpload(() => uploadEndpointInput.value),
           }
         : undefined,
       modal: {
@@ -251,10 +245,6 @@ versionSelect.addEventListener('change', () => {
 
 outputModeSelect.addEventListener('change', () => {
   syncImageConfigVisibility();
-  void initTinyMce(versionSelect.value as TinyMceDemoVersion);
-});
-
-applyButton.addEventListener('click', () => {
   void initTinyMce(versionSelect.value as TinyMceDemoVersion);
 });
 

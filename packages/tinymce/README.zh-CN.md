@@ -17,6 +17,7 @@ FormulaX 的 TinyMCE 集成适配器。
 - 支持双击、Enter、Space 编辑已有公式
 - 面向 TinyMCE `>=5 <9` 的兼容层
 - 通过 `data-formulax-latex` 持久化 LaTeX 源内容
+- 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片
 - 提供创建、解析、序列化、查找和替换公式元素的 markup 工具函数
 - 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
@@ -67,7 +68,30 @@ registerFormulaXTinyMcePlugin(tinymce, {
   cursorStyle: 'pointer', // 应用于公式节点的鼠标样式
   formulaClassName: 'formulax-math', // 公式外层 DOM class
   formulaAttributeName: 'data-formulax-latex', // 保存源 LaTeX 的属性名
+  output: 'svg', // 'svg' | 'image'
   initialLatex: '\\sqrt{x}', // 新插入公式的默认内容
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
   preload: 'idle', // 'idle' | 'hover' | false
   modal: {
     title: 'FormulaX 公式编辑器',
@@ -99,6 +123,40 @@ await tinymce.init({
 ```
 
 之后用户可以点击 `FormulaX` 工具栏按钮插入公式。已有公式可以通过双击编辑，也可以选中后按 Enter 或 Space 编辑。
+
+## PNG image output
+
+如果希望把公式持久化成上传后的 PNG 图片，而不是 inline SVG，可以设置 `output: 'image'` 并提供 `image.upload`：
+
+```ts
+registerFormulaXTinyMcePlugin(tinymce, {
+  output: 'image',
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      const payload = await response.json() as { url?: string; location?: string };
+
+      return {
+        url: payload.url ?? payload.location ?? '',
+      };
+    },
+  },
+});
+```
+
+外层公式 wrapper 仍然会保留 `data-formulax-latex`，所以双击再次编辑的流程不需要改变。
 
 ## 代码中主动打开
 
@@ -193,6 +251,8 @@ interface FormulaXTinyMceOptions {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  output?: 'svg' | 'image';
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   initialLatex?: string;
@@ -211,6 +271,8 @@ interface FormulaXTinyMceOptions {
 | `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
+| `output` | `svg` | 公式持久化为 inline SVG，或上传后的 PNG 图片。 |
+| `image` | `undefined` | 当 `output` 为 `image` 时使用的 PNG 上传配置。 |
 | `renderer` | `createKityFormulaRenderer()` | 插件在需要运行时公式 HTML 时使用的 renderer。 |
 | `preload` | `idle` | 控制在浏览器空闲时、宿主 hover/focus 时，或完全不预加载 FormulaX runtime。 |
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
@@ -303,6 +365,7 @@ GitHub Pages demo：
 - TinyMCE 5 以下以及 9 或更高版本目前不是官方支持范围。
 - 当前 API 仍处于实验阶段。
 - 如果宿主 TinyMCE 配置了严格的内容过滤，需要确保允许 FormulaX 公式 span 和 SVG 输出。
+- 如果使用 image mode，需要保证上传接口可被当前页面访问，并正确处理跨域。
 - 当前编辑 UI 使用 FormulaX 的 Kity 兼容运行时。
 
 ## 协议

@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { describe, expect, it, vi } from 'vitest';
 import {
   createFormulaXNode,
@@ -125,5 +127,51 @@ describe('tiptap adapter', () => {
         style: 'width:0.75em; height:1.25em',
       }),
     ]);
+  });
+
+  it('parses persisted image metadata from wrapper markup', () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const node = createFormulaXNode({ create }) as {
+      config: {
+        addOptions: () => unknown;
+        parseHTML: () => Array<{
+          getAttrs: (element: HTMLElement) => unknown;
+        }>;
+      };
+    };
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+      <span
+        class="formulax-math"
+        data-formulax="true"
+        data-formulax-latex="\\sqrt{x}"
+        data-formulax-output="image"
+        data-formulax-image-url="http://localhost:3109/f/48231.png"
+        data-formulax-image-width="128"
+        data-formulax-image-height="48"
+        data-formulax-image-style="width:2.5em; height:0.94em"
+      >
+        <img
+          data-formulax-image="true"
+          src="http://localhost:3109/f/48231.png"
+          width="128"
+          height="48"
+          style="width:2.5em; height:0.94em"
+        />
+      </span>
+    `;
+
+    const parsed = node.config.parseHTML.call(
+      { options: node.config.addOptions() },
+    )[0]?.getAttrs(wrapper.firstElementChild as HTMLElement) as Record<string, unknown>;
+
+    expect(parsed).toMatchObject({
+      latex: '\\sqrt{x}',
+      output: 'image',
+      imageUrl: 'http://localhost:3109/f/48231.png',
+      imageWidth: 128,
+      imageHeight: 48,
+      imageStyle: 'width:2.5em; height:0.94em',
+    });
   });
 });

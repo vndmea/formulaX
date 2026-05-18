@@ -5,7 +5,8 @@
     "ignoreDeprecations": "5.0",
     "outDir": "dist",
     "paths": {
-      "@formulaxjs/renderer": ["../renderer/src/index.ts"]
+      "@formulaxjs/renderer": ["../renderer/src/index.ts"],
+      "@formulaxjs/kity-runtime/canvg-runtime": ["../kity-runtime/src/canvg-runtime.ts"]
     }
   },
   "include": ["src", "test"]

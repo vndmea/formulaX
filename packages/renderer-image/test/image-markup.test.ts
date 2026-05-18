@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it, vi } from 'vitest';
-import { createFormulaImageHtml, renderFormulaDisplayHtml } from '../src';
+import {
+  createFormulaDisplayAttributes,
+  createFormulaImageHtml,
+  renderFormulaDisplayHtml,
+} from '../src';
 import * as svgToPngModule from '../src/svg-to-png';
 import type { FormulaRenderResult, FormulaRenderer } from '@formulaxjs/renderer';
 
@@ -16,6 +20,32 @@ describe('renderer-image markup', () => {
     expect(html).toContain('src="https://example.com/a?x=&quot;1&quot;&amp;y=&lt;2&gt;"');
     expect(html).toContain('alt="&quot;&lt;x&gt;&quot;"');
     expect(html).toContain('style="width:1em; height:2em"');
+  });
+
+  it('creates persisted image attributes from a display result', () => {
+    expect(createFormulaDisplayAttributes({
+      output: 'image',
+      latex: '\\sqrt{x}',
+      renderHtml: '<img />',
+      source: {
+        engine: 'test',
+        output: 'svg',
+        latex: '\\sqrt{x}',
+        html: '<svg></svg>',
+      },
+      image: {
+        url: 'http://localhost:3109/f/48231.png',
+        width: 128,
+        height: 48,
+        displayStyle: 'width:2.5em; height:0.94em',
+      },
+    })).toEqual({
+      'data-formulax-output': 'image',
+      'data-formulax-image-url': 'http://localhost:3109/f/48231.png',
+      'data-formulax-image-width': '128',
+      'data-formulax-image-height': '48',
+      'data-formulax-image-style': 'width:2.5em; height:0.94em',
+    });
   });
 
   it('does not upload when svg output is requested', async () => {
