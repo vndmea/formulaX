@@ -26,7 +26,7 @@
       "require": "./dist/index.cjs"
     }
   },
-  "unpkg": "./dist/browser/index.global.js",
+  "unpkg": "./dist/index.global.js",
   "files": [
     "dist"
   ],
