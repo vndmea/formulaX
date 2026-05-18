@@ -7,6 +7,10 @@ import {
   renderFormulaXEditorLoadingState,
   waitForFormulaXAnimationFrame,
 } from '@formulaxjs/editor';
+import {
+  createFormulaDisplayAttributes,
+  renderFormulaDisplayHtml,
+} from '@formulaxjs/renderer-image';
 import { ensureTinyMceStyles } from './styles';
 import { mountFormulaXEditorInModal } from './editor-host';
 import {
@@ -64,6 +68,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
   clearFormulaXPerfMarks(modalDomReadyMark);
 
   const host = root.querySelector<HTMLElement>('.fx-formula-editor-host');
+  const submitButton = root.querySelector<HTMLButtonElement>('[data-action="submit"]');
   if (!host) {
     root.remove();
     clearFormulaXPerfMarks(modalOpenStart);
@@ -118,45 +123,68 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
   };
 
   const submit = async (): Promise<void> => {
-    const activeMounted = mounted ?? await mountedPromise;
-    if (!activeMounted) {
-      return;
-    }
+    try {
+      setModalError(root, null);
+      setSubmitPending(submitButton, true);
 
-    const latex = await activeMounted.getLatex();
-    const renderHtml = latex.trim()
-      ? (await options.renderer.renderLatex(latex, {
-          fontSize: options.editor.render?.fontsize ?? 40,
-          className: options.formulaClassName,
-        })).html
-      : undefined;
-
-    runEditorTransaction(editor, () => {
-      if (target) {
-        const next = replaceFormulaElement(target, latex, {
-          attributeName: options.formulaAttributeName,
-          className: options.formulaClassName,
-          cursorStyle: options.cursorStyle,
-          renderHtml,
-        });
-        if (next) {
-          moveSelectionAfterNode(editor, next);
-        }
-      } else {
-        insertFormulaElementIntoEditor(
-          editor,
-          latex,
-          options.formulaAttributeName,
-          options.formulaClassName,
-          options.cursorStyle,
-          renderHtml,
-        );
+      const activeMounted = mounted ?? await mountedPromise;
+      if (!activeMounted) {
+        return;
       }
 
-      notifyEditorChanged(editor);
-    });
+      const latex = await activeMounted.getLatex();
+      const display = latex.trim()
+        ? await renderFormulaDisplayHtml({
+            output: options.output,
+            image: options.image,
+            renderer: options.renderer,
+            latex,
+            className: options.formulaClassName,
+            render: {
+              fontSize: options.editor.render?.fontsize ?? 40,
+              className: options.formulaClassName,
+            },
+          })
+        : null;
 
-    close();
+      const renderHtml = display?.renderHtml;
+      const extraAttributes = display
+        ? createFormulaDisplayAttributes(display)
+        : undefined;
+
+      runEditorTransaction(editor, () => {
+        if (target) {
+          const next = replaceFormulaElement(target, latex, {
+            attributeName: options.formulaAttributeName,
+            className: options.formulaClassName,
+            cursorStyle: options.cursorStyle,
+            renderHtml,
+            extraAttributes,
+          });
+          if (next) {
+            moveSelectionAfterNode(editor, next);
+          }
+        } else {
+          insertFormulaElementIntoEditor(
+            editor,
+            latex,
+            options.formulaAttributeName,
+            options.formulaClassName,
+            options.cursorStyle,
+            renderHtml,
+            extraAttributes,
+          );
+        }
+
+        notifyEditorChanged(editor);
+      });
+
+      close();
+    } catch (error) {
+      setModalError(root, error);
+    } finally {
+      setSubmitPending(submitButton, false);
+    }
   };
 
   function onClick(event: MouseEvent): void {
@@ -208,6 +236,7 @@ function insertFormulaElementIntoEditor(
   className: string,
   cursorStyle: string,
   renderHtml?: string,
+  extraAttributes?: Record<string, string | boolean | null | undefined>,
 ): void {
   const editorDoc = editor.getDoc?.() ?? document;
   const next = createTinyMceFormulaElement(editorDoc, latex, {
@@ -215,13 +244,22 @@ function insertFormulaElementIntoEditor(
     className,
     cursorStyle,
     renderHtml,
+    extraAttributes,
   });
 
   if (next && insertNodeAtEditorSelection(editor, next)) {
     return;
   }
 
-  insertFormulaElementWithPlaceholder(editor, latex, attributeName, className, cursorStyle, renderHtml);
+  insertFormulaElementWithPlaceholder(
+    editor,
+    latex,
+    attributeName,
+    className,
+    cursorStyle,
+    renderHtml,
+    extraAttributes,
+  );
 }
 
 function insertNodeAtEditorSelection(editor: TinyMceEditorLike, node: HTMLElement): boolean {
@@ -288,6 +326,7 @@ function insertFormulaElementWithPlaceholder(
   className: string,
   cursorStyle: string,
   renderHtml?: string,
+  extraAttributes?: Record<string, string | boolean | null | undefined>,
 ): void {
   const editorDoc = editor.getDoc?.() ?? document;
   const marker = `fx-pending-${Math.random().toString(36).slice(2, 10)}`;
@@ -300,6 +339,7 @@ function insertFormulaElementWithPlaceholder(
       className,
       cursorStyle,
       renderHtml,
+      extraAttributes,
     });
     editor.insertContent(html);
     return;
@@ -310,6 +350,7 @@ function insertFormulaElementWithPlaceholder(
     className,
     cursorStyle,
     renderHtml,
+    extraAttributes,
   });
 
   if (!next) {
@@ -330,4 +371,32 @@ function notifyEditorChanged(editor: TinyMceEditorLike): void {
   }
 
   editor.fire?.('change');
+}
+
+function setModalError(root: HTMLElement, error: unknown): void {
+  const existing = root.querySelector<HTMLElement>('.fx-formula-editor-error');
+  if (!error) {
+    existing?.remove();
+    return;
+  }
+
+  const message = escapeHtml(error instanceof Error ? error.message : String(error));
+  if (existing) {
+    existing.innerHTML = `<pre>${message}</pre>`;
+    return;
+  }
+
+  const errorElement = document.createElement('div');
+  errorElement.className = 'fx-formula-editor-error';
+  errorElement.innerHTML = `<pre>${message}</pre>`;
+  root.querySelector('.fx-formula-modal__body')?.appendChild(errorElement);
+}
+
+function setSubmitPending(button: HTMLButtonElement | null, pending: boolean): void {
+  if (!button) {
+    return;
+  }
+
+  button.disabled = pending;
+  button.setAttribute('aria-busy', pending ? 'true' : 'false');
 }

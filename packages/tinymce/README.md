@@ -17,6 +17,7 @@ TinyMCE integration adapter for FormulaX.
 - Double-click, Enter, and Space editing interactions for existing formulas
 - TinyMCE compatibility layer for versions `>=5 <9`
 - LaTeX persistence through `data-formulax-latex`
+- Optional `output: 'image'` PNG persistence with user-provided upload
 - Markup helpers for creating, parsing, serializing, finding, and replacing formula elements
 - Default read-only rendering through `@formulaxjs/renderer-kity`
 - Optional runtime preload before the first modal open
@@ -67,7 +68,28 @@ registerFormulaXTinyMcePlugin(tinymce, {
   cursorStyle: 'pointer', // cursor applied to generated formula nodes
   formulaClassName: 'formulax-math', // DOM class written on formula wrappers
   formulaAttributeName: 'data-formulax-latex', // attribute that stores source LaTeX
+  output: 'svg', // 'svg' | 'image'
   initialLatex: '\\sqrt{x}', // default LaTeX for newly inserted formulas
+  image: {
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      return {
+        url: (await response.json()).url,
+      };
+    },
+  },
   preload: 'idle', // 'idle' | 'hover' | false
   modal: {
     title: 'FormulaX Editor',
@@ -99,6 +121,39 @@ await tinymce.init({
 ```
 
 Then users can click the `FormulaX` toolbar button to insert a formula. Existing formulas can be edited by double-clicking them or selecting them and pressing Enter or Space.
+
+## PNG image output
+
+Set `output: 'image'` and provide `image.upload` when formulas should be persisted as uploaded PNG images instead of inline SVG:
+
+```ts
+registerFormulaXTinyMcePlugin(tinymce, {
+  output: 'image',
+  image: {
+    scale: 2,
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      return {
+        url: (await response.json()).url,
+      };
+    },
+  },
+});
+```
+
+The outer formula wrapper still preserves `data-formulax-latex`, so existing double-click editing flows continue to work.
 
 ## Programmatic opening
 
@@ -193,6 +248,8 @@ interface FormulaXTinyMceOptions {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  output?: 'svg' | 'image';
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   initialLatex?: string;
@@ -211,6 +268,8 @@ interface FormulaXTinyMceOptions {
 | `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
+| `output` | `svg` | Persists formulas as inline SVG or uploaded PNG image markup. |
+| `image` | `undefined` | PNG upload settings used when `output` is `image`. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used when the plugin needs runtime formula HTML. |
 | `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |

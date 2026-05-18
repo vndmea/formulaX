@@ -29,6 +29,10 @@ const FORMULAX_SVG_VALID_ELEMENTS = [
   'polyline[id|class|style|points|fill|stroke|stroke-width|opacity|transform]',
 ].join(',');
 
+const FORMULAX_IMAGE_VALID_ELEMENTS = [
+  'img[class|style|src|alt|width|height|data-formulax-image|data-mce-src]',
+].join(',');
+
 export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFormulaXTinyMceOptions {
   const locale = options.editor?.locale ?? DEFAULT_FORMULAX_LOCALE;
 
@@ -41,6 +45,8 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? 'formulax-math',
     formulaAttributeName: options.formulaAttributeName ?? 'data-formulax-latex',
+    output: options.output ?? 'svg',
+    image: options.image,
     initialLatex: options.initialLatex ?? '',
     renderer: options.renderer ?? createKityFormulaRenderer({
       fontSize: options.editor?.render?.fontsize ?? 40,
@@ -85,7 +91,7 @@ export function registerFormulaXTinyMcePlugin(
     function FormulaXTinyMcePlugin(editor: TinyMceEditorLike): undefined {
       const compat = createTinyMceCompat(editor, tinymce);
       let preloadCleanup: (() => void) | null = null;
-      editor.schema?.addValidElements?.(FORMULAX_SVG_VALID_ELEMENTS);
+      editor.schema?.addValidElements?.(`${FORMULAX_SVG_VALID_ELEMENTS},${FORMULAX_IMAGE_VALID_ELEMENTS}`);
 
       const open = (target?: HTMLElement | null): void => {
         const resolvedTarget = target ?? compat.getSelectedFormulaElement();

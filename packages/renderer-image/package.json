@@ -1,21 +1,21 @@
 {
-  "name": "@formulaxjs/tinymce",
-  "version": "0.3.1",
+  "name": "@formulaxjs/renderer-image",
+  "version": "0.1.0",
   "private": false,
   "type": "module",
   "license": "MIT",
-  "description": "TinyMCE integration adapter for FormulaX.",
+  "description": "PNG image rendering helpers for FormulaX rich-text adapters.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vndmea/formulaX.git",
-    "directory": "packages/tinymce"
+    "directory": "packages/renderer-image"
   },
   "keywords": [
     "formulax",
     "formula",
-    "tinymce",
-    "editor",
-    "adapter"
+    "renderer",
+    "image",
+    "png"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -35,27 +35,12 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup --config ../../tsup.config.mjs && node ./scripts/postbuild.mjs",
+    "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/tinymce/test",
+    "test": "vitest run packages/renderer-image/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@formulaxjs/core": "workspace:*",
-    "@formulaxjs/editor": "workspace:*",
-    "@formulaxjs/renderer": "workspace:*",
-    "@formulaxjs/renderer-image": "workspace:*",
-    "@formulaxjs/renderer-kity": "workspace:*"
-  },
-  "peerDependencies": {
-    "tinymce": ">=5 <9"
-  },
-  "peerDependenciesMeta": {
-    "tinymce": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "tinymce": "^7.7.1"
+    "@formulaxjs/renderer": "workspace:*"
   }
 }

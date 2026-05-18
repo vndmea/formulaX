@@ -53,4 +53,15 @@ describe('ckeditor5 adapter', () => {
     expect(register).not.toHaveBeenCalled();
     error.mockRestore();
   });
+
+  it('resolves image output options', () => {
+    expect(resolveOptions({
+      output: 'image',
+      image: {
+        upload: vi.fn(),
+      },
+    })).toMatchObject({
+      output: 'image',
+    });
+  });
 });

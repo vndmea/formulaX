@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "5.0",
+    "outDir": "dist",
+    "paths": {
+      "@formulaxjs/renderer": ["../renderer/src/index.ts"]
+    }
+  },
+  "include": ["src", "test"]
+}

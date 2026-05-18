@@ -8,6 +8,7 @@
       "@formulaxjs/core": ["packages/core/src/index.ts"],
       "@formulaxjs/editor": ["packages/editor/src/index.ts"],
       "@formulaxjs/renderer": ["packages/renderer/src/index.ts"],
+      "@formulaxjs/renderer-image": ["packages/renderer-image/src/index.ts"],
       "@formulaxjs/renderer-kity": ["packages/renderer-kity/src/index.ts"],
       "@formulaxjs/tiptap": ["packages/tiptap/src/index.ts"],
       "@formulaxjs/tinymce": ["packages/tinymce/src/index.ts"],

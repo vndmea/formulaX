@@ -1,0 +1,21 @@
+{
+  "name": "@formulaxjs/upload-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local image upload server for FormulaX renderer-image development.",
+  "scripts": {
+    "dev": "node src/server.mjs",
+    "start": "node src/server.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0"
+  }
+}

@@ -15,7 +15,8 @@ CKEditor 5 integration adapter for FormulaX.
 - Programmatic opening through `editor.execute('formulaX')`
 - Insert and update formulas as inline widget objects
 - Double-click editing for existing formulas
-- Persist only LaTeX source in the CKEditor 5 model
+- Default SVG persistence in the CKEditor 5 model
+- Optional `output: 'image'` PNG persistence with user-provided upload
 - Runtime SVG rendering in the editing view
 - Default read-only rendering through `@formulaxjs/renderer-kity`
 - Optional runtime preload before the first modal open
@@ -144,7 +145,7 @@ editor.execute('myFormulaX');
 
 ## Persisted data and markup
 
-The CKEditor 5 model stores only the formula source LaTeX:
+The default CKEditor 5 model stores only the formula source LaTeX:
 
 ```ts
 <formulaX latex="\\sqrt{x}" />
@@ -165,7 +166,40 @@ When editor data is downcast to HTML, generated formula nodes are marked with `d
 ></span>
 ```
 
-The editing view renders formula SVG at runtime from the persisted LaTeX. The exact rendered inner HTML is internal and may evolve. Consumers should rely on the plugin and exported options rather than hard-coding the full markup shape.
+When `output: 'image'` is enabled, the model also stores `output`, `imageUrl`, `imageWidth`, `imageHeight`, and `imageStyle`, and downcast HTML renders an `<img>` while preserving the source LaTeX on the outer wrapper.
+
+## PNG image output
+
+```ts
+await ClassicEditor.create(document.querySelector('#editor')!, {
+  plugins: [Essentials, Paragraph, FormulaX],
+  toolbar: ['formulaX'],
+  formulaX: {
+    output: 'image',
+    image: {
+      scale: 2,
+      upload: async ({ blob, filename, latex }) => {
+        const formData = new FormData();
+        formData.append('file', blob, filename);
+        formData.append('latex', latex);
+
+        const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Formula image upload failed: ${response.status}`);
+        }
+
+        return {
+          url: (await response.json()).url,
+        };
+      },
+    },
+  },
+} as any);
+```
 
 ## Custom renderer
 
@@ -182,6 +216,8 @@ interface FormulaXCKEditor5Options {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  output?: 'svg' | 'image';
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   modal?: {
@@ -212,6 +248,8 @@ interface FormulaXCKEditor5Options {
 | `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
+| `output` | `svg` | Persists formulas as runtime SVG metadata or uploaded PNG metadata. |
+| `image` | `undefined` | PNG upload settings used when `output` is `image`. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used for runtime SVG output in the editing view. |
 | `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `modal` | see below | Modal labels and closing behavior. |

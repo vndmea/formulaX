@@ -183,7 +183,7 @@ function RGBColor(color_string) {
             let processor = color_defs[i].process;
             let bits = re.exec(color_string);
             if (bits) {
-                channels = processor(bits);
+                const channels = processor(bits);
                 this.r = channels[0];
                 this.g = channels[1];
                 this.b = channels[2];
@@ -803,7 +803,7 @@ function RGBColor(color_string) {
                     let p0 = [ p0x, p0y ], p1 = [ p1x, p1y ], p2 = [ p2x, p2y ], p3 = [ p3x, p3y ];
                     this.addPoint(p0[0], p0[1]);
                     this.addPoint(p3[0], p3[1]);
-                    for (i = 0; i <= 1; i++) {
+                    for (let i = 0; i <= 1; i++) {
                         let f = function(t) {
                             return Math.pow(1 - t, 3) * p0[i] + 3 * Math.pow(1 - t, 2) * t * p1[i] + 3 * (1 - t) * Math.pow(t, 2) * p2[i] + Math.pow(t, 3) * p3[i];
                         };

@@ -1,8 +1,19 @@
 import type { FormulaXEditorOptions, FormulaXEditorPreloadMode } from '@formulaxjs/editor';
 import type { FormulaRenderer } from '@formulaxjs/renderer';
+import type {
+  FormulaXImageOptions,
+  FormulaXOutputMode,
+} from '@formulaxjs/renderer-image';
 
 export interface FormulaXPayload {
   latex: string;
+  output?: FormulaXOutputMode;
+  image?: {
+    url: string;
+    width?: number;
+    height?: number;
+    style?: string;
+  };
 }
 
 export interface FormulaXTiptapOptions {
@@ -11,6 +22,8 @@ export interface FormulaXTiptapOptions {
   formulaAttributeName?: string;
   cursorStyle?: string;
   initialLatex?: string;
+  output?: FormulaXOutputMode;
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   modal?: {
@@ -29,6 +42,8 @@ export interface RequiredFormulaXTiptapOptions {
   formulaAttributeName: string;
   cursorStyle: string;
   initialLatex: string;
+  output: FormulaXOutputMode;
+  image?: FormulaXImageOptions;
   renderer: FormulaRenderer;
   preload: FormulaXEditorPreloadMode;
   modal: {

@@ -15,3 +15,4 @@ packages/**/test/**/*.js.map
 packages/**/test/**/*.d.ts
 packages/**/test/**/*.d.ts.map
 .reports/
+.local-upload/

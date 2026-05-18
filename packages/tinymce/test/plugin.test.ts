@@ -75,8 +75,20 @@ describe('registerFormulaXTinyMcePlugin', () => {
 
     expect(addValidElements).toHaveBeenCalledTimes(1);
     expect(addValidElements.mock.calls[0]?.[0]).toContain('svg[');
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('img[');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('viewbox');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('preserveaspectratio');
+  });
+
+  it('resolves image output options', () => {
+    expect(resolveOptions({
+      output: 'image',
+      image: {
+        upload: vi.fn(),
+      },
+    })).toMatchObject({
+      output: 'image',
+    });
   });
 
   it('localizes modal defaults from the editor locale', () => {

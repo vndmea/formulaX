@@ -12,6 +12,7 @@ import {
   escapeAttribute,
   escapeHtml,
 } from '@formulaxjs/renderer';
+import { renderFormulaDisplayHtml } from '@formulaxjs/renderer-image';
 import type { FormulaXPayload, RequiredFormulaXTiptapOptions } from './types';
 
 export interface OpenFormulaXTiptapModalInput {
@@ -131,7 +132,32 @@ export function openFormulaXTiptapModal(
         }
 
         const latex = await activeMounted.getLatex();
-        close({ latex });
+        const display = latex.trim()
+          ? await renderFormulaDisplayHtml({
+              output: input.options.output,
+              image: input.options.image,
+              renderer: input.options.renderer,
+              latex,
+              className: input.options.formulaClassName,
+              render: {
+                fontSize: input.options.editor.render.fontsize,
+                className: input.options.formulaClassName,
+              },
+            })
+          : null;
+
+        close({
+          latex,
+          output: display?.output ?? 'svg',
+          image: display?.image
+            ? {
+                url: display.image.url,
+                width: display.image.width,
+                height: display.image.height,
+                style: display.image.displayStyle,
+              }
+            : undefined,
+        });
       } catch (error) {
         host.innerHTML = `
           <div class="fx-formula-editor-error">

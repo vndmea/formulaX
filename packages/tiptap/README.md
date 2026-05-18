@@ -4,7 +4,7 @@ English | [简体中文](https://github.com/vndmea/formulaX/blob/main/packages/t
 
 Tiptap integration adapter for FormulaX.
 
-`@formulaxjs/tiptap` provides a FormulaX inline node extension for Tiptap and a modal-based formula editing flow. The extension persists only LaTeX in the document model and renders formula output at runtime through the shared FormulaX renderer interface.
+`@formulaxjs/tiptap` provides a FormulaX inline node extension for Tiptap and a modal-based formula editing flow. By default it persists LaTeX and renders runtime SVG. In `output: 'image'` mode it also persists uploaded PNG metadata in node attrs.
 
 > Status: experimental. Public APIs may change before the first stable release.
 
@@ -14,7 +14,8 @@ Tiptap integration adapter for FormulaX.
 - Extension factory export through `createFormulaXNode`
 - `openFormulaX` command for toolbar buttons or programmatic opening
 - Double-click editing for existing formulas
-- Persist only LaTeX in node attrs
+- Default SVG persistence in node attrs
+- Optional `output: 'image'` PNG persistence with user-provided upload
 - Runtime SVG rendering in the node view
 - Default read-only rendering through `@formulaxjs/renderer-kity`
 - Optional runtime preload before the first modal open
@@ -99,7 +100,7 @@ If Tiptap detects that the configured node name is already registered, the exten
 
 ## Persisted data
 
-The Tiptap node stores only the LaTeX source:
+The default Tiptap node stores only the LaTeX source:
 
 ```json
 {
@@ -110,7 +111,36 @@ The Tiptap node stores only the LaTeX source:
 }
 ```
 
-The node view renders formula SVG at runtime from the stored LaTeX. Generated DOM markup includes `data-formulax="true"` and `data-formulax-latex`, but that rendered DOM is not the persisted source of truth.
+When `output: 'image'` is enabled, the node also stores `output`, `imageUrl`, `imageWidth`, `imageHeight`, and `imageStyle`, and the rendered DOM uses an `<img>` while still preserving the source LaTeX on the wrapper element.
+
+## PNG image output
+
+```ts
+const formulaXNode = createFormulaXNode(undefined, {
+  output: 'image',
+  image: {
+    scale: 2,
+    upload: async ({ blob, filename, latex }) => {
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      formData.append('latex', latex);
+
+      const response = await fetch('http://localhost:3109/api/formula-image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Formula image upload failed: ${response.status}`);
+      }
+
+      return {
+        url: (await response.json()).url,
+      };
+    },
+  },
+});
+```
 
 ## Custom renderer
 
@@ -136,6 +166,8 @@ interface FormulaXTiptapOptions {
   formulaAttributeName?: string;
   cursorStyle?: string;
   initialLatex?: string;
+  output?: 'svg' | 'image';
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   modal?: {
@@ -164,6 +196,8 @@ interface FormulaXTiptapOptions {
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used in rendered DOM for the source LaTeX. |
 | `cursorStyle` | `pointer` | Cursor style applied to rendered formula nodes. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
+| `output` | `svg` | Persists formulas as runtime SVG metadata or uploaded PNG metadata. |
+| `image` | `undefined` | PNG upload settings used when `output` is `image`. |
 | `renderer` | `createKityFormulaRenderer()` | Renderer used for read-only formula output in the node view. |
 | `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `modal` | see below | Modal labels and closing behavior. |

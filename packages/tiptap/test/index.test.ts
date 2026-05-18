@@ -77,4 +77,53 @@ describe('tiptap adapter', () => {
       },
     });
   });
+
+  it('renders persisted image metadata as img markup', () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const node = createFormulaXNode({ create }) as {
+      config: {
+        addOptions: () => unknown;
+        renderHTML: (
+          input: {
+            node: {
+              attrs: {
+                latex: string;
+                output: 'svg' | 'image';
+                imageUrl: string | null;
+                imageWidth: number | null;
+                imageHeight: number | null;
+                imageStyle: string | null;
+              };
+            };
+          },
+        ) => unknown;
+      };
+    };
+
+    const rendered = node.config.renderHTML.call(
+      { options: node.config.addOptions() },
+      {
+        node: {
+          attrs: {
+            latex: '\\sqrt{x}',
+            output: 'image',
+            imageUrl: 'https://h.uguu.se/test.png',
+            imageWidth: 24,
+            imageHeight: 40,
+            imageStyle: 'width:0.75em; height:1.25em',
+          },
+        },
+      },
+    ) as unknown[];
+
+    expect(rendered[0]).toBe('span');
+    expect(rendered[2]).toEqual([
+      'img',
+      expect.objectContaining({
+        src: 'https://h.uguu.se/test.png',
+        'data-formulax-image': 'true',
+        style: 'width:0.75em; height:1.25em',
+      }),
+    ]);
+  });
 });

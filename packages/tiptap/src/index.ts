@@ -8,6 +8,15 @@ import {
   ensureFormulaXBaseStyles,
   getFormulaLatexFromElement,
 } from '@formulaxjs/renderer';
+import {
+  createFormulaDisplayAttributes,
+  createFormulaImageHtml,
+  FORMULAX_IMAGE_HEIGHT_ATTRIBUTE,
+  FORMULAX_IMAGE_STYLE_ATTRIBUTE,
+  FORMULAX_IMAGE_URL_ATTRIBUTE,
+  FORMULAX_IMAGE_WIDTH_ATTRIBUTE,
+  FORMULAX_OUTPUT_ATTRIBUTE,
+} from '@formulaxjs/renderer-image';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import {
   ensureFormulaXModalStyles,
@@ -19,6 +28,11 @@ import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOpti
 
 export interface FormulaXNodeAttributes {
   latex: string;
+  output: 'svg' | 'image';
+  imageUrl: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
+  imageStyle: string | null;
 }
 
 export const FORMULAX_NODE_NAME = 'formulaX';
@@ -40,6 +54,8 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
     cursorStyle: options.cursorStyle ?? 'pointer',
     initialLatex: options.initialLatex ?? '',
+    output: options.output ?? 'svg',
+    image: options.image,
     renderer: options.renderer ?? createKityFormulaRenderer({
       fontSize: options.editor?.render?.fontsize ?? 40,
       height: options.editor?.height ?? '100%',
@@ -124,6 +140,21 @@ function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
         latex: {
           default: '',
         },
+        output: {
+          default: 'svg',
+        },
+        imageUrl: {
+          default: null,
+        },
+        imageWidth: {
+          default: null,
+        },
+        imageHeight: {
+          default: null,
+        },
+        imageStyle: {
+          default: null,
+        },
       };
     },
     parseHTML() {
@@ -136,11 +167,33 @@ function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
 
           return {
             latex: getFormulaLatexFromElement(element, this.options.formulaAttributeName),
+            output: readOutputModeFromElement(element),
+            imageUrl: readImageUrlFromElement(element),
+            imageWidth: readImageDimension(
+              element.getAttribute(FORMULAX_IMAGE_WIDTH_ATTRIBUTE)
+              ?? element.querySelector('img[data-formulax-image]')?.getAttribute('width'),
+            ),
+            imageHeight: readImageDimension(
+              element.getAttribute(FORMULAX_IMAGE_HEIGHT_ATTRIBUTE)
+              ?? element.querySelector('img[data-formulax-image]')?.getAttribute('height'),
+            ),
+            imageStyle: readImageStyleFromElement(element),
           };
         },
       }];
     },
     renderHTML({ node }: { node: { attrs: FormulaXNodeAttributes } }) {
+      if (node.attrs.output === 'image' && node.attrs.imageUrl) {
+        return [
+          'span',
+          createFormulaNodeRootAttributes(node.attrs, this.options),
+          [
+            'img',
+            createFormulaImageViewAttributes(node.attrs, this.options),
+          ],
+        ] as const;
+      }
+
       if (typeof document === 'undefined') {
         return [
           'span',
@@ -336,6 +389,11 @@ function getSelectedFormula(editor: {
     to: selection.to,
     attrs: {
       latex: node.attrs?.latex ?? '',
+      output: node.attrs?.output ?? 'svg',
+      imageUrl: node.attrs?.imageUrl ?? null,
+      imageWidth: node.attrs?.imageWidth ?? null,
+      imageHeight: node.attrs?.imageHeight ?? null,
+      imageStyle: node.attrs?.imageStyle ?? null,
     },
   };
 }
@@ -351,6 +409,11 @@ function createFormulaNodeContent(
     type: nodeName,
     attrs: {
       latex: payload.latex,
+      output: payload.output ?? 'svg',
+      imageUrl: payload.image?.url ?? null,
+      imageWidth: payload.image?.width ?? null,
+      imageHeight: payload.image?.height ?? null,
+      imageStyle: payload.image?.style ?? null,
     },
   };
 }
@@ -360,10 +423,28 @@ function createFormulaDomElement(
   attrs: FormulaXNodeAttributes,
   options: RequiredFormulaXTiptapOptions,
 ): HTMLElement | null {
+  if (attrs.output === 'image' && attrs.imageUrl) {
+    return createFormulaElement(ownerDocument, attrs.latex, {
+      attributeName: options.formulaAttributeName,
+      className: options.formulaClassName,
+      cursorStyle: options.cursorStyle,
+      renderHtml: createFormulaImageHtml({
+        src: attrs.imageUrl,
+        latex: attrs.latex,
+        className: options.formulaClassName,
+        width: attrs.imageWidth ?? undefined,
+        height: attrs.imageHeight ?? undefined,
+        style: attrs.imageStyle ?? undefined,
+      }),
+      extraAttributes: createFormulaNodeExtraAttributes(attrs),
+    });
+  }
+
   return createFormulaElement(ownerDocument, attrs.latex, {
     attributeName: options.formulaAttributeName,
     className: options.formulaClassName,
     cursorStyle: options.cursorStyle,
+    extraAttributes: createFormulaNodeExtraAttributes(attrs),
   });
 }
 
@@ -397,6 +478,19 @@ async function renderFormulaIntoElement(
   options: RequiredFormulaXTiptapOptions,
 ): Promise<void> {
   const latex = attrs.latex.trim();
+  if (attrs.output === 'image' && attrs.imageUrl) {
+    delete dom.dataset.renderToken;
+    dom.innerHTML = createFormulaImageHtml({
+      src: attrs.imageUrl,
+      latex: attrs.latex,
+      className: options.formulaClassName,
+      width: attrs.imageWidth ?? undefined,
+      height: attrs.imageHeight ?? undefined,
+      style: attrs.imageStyle ?? undefined,
+    });
+    return;
+  }
+
   const renderToken = `${latex}::${Date.now()}::${Math.random().toString(36).slice(2, 8)}`;
   dom.dataset.renderToken = renderToken;
 
@@ -429,6 +523,96 @@ async function renderFormulaIntoElement(
       placeholder.textContent = latex;
     }
   }
+}
+
+function createFormulaNodeExtraAttributes(
+  attrs: FormulaXNodeAttributes,
+): Record<string, string | undefined> {
+  return createFormulaDisplayAttributes({
+    output: attrs.output,
+    latex: attrs.latex,
+    renderHtml: '',
+    source: {
+      engine: 'tiptap',
+      output: 'svg',
+      latex: attrs.latex,
+      html: '',
+    },
+    image: attrs.output === 'image' && attrs.imageUrl
+      ? {
+          url: attrs.imageUrl,
+          width: attrs.imageWidth ?? 0,
+          height: attrs.imageHeight ?? 0,
+          displayStyle: attrs.imageStyle ?? undefined,
+        }
+      : undefined,
+  });
+}
+
+function createFormulaNodeRootAttributes(
+  attrs: FormulaXNodeAttributes,
+  options: RequiredFormulaXTiptapOptions,
+): Record<string, string> {
+  const imageAttributes = createFormulaNodeExtraAttributes(attrs);
+
+  return {
+    class: options.formulaClassName,
+    'data-formulax': 'true',
+    [options.formulaAttributeName]: attrs.latex,
+    'data-latex': attrs.latex,
+    contenteditable: 'false',
+    role: 'button',
+    tabindex: '0',
+    style: `cursor: ${options.cursorStyle}`,
+    ...Object.fromEntries(
+      Object.entries(imageAttributes).filter(([, value]) => typeof value === 'string'),
+    ) as Record<string, string>,
+  };
+}
+
+function createFormulaImageViewAttributes(
+  attrs: FormulaXNodeAttributes,
+  options: RequiredFormulaXTiptapOptions,
+): Record<string, string> {
+  return {
+    class: `${options.formulaClassName}__image`,
+    src: attrs.imageUrl ?? '',
+    alt: attrs.latex,
+    'data-formulax-image': 'true',
+    ...(attrs.imageWidth ? { width: String(attrs.imageWidth) } : {}),
+    ...(attrs.imageHeight ? { height: String(attrs.imageHeight) } : {}),
+    ...(attrs.imageStyle ? { style: attrs.imageStyle } : {}),
+  };
+}
+
+function readOutputModeFromElement(element: HTMLElement): 'svg' | 'image' {
+  const explicit = element.getAttribute(FORMULAX_OUTPUT_ATTRIBUTE);
+  if (explicit === 'image') {
+    return 'image';
+  }
+
+  return element.querySelector('img[data-formulax-image]') ? 'image' : 'svg';
+}
+
+function readImageUrlFromElement(element: HTMLElement): string | null {
+  return element.getAttribute(FORMULAX_IMAGE_URL_ATTRIBUTE)
+    ?? element.querySelector('img[data-formulax-image]')?.getAttribute('src')
+    ?? null;
+}
+
+function readImageStyleFromElement(element: HTMLElement): string | null {
+  return element.getAttribute(FORMULAX_IMAGE_STYLE_ATTRIBUTE)
+    ?? element.querySelector('img[data-formulax-image]')?.getAttribute('style')
+    ?? null;
+}
+
+function readImageDimension(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 export type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';

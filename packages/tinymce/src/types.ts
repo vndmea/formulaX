@@ -1,6 +1,10 @@
 import type { FormulaState } from '@formulaxjs/core';
 import type { FormulaXEditorOptions, FormulaXEditorPreloadMode } from '@formulaxjs/editor';
 import type { FormulaRenderer } from '@formulaxjs/renderer';
+import type {
+  FormulaXImageOptions,
+  FormulaXOutputMode,
+} from '@formulaxjs/renderer-image';
 
 export interface TinyMceLike {
   PluginManager?: {
@@ -60,6 +64,8 @@ export interface FormulaXTinyMceOptions {
   cursorStyle?: string;
   formulaClassName?: string;
   formulaAttributeName?: string;
+  output?: FormulaXOutputMode;
+  image?: FormulaXImageOptions;
   renderer?: FormulaRenderer;
   preload?: FormulaXEditorPreloadMode;
   modal?: FormulaXModalOptions;
@@ -86,6 +92,8 @@ export interface RequiredFormulaXTinyMceOptions {
   cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;
+  output: FormulaXOutputMode;
+  image?: FormulaXImageOptions;
   initialLatex: string;
   renderer: FormulaRenderer;
   preload: FormulaXEditorPreloadMode;

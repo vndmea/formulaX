@@ -43,6 +43,7 @@
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/editor": "workspace:*",
     "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/renderer-image": "workspace:*",
     "@formulaxjs/renderer-kity": "workspace:*"
   },
   "peerDependencies": {

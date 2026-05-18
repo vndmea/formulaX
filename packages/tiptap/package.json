@@ -43,6 +43,7 @@
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/renderer-image": "workspace:*",
     "@formulaxjs/renderer-kity": "workspace:*",
     "@formulaxjs/editor": "workspace:*"
   },
