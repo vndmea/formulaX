@@ -46,6 +46,8 @@
     "release": "corepack pnpm build:packages && corepack pnpm changeset:publish",
     "release:publish": "corepack pnpm changeset:publish",
     "test": "vitest run",
+    "test:assets": "corepack pnpm --filter @formulaxjs/kity-runtime build && node scripts/verify-kity-runtime-dist-assets.mjs",
+    "test:publish-assets": "corepack pnpm build:packages && node scripts/verify-publish-assets.mjs",
     "test:watch": "vitest",
     "test:browser": "playwright test",
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty",

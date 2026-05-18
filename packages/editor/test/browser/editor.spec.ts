@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Request, type Response } from '@playwright/test';
 
 type BrowserEditorHandleLike = {
   execCommand: (name: string) => unknown;
@@ -108,6 +108,38 @@ async function expectNoRuntimeErrors(page: Page, action: () => Promise<void>, ig
   expect(errors).toEqual([]);
 }
 
+function isTrackedAssetUrl(url: string) {
+  return /\.(css|woff2?|png|svg)(?:[?#].*)?$/i.test(url);
+}
+
+async function expectNoAssetLoadFailures(page: Page, action: () => Promise<void>) {
+  const failures: string[] = [];
+  const onRequestFailed = (request: Request) => {
+    if (!isTrackedAssetUrl(request.url())) {
+      return;
+    }
+    failures.push(`requestfailed ${request.failure()?.errorText ?? 'unknown error'} ${request.url()}`);
+  };
+  const onResponse = (response: Response) => {
+    if (!isTrackedAssetUrl(response.url()) || response.status() < 400) {
+      return;
+    }
+    failures.push(`response ${response.status()} ${response.url()}`);
+  };
+
+  page.on('requestfailed', onRequestFailed);
+  page.on('response', onResponse);
+  try {
+    await action();
+    await page.waitForTimeout(250);
+  } finally {
+    page.off('requestfailed', onRequestFailed);
+    page.off('response', onResponse);
+  }
+
+  expect(failures).toEqual([]);
+}
+
 async function openToolbarPopupByText(page: Page, editorId: string, label: string) {
   await page.locator(`#${editorId} .kf-editor-toolbar`).getByText(label).first().click();
   const popup = page.locator(`#${editorId} .kf-editor-ui-box:visible`).first();
@@ -135,6 +167,21 @@ test.describe('FormulaX Editor', () => {
     const inputValue = await page.locator('#app .kf-editor-input-box').inputValue();
     expect(inputValue).toContain('\\frac');
     expect(inputValue).toContain('\\sqrt');
+  });
+
+  test('loads Kity css, font and image assets without network failures', async ({ page }) => {
+    await expectNoAssetLoadFailures(page, async () => {
+      await page.goto('/');
+      await expect(page.locator('#app .kf-editor')).toBeVisible();
+      await expect(page.locator('#app .kf-editor-toolbar')).toBeVisible();
+
+      await page.locator('#app .kf-editor-toolbar').getByText('Fraction').first().click();
+      await expect(page.locator('#app .kf-editor-ui-box:visible').first()).toBeVisible();
+
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+      });
+    });
   });
 
   test('formulax editor instance is available on window', async ({ page }) => {
