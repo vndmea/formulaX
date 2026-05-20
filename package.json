@@ -53,6 +53,7 @@
     "test:publish-unpkg": "corepack pnpm build:packages && node scripts/verify-publish-unpkg.mjs",
     "test:watch": "vitest",
     "test:browser": "playwright test",
+    "test:browser:renderer-kity": "playwright test --config packages/renderer-kity/test/playwright.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty",
     "prepare": "husky"
   },
@@ -60,6 +61,7 @@
     "@changesets/cli": "^2.29.2",
     "@eslint/js": "^9.25.1",
     "@playwright/test": "^1.52.0",
+    "@types/jsdom": "^28.0.3",
     "@types/node": "^22.15.3",
     "@typescript-eslint/eslint-plugin": "^8.30.1",
     "@typescript-eslint/parser": "^8.30.1",
