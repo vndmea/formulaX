@@ -12,6 +12,8 @@ FormulaX 的 TinyMCE 集成适配器。
 
 - 通过 `registerFormulaXTinyMcePlugin` 注册 TinyMCE 插件
 - 支持 FormulaX 工具栏按钮和菜单项
+- 内置默认 SVG 工具栏 icon，并支持自定义 SVG 覆盖
+- 在只读或不可编辑状态下，工具栏 disabled 外观交给 TinyMCE 宿主统一处理
 - 提供 `FormulaXOpen` TinyMCE 命令，便于代码中主动打开公式编辑器
 - 将公式作为不可直接编辑的 inline 节点插入和更新
 - 支持双击、Enter、Space 编辑已有公式
@@ -57,13 +59,18 @@ pnpm dev:tinymce
 
 ```ts
 import tinymce from 'tinymce';
-import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
+import {
+  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  registerFormulaXTinyMcePlugin,
+} from '@formulaxjs/tinymce';
 
 registerFormulaXTinyMcePlugin(tinymce, {
   pluginName: 'formulax', // TinyMCE 插件名，需要和 plugins 配置一致
   buttonName: 'formulax', // 工具栏按钮名，需要和 toolbar 配置一致
   menuItemName: 'formulax', // 如果菜单里也要出现该操作，可复用这个标识
-  toolbarText: 'FormulaX',
+  toolbarText: 'FormulaX', // 主要用于菜单项文案
+  formulaIconName: 'formulax-formula',
+  formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG, // 可选；不传则使用内置 icon
   tooltip: '插入或编辑公式',
   cursorStyle: 'pointer', // 应用于公式节点的鼠标样式
   formulaClassName: 'formulax-math', // 公式外层 DOM class
@@ -123,6 +130,12 @@ await tinymce.init({
 ```
 
 之后用户可以点击 `FormulaX` 工具栏按钮插入公式。已有公式可以通过双击编辑，也可以选中后按 Enter 或 Space 编辑。
+
+TinyMCE 工具栏按钮会以纯 icon 形式渲染。`toolbarText` 主要用于菜单项文案，工具栏按钮本身依赖 `tooltip` 和注册的 SVG icon。
+
+如果不传 `formulaIcon`，适配器会自动用 `formulax-formula` 这个名称注册内置的 FormulaX SVG icon。
+
+当宿主编辑器进入只读或不可编辑状态时，FormulaX 按钮和菜单项的 disabled 样式会交给 TinyMCE 宿主处理，从而与原生工具栏控件保持一致。
 
 ## PNG image output
 
@@ -247,6 +260,8 @@ interface FormulaXTinyMceOptions {
   buttonName?: string;
   menuItemName?: string;
   toolbarText?: string;
+  formulaIcon?: string;
+  formulaIconName?: string;
   tooltip?: string;
   cursorStyle?: string;
   formulaClassName?: string;
@@ -266,7 +281,9 @@ interface FormulaXTinyMceOptions {
 | `pluginName` | `formulax` | 通过 `tinymce.PluginManager.add` 注册的 TinyMCE 插件名。 |
 | `buttonName` | `formulax` | 工具栏按钮名。 |
 | `menuItemName` | `formulax` | 菜单项名。 |
-| `toolbarText` | `FormulaX` | 工具栏按钮和菜单项显示文本。 |
+| `toolbarText` | `FormulaX` | 菜单项文案和可读动作文本。工具栏按钮本身是纯 icon。 |
+| `formulaIcon` | 内置 SVG | 注册到 TinyMCE icon registry 的工具栏 SVG 字符串。 |
+| `formulaIconName` | `formulax-formula` | 传给 `editor.ui.registry.addIcon()` 的 icon 名称。 |
 | `tooltip` | `Insert formula` | 工具栏按钮 tooltip。 |
 | `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
@@ -308,6 +325,11 @@ interface FormulaXTinyMceOptions {
 | `registerFormulaXTinyMcePlugin` | 注册 TinyMCE 插件。 |
 | `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
 | `openFormulaXOverlayModal` | 直接打开 FormulaX 弹窗。 |
+| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
+| `FORMULAX_DEFAULT_ICON_NAME` | 默认的 FormulaX icon registry 名称。 |
+| `resolveFormulaXFormulaIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
+| `resolveFormulaXFormulaIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
+| `normalizeFormulaXIconSvg` | 对开发者提供的 SVG icon markup 做基础 trim。 |
 | `createTinyMceFormulaMarkup` | 根据 LaTeX 创建公式 HTML。 |
 | `parseTinyMceFormulaMarkup` | 将 LaTeX 解析为 FormulaX 文档。 |
 | `serializeTinyMceFormulaMarkup` | 将 FormulaX 文档序列化为 TinyMCE 公式 HTML。 |

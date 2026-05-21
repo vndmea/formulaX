@@ -12,6 +12,8 @@ TinyMCE integration adapter for FormulaX.
 
 - TinyMCE plugin registration through `registerFormulaXTinyMcePlugin`
 - FormulaX toolbar button and menu item support
+- Default SVG toolbar icon registration with optional custom SVG override
+- Host-managed disabled toolbar state in readonly or non-editable contexts
 - `FormulaXOpen` TinyMCE command for programmatic opening
 - Insert and update formulas as non-editable inline nodes
 - Double-click, Enter, and Space editing interactions for existing formulas
@@ -57,13 +59,18 @@ Register the FormulaX TinyMCE plugin before calling `tinymce.init`:
 
 ```ts
 import tinymce from 'tinymce';
-import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
+import {
+  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  registerFormulaXTinyMcePlugin,
+} from '@formulaxjs/tinymce';
 
 registerFormulaXTinyMcePlugin(tinymce, {
   pluginName: 'formulax', // TinyMCE plugin id used in the plugins list
   buttonName: 'formulax', // toolbar button id used in the toolbar string
   menuItemName: 'formulax', // menu item id if you also expose the action in menus
-  toolbarText: 'FormulaX',
+  toolbarText: 'FormulaX', // used by the menu item label
+  formulaIconName: 'formulax-formula',
+  formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG, // optional; omit to use the built-in icon
   tooltip: 'Insert or edit formula',
   cursorStyle: 'pointer', // cursor applied to generated formula nodes
   formulaClassName: 'formulax-math', // DOM class written on formula wrappers
@@ -121,6 +128,12 @@ await tinymce.init({
 ```
 
 Then users can click the `FormulaX` toolbar button to insert a formula. Existing formulas can be edited by double-clicking them or selecting them and pressing Enter or Space.
+
+The TinyMCE toolbar button is rendered as an icon-only control. `toolbarText` is used for the menu item label, while the toolbar button itself uses `tooltip` plus the registered SVG icon.
+
+If you omit `formulaIcon`, the adapter automatically registers the built-in FormulaX SVG icon under `formulax-formula`.
+
+When the host editor enters a non-editable or readonly mode, TinyMCE controls the disabled styling for the FormulaX toolbar button and menu item so they match the rest of the native toolbar UI.
 
 ## PNG image output
 
@@ -244,6 +257,8 @@ interface FormulaXTinyMceOptions {
   buttonName?: string;
   menuItemName?: string;
   toolbarText?: string;
+  formulaIcon?: string;
+  formulaIconName?: string;
   tooltip?: string;
   cursorStyle?: string;
   formulaClassName?: string;
@@ -263,7 +278,9 @@ interface FormulaXTinyMceOptions {
 | `pluginName` | `formulax` | TinyMCE plugin name registered through `tinymce.PluginManager.add`. |
 | `buttonName` | `formulax` | Toolbar button name. |
 | `menuItemName` | `formulax` | Menu item name. |
-| `toolbarText` | `FormulaX` | Toolbar and menu item label. |
+| `toolbarText` | `FormulaX` | Menu item label and readable action text. The toolbar button itself is icon-only. |
+| `formulaIcon` | built-in SVG | Toolbar icon SVG string used for the TinyMCE icon registry. |
+| `formulaIconName` | `formulax-formula` | Toolbar icon registry name passed to `editor.ui.registry.addIcon()`. |
 | `tooltip` | `Insert formula` | Toolbar button tooltip. |
 | `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
@@ -305,6 +322,11 @@ interface FormulaXTinyMceOptions {
 | `registerFormulaXTinyMcePlugin` | Registers the TinyMCE plugin. |
 | `resolveOptions` | Resolves user options into required defaults. |
 | `openFormulaXOverlayModal` | Opens the FormulaX modal directly. |
+| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
+| `FORMULAX_DEFAULT_ICON_NAME` | Shared default FormulaX icon registry name. |
+| `resolveFormulaXFormulaIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
+| `resolveFormulaXFormulaIconName` | Resolves a custom or default FormulaX icon registry name. |
+| `normalizeFormulaXIconSvg` | Trims developer-supplied SVG icon markup. |
 | `createTinyMceFormulaMarkup` | Creates formula HTML from LaTeX. |
 | `parseTinyMceFormulaMarkup` | Parses LaTeX into a FormulaX document. |
 | `serializeTinyMceFormulaMarkup` | Serializes a FormulaX document into TinyMCE formula HTML. |
