@@ -38,6 +38,8 @@ const FORMULAX_IMAGE_VALID_ELEMENTS = [
   'img[class|style|src|alt|width|height|data-formulax-image|data-mce-src]',
 ].join(',');
 
+const FORMULAX_TINYMCE_CONTEXT_NAME = 'formulax';
+
 export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFormulaXTinyMceOptions {
   const locale = options.editor?.locale ?? DEFAULT_FORMULAX_LOCALE;
 
@@ -115,17 +117,27 @@ export function registerFormulaXTinyMcePlugin(
         open();
       });
 
+      editor.ui?.registry?.addContext?.(FORMULAX_TINYMCE_CONTEXT_NAME, (value: string) => {
+        if (value !== 'enabled') {
+          return false;
+        }
+
+        return isFormulaXActionEnabled(editor, compat);
+      });
+
       editor.ui?.registry?.addIcon?.(resolved.formulaIconName, resolved.formulaIcon);
 
       editor.ui?.registry?.addButton?.(resolved.buttonName, {
         icon: resolved.formulaIconName,
         tooltip: resolved.tooltip,
+        context: `${FORMULAX_TINYMCE_CONTEXT_NAME}:enabled`,
         onAction: () => editor.execCommand('FormulaXOpen'),
       });
 
       editor.ui?.registry?.addMenuItem?.(resolved.menuItemName, {
         icon: resolved.formulaIconName,
         text: resolved.toolbarText,
+        context: `${FORMULAX_TINYMCE_CONTEXT_NAME}:enabled`,
         onAction: () => editor.execCommand('FormulaXOpen'),
       });
 
@@ -166,4 +178,23 @@ export function registerFormulaXTinyMcePlugin(
       return undefined;
     },
   );
+}
+
+function isFormulaXActionEnabled(
+  editor: TinyMceEditorLike,
+  compat: ReturnType<typeof createTinyMceCompat>,
+): boolean {
+  const mode = (editor as TinyMceEditorLike & {
+    mode?: { get?: () => string };
+  }).mode?.get?.();
+
+  if (typeof mode === 'string' && mode !== 'design') {
+    return false;
+  }
+
+  if (editor.selection?.isEditable?.()) {
+    return true;
+  }
+
+  return Boolean(compat.getSelectedFormulaElement());
 }

@@ -48,12 +48,13 @@ describe('registerFormulaXTinyMcePlugin', () => {
   it('registers formulax toolbar button', () => {
     const buttons = new Map<string, unknown>();
     const icons = new Map<string, string>();
+    const contexts = new Map<string, (value: string) => boolean>();
 
     const tinymce = {
       majorVersion: '7',
       PluginManager: {
         add(_name: string, factory: unknown) {
-          const editor = createFakeEditor(new Map(), buttons, new Map(), vi.fn(), icons);
+          const editor = createFakeEditor(new Map(), buttons, new Map(), vi.fn(), icons, contexts);
           (factory as any)(editor);
         },
       },
@@ -63,8 +64,10 @@ describe('registerFormulaXTinyMcePlugin', () => {
 
     expect(buttons.has('formulax')).toBe(true);
     expect(icons.has(FORMULAX_DEFAULT_ICON_NAME)).toBe(true);
+    expect(contexts.has('formulax')).toBe(true);
     expect(buttons.get('formulax')).toMatchObject({
       icon: FORMULAX_DEFAULT_ICON_NAME,
+      context: 'formulax:enabled',
     });
     expect(buttons.get('formulax')).not.toHaveProperty('text');
   });
@@ -92,6 +95,70 @@ describe('registerFormulaXTinyMcePlugin', () => {
     expect(buttons.get('formulax')).toMatchObject({
       icon: 'custom-formula',
     });
+  });
+
+  it('disables FormulaX UI in readonly mode but keeps it enabled for selected formula nodes', () => {
+    const buttons = new Map<string, unknown>();
+    const contexts = new Map<string, (value: string) => boolean>();
+    const formulaNode = document.createElement('span');
+    formulaNode.setAttribute('data-formulax', 'true');
+    formulaNode.setAttribute('data-formulax-latex', '\\sqrt{x}');
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(
+            new Map(),
+            buttons,
+            new Map(),
+            vi.fn(),
+            new Map(),
+            contexts,
+            {
+              isEditable: () => false,
+              getNode: () => formulaNode,
+            },
+            'readonly',
+          );
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any);
+
+    expect(contexts.get('formulax')?.('enabled')).toBe(false);
+
+    const editableTinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(
+            new Map(),
+            buttons,
+            new Map(),
+            vi.fn(),
+            new Map(),
+            contexts,
+            {
+              isEditable: () => false,
+              getNode: () => formulaNode,
+            },
+            'design',
+          );
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(editableTinymce as any, {
+      pluginName: 'formulax-editable',
+      buttonName: 'formulax-editable',
+      menuItemName: 'formulax-editable',
+    });
+
+    expect(contexts.get('formulax')?.('enabled')).toBe(true);
   });
 
   it('extends schema to preserve inline svg formula attributes', () => {
@@ -189,6 +256,12 @@ function createFakeEditor(
   events = new Map<string, Function>(),
   addValidElements = vi.fn(),
   icons = new Map<string, string>(),
+  contexts = new Map<string, (value: string) => boolean>(),
+  selectionOverrides: {
+    isEditable?: () => boolean;
+    getNode?: () => HTMLElement | null;
+  } = {},
+  mode = 'design',
 ) {
   return {
     addCommand(name: string, callback: Function) {
@@ -209,6 +282,9 @@ function createFakeEditor(
     getBody: () => document.body,
     ui: {
       registry: {
+        addContext: (name: string, predicate: (value: string) => boolean) => {
+          contexts.set(name, predicate);
+        },
         addIcon: (name: string, svg: string) => {
           icons.set(name, svg);
         },
@@ -219,7 +295,11 @@ function createFakeEditor(
       },
     },
     selection: {
-      getNode: () => null,
+      isEditable: selectionOverrides.isEditable ?? (() => true),
+      getNode: selectionOverrides.getNode ?? (() => null),
+    },
+    mode: {
+      get: () => mode,
     },
   };
 }

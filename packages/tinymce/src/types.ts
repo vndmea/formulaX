@@ -28,11 +28,13 @@ export interface TinyMceEditorLike {
   ui?: {
     registry?: {
       addButton?: (name: string, config: Record<string, unknown>) => void;
+      addContext?: (name: string, predicate: (value: string) => boolean) => void;
       addMenuItem?: (name: string, config: Record<string, unknown>) => void;
       addIcon?: (name: string, svg: string) => void;
     };
   };
   selection?: {
+    isEditable?: () => boolean;
     getNode?: () => HTMLElement;
     getRng?: () => Range;
     setRng?: (range: Range) => void;
