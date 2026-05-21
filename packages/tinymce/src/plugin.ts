@@ -5,7 +5,12 @@ import type {
   TinyMceLike,
 } from './types';
 import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
-import { getFormulaXEditorMessage, scheduleFormulaXEditorPreload } from '@formulaxjs/editor';
+import {
+  getFormulaXEditorMessage,
+  resolveFormulaXFormulaIcon,
+  resolveFormulaXFormulaIconName,
+  scheduleFormulaXEditorPreload,
+} from '@formulaxjs/editor';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import { createTinyMceCompat, warnUnsupportedTinyMceVersion } from './compat';
 import { findFormulaElement } from './markup';
@@ -42,6 +47,8 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     menuItemName: options.menuItemName ?? 'formulax',
     toolbarText: options.toolbarText ?? 'FormulaX',
     tooltip: options.tooltip ?? 'Insert formula',
+    formulaIcon: resolveFormulaXFormulaIcon(options),
+    formulaIconName: resolveFormulaXFormulaIconName(options),
     cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? 'formulax-math',
     formulaAttributeName: options.formulaAttributeName ?? 'data-formulax-latex',
@@ -108,13 +115,16 @@ export function registerFormulaXTinyMcePlugin(
         open();
       });
 
+      editor.ui?.registry?.addIcon?.(resolved.formulaIconName, resolved.formulaIcon);
+
       editor.ui?.registry?.addButton?.(resolved.buttonName, {
-        text: resolved.toolbarText,
+        icon: resolved.formulaIconName,
         tooltip: resolved.tooltip,
         onAction: () => editor.execCommand('FormulaXOpen'),
       });
 
       editor.ui?.registry?.addMenuItem?.(resolved.menuItemName, {
+        icon: resolved.formulaIconName,
         text: resolved.toolbarText,
         onAction: () => editor.execCommand('FormulaXOpen'),
       });

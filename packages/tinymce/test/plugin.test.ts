@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createFormulaDisplayAttributes, createFormulaImageHtml } from '@formulaxjs/renderer-image';
 import {
+  FORMULAX_DEFAULT_ICON_NAME,
   createTinyMceFormulaMarkup,
   registerFormulaXTinyMcePlugin,
   resolveOptions,
@@ -46,12 +47,13 @@ describe('registerFormulaXTinyMcePlugin', () => {
 
   it('registers formulax toolbar button', () => {
     const buttons = new Map<string, unknown>();
+    const icons = new Map<string, string>();
 
     const tinymce = {
       majorVersion: '7',
       PluginManager: {
         add(_name: string, factory: unknown) {
-          const editor = createFakeEditor(new Map(), buttons);
+          const editor = createFakeEditor(new Map(), buttons, new Map(), vi.fn(), icons);
           (factory as any)(editor);
         },
       },
@@ -60,6 +62,36 @@ describe('registerFormulaXTinyMcePlugin', () => {
     registerFormulaXTinyMcePlugin(tinymce as any);
 
     expect(buttons.has('formulax')).toBe(true);
+    expect(icons.has(FORMULAX_DEFAULT_ICON_NAME)).toBe(true);
+    expect(buttons.get('formulax')).toMatchObject({
+      icon: FORMULAX_DEFAULT_ICON_NAME,
+    });
+    expect(buttons.get('formulax')).not.toHaveProperty('text');
+  });
+
+  it('registers a custom toolbar icon override', () => {
+    const buttons = new Map<string, unknown>();
+    const icons = new Map<string, string>();
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(new Map(), buttons, new Map(), vi.fn(), icons);
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any, {
+      formulaIconName: 'custom-formula',
+      formulaIcon: ' <svg><path /></svg> ',
+    });
+
+    expect(icons.get('custom-formula')).toBe('<svg><path /></svg>');
+    expect(buttons.get('formulax')).toMatchObject({
+      icon: 'custom-formula',
+    });
   });
 
   it('extends schema to preserve inline svg formula attributes', () => {
@@ -156,6 +188,7 @@ function createFakeEditor(
   buttons = new Map<string, unknown>(),
   events = new Map<string, Function>(),
   addValidElements = vi.fn(),
+  icons = new Map<string, string>(),
 ) {
   return {
     addCommand(name: string, callback: Function) {
@@ -176,6 +209,9 @@ function createFakeEditor(
     getBody: () => document.body,
     ui: {
       registry: {
+        addIcon: (name: string, svg: string) => {
+          icons.set(name, svg);
+        },
         addButton: (name: string, config: unknown) => {
           buttons.set(name, config);
         },

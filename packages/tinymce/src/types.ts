@@ -1,5 +1,9 @@
 import type { FormulaState } from '@formulaxjs/core';
-import type { FormulaXEditorOptions, FormulaXEditorPreloadMode } from '@formulaxjs/editor';
+import type {
+  FormulaXEditorOptions,
+  FormulaXEditorPreloadMode,
+  FormulaXIconOptions,
+} from '@formulaxjs/editor';
 import type { FormulaRenderer } from '@formulaxjs/renderer';
 import type {
   FormulaXImageOptions,
@@ -55,7 +59,7 @@ export interface TinyMceEditorLike {
   fire?: (name: string, args?: Record<string, unknown>) => void;
 }
 
-export interface FormulaXTinyMceOptions {
+export interface FormulaXTinyMceOptions extends FormulaXIconOptions {
   pluginName?: string;
   buttonName?: string;
   menuItemName?: string;
@@ -89,6 +93,8 @@ export interface RequiredFormulaXTinyMceOptions {
   menuItemName: string;
   toolbarText: string;
   tooltip: string;
+  formulaIcon: string;
+  formulaIconName: string;
   cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;

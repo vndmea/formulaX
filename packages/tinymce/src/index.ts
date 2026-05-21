@@ -26,6 +26,16 @@ export {
   openFormulaXOverlayModal,
 } from './modal';
 
+export {
+  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_NAME,
+  normalizeFormulaXIconSvg,
+  resolveFormulaXFormulaIcon,
+  resolveFormulaXFormulaIconName,
+} from '@formulaxjs/editor';
+
+export type { FormulaXIconOptions } from '@formulaxjs/editor';
+
 export type {
   FormulaXTinyMceOptions,
   FormulaXModalOptions,
