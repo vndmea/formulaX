@@ -12,6 +12,7 @@ CKEditor 5 integration adapter for FormulaX.
 
 - CKEditor 5 plugin export through `FormulaX`
 - Toolbar button registration driven by CKEditor 5 `componentFactory`
+- Default SVG toolbar icon with optional custom SVG override
 - Programmatic opening through `editor.execute('formulaX')`
 - Insert and update formulas as inline widget objects
 - Double-click editing for existing formulas
@@ -62,7 +63,10 @@ import {
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
 
-import { FormulaX } from '@formulaxjs/ckeditor5';
+import {
+  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FormulaX,
+} from '@formulaxjs/ckeditor5';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
@@ -75,6 +79,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
   toolbar: ['formulaX'],
   formulaX: {
     toolbarText: 'FormulaX',
+    formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG,
     tooltip: 'Insert or edit formula',
     modal: {
       title: 'FormulaX Editor',
@@ -93,6 +98,10 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 ```
 
 Then users can click the `FormulaX` toolbar button to insert a formula. Existing formulas can be updated by double-clicking them, or by selecting them and executing the same command again.
+
+If you omit `formulaIcon`, the adapter uses the built-in FormulaX SVG icon by default.
+
+The CKEditor 5 toolbar button is rendered as an icon-only control by default. `toolbarText` still provides the accessible label and readable action text, while the visible toolbar UI uses the configured SVG icon plus `tooltip`.
 
 ## Custom model names
 
@@ -212,6 +221,8 @@ interface FormulaXCKEditor5Options {
   name?: string;
   buttonName?: string;
   toolbarText?: string;
+  formulaIcon?: string;
+  formulaIconName?: string;
   tooltip?: string;
   cursorStyle?: string;
   formulaClassName?: string;
@@ -243,7 +254,9 @@ interface FormulaXCKEditor5Options {
 | --- | --- | --- |
 | `name` | `formulaX` | CKEditor 5 model/schema element name used for persisted formula nodes. |
 | `buttonName` | `formulaX` | CKEditor 5 toolbar button name and command name. |
-| `toolbarText` | `FormulaX` | Toolbar button label. |
+| `toolbarText` | `FormulaX` | Accessible toolbar label and readable action text. The default toolbar UI is icon-only. |
+| `formulaIcon` | built-in SVG | Toolbar button SVG icon passed to CKEditor 5 `ButtonView`. |
+| `formulaIconName` | `formulax-formula` | Shared FormulaX icon id. Useful when you keep icon metadata aligned across adapters. |
 | `tooltip` | `Insert or edit formula` | Toolbar button tooltip. |
 | `cursorStyle` | `pointer` | Cursor style applied to generated formula nodes. |
 | `formulaClassName` | `formulax-math` | CSS class used by generated formula nodes. |
@@ -284,8 +297,14 @@ interface FormulaXCKEditor5Options {
 | `FormulaXCommand` | Command implementation used by the plugin. |
 | `resolveOptions` | Resolves user options into required defaults. |
 | `openFormulaXModal` | Opens the FormulaX modal directly. |
+| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
+| `FORMULAX_DEFAULT_ICON_NAME` | Shared default FormulaX icon registry name. |
+| `resolveFormulaXFormulaIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
+| `resolveFormulaXFormulaIconName` | Resolves a custom or default FormulaX icon registry name. |
+| `normalizeFormulaXIconSvg` | Trims developer-supplied SVG icon markup. |
 | `DEFAULT_MODEL_NAME` | Default CKEditor 5 model name. |
 | `DEFAULT_BUTTON_NAME` | Default CKEditor 5 command and toolbar button name. |
+| `FormulaXIconOptions` | Shared icon configuration type for CKEditor 5 integrations. |
 | `DEFAULT_FORMULA_ATTRIBUTE` | Default LaTeX persistence attribute name. |
 | `DEFAULT_FORMULA_CLASS` | Default CSS class for formula nodes. |
 | `FORMULA_FLAG_ATTRIBUTE` | Attribute used to identify FormulaX nodes in editor data. |

@@ -12,6 +12,7 @@ FormulaX 的 CKEditor 5 集成适配器。
 
 - 通过 `FormulaX` 导出 CKEditor 5 插件
 - 基于 CKEditor 5 `componentFactory` 注册工具栏按钮
+- 内置默认 SVG 工具栏 icon，并支持自定义 SVG 覆盖
 - 通过 `editor.execute('formulaX')` 在代码中主动打开
 - 将公式作为行内 widget object 插入和更新
 - 支持双击编辑已有公式
@@ -62,7 +63,10 @@ import {
 } from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
 
-import { FormulaX } from '@formulaxjs/ckeditor5';
+import {
+  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FormulaX,
+} from '@formulaxjs/ckeditor5';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
@@ -75,6 +79,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
   toolbar: ['formulaX'],
   formulaX: {
     toolbarText: 'FormulaX',
+    formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG,
     tooltip: '插入或编辑公式',
     modal: {
       title: 'FormulaX 公式编辑器',
@@ -93,6 +98,10 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 ```
 
 之后用户可以点击 `FormulaX` 工具栏按钮插入公式。已有公式可以通过双击更新，也可以先选中后再次执行同一个命令进行更新。
+
+如果不传 `formulaIcon`，适配器会默认使用内置的 FormulaX SVG icon。
+
+CKEditor 5 工具栏按钮默认会以纯 icon 形式渲染。`toolbarText` 仍然提供可访问标签和动作文本，实际显示则依赖配置的 SVG icon 和 `tooltip`。
 
 ## 自定义 model 名称
 
@@ -215,6 +224,8 @@ interface FormulaXCKEditor5Options {
   name?: string;
   buttonName?: string;
   toolbarText?: string;
+  formulaIcon?: string;
+  formulaIconName?: string;
   tooltip?: string;
   cursorStyle?: string;
   formulaClassName?: string;
@@ -246,7 +257,9 @@ interface FormulaXCKEditor5Options {
 | --- | --- | --- |
 | `name` | `formulaX` | 用于持久化公式节点的 CKEditor 5 model/schema 元素名。 |
 | `buttonName` | `formulaX` | CKEditor 5 的工具栏按钮名，同时也是命令名。 |
-| `toolbarText` | `FormulaX` | 工具栏按钮显示文本。 |
+| `toolbarText` | `FormulaX` | 可访问的工具栏标签和动作文本。默认工具栏 UI 为纯 icon。 |
+| `formulaIcon` | 内置 SVG | 传给 CKEditor 5 `ButtonView` 的工具栏 SVG icon。 |
+| `formulaIconName` | `formulax-formula` | 共享的 FormulaX icon 标识，便于跨 adapter 保持一致。 |
 | `tooltip` | `Insert or edit formula` | 工具栏按钮 tooltip。 |
 | `cursorStyle` | `pointer` | 应用于生成公式节点的鼠标光标样式。 |
 | `formulaClassName` | `formulax-math` | 生成的公式节点 CSS class。 |
@@ -287,8 +300,14 @@ interface FormulaXCKEditor5Options {
 | `FormulaXCommand` | 插件内部使用的命令实现。 |
 | `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
 | `openFormulaXModal` | 直接打开 FormulaX 弹窗。 |
+| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
+| `FORMULAX_DEFAULT_ICON_NAME` | 默认的 FormulaX icon registry 名称。 |
+| `resolveFormulaXFormulaIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
+| `resolveFormulaXFormulaIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
+| `normalizeFormulaXIconSvg` | 对开发者提供的 SVG icon markup 做基础 trim。 |
 | `DEFAULT_MODEL_NAME` | 默认的 CKEditor 5 model 名称。 |
 | `DEFAULT_BUTTON_NAME` | 默认的 CKEditor 5 命令名和工具栏按钮名。 |
+| `FormulaXIconOptions` | CKEditor 5 集成可复用的共享 icon 配置类型。 |
 | `DEFAULT_FORMULA_ATTRIBUTE` | 默认的 LaTeX 持久化属性名。 |
 | `DEFAULT_FORMULA_CLASS` | 默认的公式节点 CSS class。 |
 | `FORMULA_FLAG_ATTRIBUTE` | 用于在编辑器数据中识别 FormulaX 节点的属性。 |
