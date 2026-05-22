@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_MODEL_NAME, FormulaX, resolveOptions } from '../src';
+import {
+  DEFAULT_MODEL_NAME,
+  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FormulaX,
+  resolveOptions,
+} from '../src';
 
 describe('ckeditor5 adapter', () => {
   it('resolves the default model name', () => {
@@ -67,6 +72,13 @@ describe('ckeditor5 adapter', () => {
     });
   });
 
+  it('resolves default and custom toolbar icons', () => {
+    expect(resolveOptions().formulaIcon).toBe(FORMULAX_DEFAULT_FORMULA_ICON_SVG);
+    expect(resolveOptions({
+      formulaIcon: ' <svg><path /></svg> ',
+    }).formulaIcon).toBe('<svg><path /></svg>');
+  });
+
   it('registers image attrs in the schema', () => {
     const { editor } = createPluginTestContext();
     const plugin = new FormulaX(editor as never);
@@ -83,6 +95,27 @@ describe('ckeditor5 adapter', () => {
         'imageStyle',
       ]),
     }));
+  });
+
+  it('passes the configured svg icon into the toolbar button view', () => {
+    const { editor } = createPluginTestContext({
+      formulaIcon: '<svg><circle cx="12" cy="12" r="8" /></svg>',
+    });
+    const plugin = new FormulaX(editor as never);
+
+    plugin.init();
+
+    const factory = editor.ui.componentFactory.add.mock.calls[0]?.[1];
+    const button = factory?.({}) as {
+      icon?: string;
+      label?: string;
+      withText?: boolean;
+    } | undefined;
+
+    expect(button).toBeDefined();
+    expect(button?.icon).toBe('<svg><circle cx="12" cy="12" r="8" /></svg>');
+    expect(button?.label).toBe('FormulaX');
+    expect(button?.withText).toBe(false);
   });
 
   it('upcasts persisted image markup into image attrs', () => {

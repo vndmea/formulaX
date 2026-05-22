@@ -27,6 +27,8 @@ import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import {
   ensureFormulaXModalStyles,
   getFormulaXEditorMessage,
+  resolveFormulaXFormulaIcon,
+  resolveFormulaXFormulaIconName,
   scheduleFormulaXEditorPreload,
 } from '@formulaxjs/editor';
 import { openFormulaXModal } from './modal';
@@ -49,6 +51,8 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
     buttonName: options.buttonName ?? DEFAULT_BUTTON_NAME,
     toolbarText: options.toolbarText ?? 'FormulaX',
     tooltip: options.tooltip ?? 'Insert or edit formula',
+    formulaIcon: resolveFormulaXFormulaIcon(options),
+    formulaIconName: resolveFormulaXFormulaIconName(options),
     cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? DEFAULT_FORMULA_CLASS,
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
@@ -152,8 +156,9 @@ export class FormulaX extends Plugin {
 
       button.set({
         label: options.toolbarText,
+        icon: options.formulaIcon,
         tooltip: options.tooltip,
-        withText: true,
+        withText: false,
       });
 
       button.bind('isEnabled').to(command, 'isEnabled');

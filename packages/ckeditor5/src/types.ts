@@ -1,4 +1,8 @@
-import type { FormulaXEditorOptions, FormulaXEditorPreloadMode } from '@formulaxjs/editor';
+import type {
+  FormulaXEditorOptions,
+  FormulaXEditorPreloadMode,
+  FormulaXIconOptions,
+} from '@formulaxjs/editor';
 import type { FormulaRenderer } from '@formulaxjs/renderer';
 import type {
   FormulaXImageOptions,
@@ -16,7 +20,7 @@ export interface FormulaXPayload {
   };
 }
 
-export interface FormulaXCKEditor5Options {
+export interface FormulaXCKEditor5Options extends FormulaXIconOptions {
   name?: string;
   buttonName?: string;
   toolbarText?: string;
@@ -43,6 +47,8 @@ export interface RequiredFormulaXCKEditor5Options {
   buttonName: string;
   toolbarText: string;
   tooltip: string;
+  formulaIcon: string;
+  formulaIconName: string;
   cursorStyle: string;
   formulaClassName: string;
   formulaAttributeName: string;
