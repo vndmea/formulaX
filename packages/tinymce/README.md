@@ -327,6 +327,7 @@ interface FormulaXTinyMceOptions {
 | `resolveFormulaXFormulaIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
 | `resolveFormulaXFormulaIconName` | Resolves a custom or default FormulaX icon registry name. |
 | `normalizeFormulaXIconSvg` | Trims developer-supplied SVG icon markup. |
+| `FormulaXIconOptions` | Shared icon configuration type for TinyMCE integrations. |
 | `createTinyMceFormulaMarkup` | Creates formula HTML from LaTeX. |
 | `parseTinyMceFormulaMarkup` | Parses LaTeX into a FormulaX document. |
 | `serializeTinyMceFormulaMarkup` | Serializes a FormulaX document into TinyMCE formula HTML. |
@@ -384,6 +385,7 @@ The demo includes a TinyMCE version selector and is intended to stay close to th
 - TinyMCE versions below 5 and 9 or newer are not officially supported.
 - The API is still experimental.
 - If your host TinyMCE configuration performs strict content filtering, ensure FormulaX formula spans and SVG output are allowed.
+- If you use image mode, ensure the upload endpoint is reachable from the current page and configured for the required CORS behavior.
 - The current editing UI uses the FormulaX Kity-compatible runtime.
 
 ## License

@@ -330,6 +330,7 @@ interface FormulaXTinyMceOptions {
 | `resolveFormulaXFormulaIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
 | `resolveFormulaXFormulaIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
 | `normalizeFormulaXIconSvg` | 对开发者提供的 SVG icon markup 做基础 trim。 |
+| `FormulaXIconOptions` | TinyMCE 集成可复用的共享 icon 配置类型。 |
 | `createTinyMceFormulaMarkup` | 根据 LaTeX 创建公式 HTML。 |
 | `parseTinyMceFormulaMarkup` | 将 LaTeX 解析为 FormulaX 文档。 |
 | `serializeTinyMceFormulaMarkup` | 将 FormulaX 文档序列化为 TinyMCE 公式 HTML。 |
