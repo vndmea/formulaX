@@ -7,8 +7,8 @@ import type {
 import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
 import {
   getFormulaXEditorMessage,
-  resolveFormulaXFormulaIcon,
-  resolveFormulaXFormulaIconName,
+  resolveFormulaXIcon,
+  resolveFormulaXIconName,
   scheduleFormulaXEditorPreload,
 } from '@formulaxjs/editor';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
@@ -49,8 +49,8 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     menuItemName: options.menuItemName ?? 'formulax',
     toolbarText: options.toolbarText ?? 'FormulaX',
     tooltip: options.tooltip ?? 'Insert formula',
-    formulaIcon: resolveFormulaXFormulaIcon(options),
-    formulaIconName: resolveFormulaXFormulaIconName(options),
+    formulaIcon: resolveFormulaXIcon(options),
+    formulaIconName: resolveFormulaXIconName(options),
     cursorStyle: options.cursorStyle ?? 'pointer',
     formulaClassName: options.formulaClassName ?? 'formulax-math',
     formulaAttributeName: options.formulaAttributeName ?? 'data-formulax-latex',

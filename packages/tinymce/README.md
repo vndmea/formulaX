@@ -60,7 +60,7 @@ Register the FormulaX TinyMCE plugin before calling `tinymce.init`:
 ```ts
 import tinymce from 'tinymce';
 import {
-  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_SVG,
   registerFormulaXTinyMcePlugin,
 } from '@formulaxjs/tinymce';
 
@@ -70,7 +70,7 @@ registerFormulaXTinyMcePlugin(tinymce, {
   menuItemName: 'formulax', // menu item id if you also expose the action in menus
   toolbarText: 'FormulaX', // used by the menu item label
   formulaIconName: 'formulax-formula',
-  formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG, // optional; omit to use the built-in icon
+  formulaIcon: FORMULAX_DEFAULT_ICON_SVG, // optional; omit to use the built-in icon
   tooltip: 'Insert or edit formula',
   cursorStyle: 'pointer', // cursor applied to generated formula nodes
   formulaClassName: 'formulax-math', // DOM class written on formula wrappers
@@ -322,10 +322,10 @@ interface FormulaXTinyMceOptions {
 | `registerFormulaXTinyMcePlugin` | Registers the TinyMCE plugin. |
 | `resolveOptions` | Resolves user options into required defaults. |
 | `openFormulaXOverlayModal` | Opens the FormulaX modal directly. |
-| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
+| `FORMULAX_DEFAULT_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
 | `FORMULAX_DEFAULT_ICON_NAME` | Shared default FormulaX icon registry name. |
-| `resolveFormulaXFormulaIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
-| `resolveFormulaXFormulaIconName` | Resolves a custom or default FormulaX icon registry name. |
+| `resolveFormulaXIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
+| `resolveFormulaXIconName` | Resolves a custom or default FormulaX icon registry name. |
 | `normalizeFormulaXIconSvg` | Trims developer-supplied SVG icon markup. |
 | `FormulaXIconOptions` | Shared icon configuration type for TinyMCE integrations. |
 | `createTinyMceFormulaMarkup` | Creates formula HTML from LaTeX. |

@@ -64,7 +64,7 @@ import {
 import 'ckeditor5/ckeditor5.css';
 
 import {
-  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
 } from '@formulaxjs/ckeditor5';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
@@ -79,7 +79,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
   toolbar: ['formulaX'],
   formulaX: {
     toolbarText: 'FormulaX',
-    formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+    formulaIcon: FORMULAX_DEFAULT_ICON_SVG,
     tooltip: 'Insert or edit formula',
     modal: {
       title: 'FormulaX Editor',
@@ -297,10 +297,10 @@ interface FormulaXCKEditor5Options {
 | `FormulaXCommand` | Command implementation used by the plugin. |
 | `resolveOptions` | Resolves user options into required defaults. |
 | `openFormulaXModal` | Opens the FormulaX modal directly. |
-| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
+| `FORMULAX_DEFAULT_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
 | `FORMULAX_DEFAULT_ICON_NAME` | Shared default FormulaX icon registry name. |
-| `resolveFormulaXFormulaIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
-| `resolveFormulaXFormulaIconName` | Resolves a custom or default FormulaX icon registry name. |
+| `resolveFormulaXIcon` | Resolves a custom or default FormulaX toolbar SVG icon. |
+| `resolveFormulaXIconName` | Resolves a custom or default FormulaX icon registry name. |
 | `normalizeFormulaXIconSvg` | Trims developer-supplied SVG icon markup. |
 | `DEFAULT_MODEL_NAME` | Default CKEditor 5 model name. |
 | `DEFAULT_BUTTON_NAME` | Default CKEditor 5 command and toolbar button name. |

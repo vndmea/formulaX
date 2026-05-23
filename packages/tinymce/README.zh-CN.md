@@ -60,7 +60,7 @@ pnpm dev:tinymce
 ```ts
 import tinymce from 'tinymce';
 import {
-  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_SVG,
   registerFormulaXTinyMcePlugin,
 } from '@formulaxjs/tinymce';
 
@@ -70,7 +70,7 @@ registerFormulaXTinyMcePlugin(tinymce, {
   menuItemName: 'formulax', // 如果菜单里也要出现该操作，可复用这个标识
   toolbarText: 'FormulaX', // 主要用于菜单项文案
   formulaIconName: 'formulax-formula',
-  formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG, // 可选；不传则使用内置 icon
+  formulaIcon: FORMULAX_DEFAULT_ICON_SVG, // 可选；不传则使用内置 icon
   tooltip: '插入或编辑公式',
   cursorStyle: 'pointer', // 应用于公式节点的鼠标样式
   formulaClassName: 'formulax-math', // 公式外层 DOM class
@@ -325,10 +325,10 @@ interface FormulaXTinyMceOptions {
 | `registerFormulaXTinyMcePlugin` | 注册 TinyMCE 插件。 |
 | `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
 | `openFormulaXOverlayModal` | 直接打开 FormulaX 弹窗。 |
-| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
+| `FORMULAX_DEFAULT_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
 | `FORMULAX_DEFAULT_ICON_NAME` | 默认的 FormulaX icon registry 名称。 |
-| `resolveFormulaXFormulaIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
-| `resolveFormulaXFormulaIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
+| `resolveFormulaXIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
+| `resolveFormulaXIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
 | `normalizeFormulaXIconSvg` | 对开发者提供的 SVG icon markup 做基础 trim。 |
 | `FormulaXIconOptions` | TinyMCE 集成可复用的共享 icon 配置类型。 |
 | `createTinyMceFormulaMarkup` | 根据 LaTeX 创建公式 HTML。 |

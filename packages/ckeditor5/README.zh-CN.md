@@ -64,7 +64,7 @@ import {
 import 'ckeditor5/ckeditor5.css';
 
 import {
-  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
 } from '@formulaxjs/ckeditor5';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
@@ -79,7 +79,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
   toolbar: ['formulaX'],
   formulaX: {
     toolbarText: 'FormulaX',
-    formulaIcon: FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+    formulaIcon: FORMULAX_DEFAULT_ICON_SVG,
     tooltip: '插入或编辑公式',
     modal: {
       title: 'FormulaX 公式编辑器',
@@ -300,10 +300,10 @@ interface FormulaXCKEditor5Options {
 | `FormulaXCommand` | 插件内部使用的命令实现。 |
 | `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
 | `openFormulaXModal` | 直接打开 FormulaX 弹窗。 |
-| `FORMULAX_DEFAULT_FORMULA_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
+| `FORMULAX_DEFAULT_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
 | `FORMULAX_DEFAULT_ICON_NAME` | 默认的 FormulaX icon registry 名称。 |
-| `resolveFormulaXFormulaIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
-| `resolveFormulaXFormulaIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
+| `resolveFormulaXIcon` | 解析自定义或默认的 FormulaX 工具栏 SVG icon。 |
+| `resolveFormulaXIconName` | 解析自定义或默认的 FormulaX icon registry 名称。 |
 | `normalizeFormulaXIconSvg` | 对开发者提供的 SVG icon markup 做基础 trim。 |
 | `DEFAULT_MODEL_NAME` | 默认的 CKEditor 5 model 名称。 |
 | `DEFAULT_BUTTON_NAME` | 默认的 CKEditor 5 命令名和工具栏按钮名。 |

@@ -27,11 +27,11 @@ export {
 } from './modal';
 
 export {
-  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_SVG,
   FORMULAX_DEFAULT_ICON_NAME,
   normalizeFormulaXIconSvg,
-  resolveFormulaXFormulaIcon,
-  resolveFormulaXFormulaIconName,
+  resolveFormulaXIcon,
+  resolveFormulaXIconName,
 } from '@formulaxjs/editor';
 
 export type { FormulaXIconOptions } from '@formulaxjs/editor';

@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_MODEL_NAME,
-  FORMULAX_DEFAULT_FORMULA_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
   resolveOptions,
 } from '../src';
@@ -73,7 +73,7 @@ describe('ckeditor5 adapter', () => {
   });
 
   it('resolves default and custom toolbar icons', () => {
-    expect(resolveOptions().formulaIcon).toBe(FORMULAX_DEFAULT_FORMULA_ICON_SVG);
+    expect(resolveOptions().formulaIcon).toBe(FORMULAX_DEFAULT_ICON_SVG);
     expect(resolveOptions({
       formulaIcon: ' <svg><path /></svg> ',
     }).formulaIcon).toBe('<svg><path /></svg>');
