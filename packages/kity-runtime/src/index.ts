@@ -1,3 +1,5 @@
+/// <reference path="./assets.d.ts" />
+
 export * from './asset-manifest';
 export * from './create-editor';
 export * from './dom-utils';

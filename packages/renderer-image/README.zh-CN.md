@@ -40,6 +40,8 @@ pnpm --filter @formulaxjs/renderer-image build
 
 给宿主适配器用的高层 helper。它会先调用 FormulaX renderer 渲染 LaTeX，再按需上传 PNG，最后返回 SVG HTML 或 image HTML。
 
+`renderFormulaDisplayHtml` 只接受展示态输出：`svg` 和 `image`。如果适配层持久化保存的是 `output: 'latex'`，应在调用这里之前先转成编辑态预览用的 `svg`。
+
 ```ts
 import { renderFormulaDisplayHtml } from '@formulaxjs/renderer-image';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';

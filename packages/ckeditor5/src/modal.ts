@@ -125,9 +125,11 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
         }
 
         const latex = await activeMounted.getLatex();
+        const output = input.options.output;
+        const previewOutput = output === 'latex' ? 'svg' : output;
         const display = latex.trim()
           ? await renderFormulaDisplayHtml({
-              output: input.options.output,
+              output: previewOutput,
               image: input.options.image,
               renderer: input.options.renderer,
               latex,
@@ -141,8 +143,8 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
 
         close({
           latex,
-          output: display?.output ?? 'svg',
-          image: display?.image
+          output,
+          image: output === 'image' && display?.image
             ? {
                 url: display.image.url,
                 width: display.image.width,

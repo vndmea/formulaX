@@ -66,6 +66,24 @@ describe('renderer-image markup', () => {
     expect(result.output).toBe('svg');
   });
 
+  it('throws when latex output is passed directly', async () => {
+    const upload = vi.fn();
+    const renderer = createRenderer('<svg width="24" height="40.5"></svg>');
+
+    await expect(renderFormulaDisplayHtml({
+      output: 'latex' as never,
+      renderer,
+      latex: 'x',
+      className: 'formulax-math',
+      image: {
+        upload,
+      },
+    })).rejects.toThrow('only supports svg or image output');
+
+    expect(renderer.renderLatex).not.toHaveBeenCalled();
+    expect(upload).not.toHaveBeenCalled();
+  });
+
   it('uploads png output and returns image html', async () => {
     vi.spyOn(svgToPngModule, 'svgMarkupToPngBlob').mockResolvedValue({
       blob: new Blob(['png']),

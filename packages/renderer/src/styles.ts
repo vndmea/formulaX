@@ -20,6 +20,7 @@ export const formulaXBaseStyles = `
 }
 
 .formulax-math__render,
+.formulax-math__source,
 .formulax-math__svg,
 .formulax-math__image {
   display: inline-block;
@@ -29,6 +30,12 @@ export const formulaXBaseStyles = `
 
 .formulax-math__render {
   vertical-align: middle;
+  font-family: "KF AMS MAIN", "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
+}
+
+.formulax-math__source {
+  vertical-align: middle;
+  white-space: nowrap;
   font-family: "KF AMS MAIN", "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
 }
 

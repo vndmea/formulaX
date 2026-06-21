@@ -3,10 +3,13 @@ import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
 import { parseLatex, serializeLatex, type FormulaDoc } from '@formulaxjs/core';
 import {
   createFormulaElement,
+  createFormulaSourceHtml,
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
   ensureFormulaXBaseStyles,
+  FORMULAX_OUTPUT_ATTRIBUTE,
   getFormulaLatexFromElement,
+  getFormulaOutputFromElement,
 } from '@formulaxjs/renderer';
 import {
   createFormulaDisplayAttributes,
@@ -15,7 +18,6 @@ import {
   FORMULAX_IMAGE_STYLE_ATTRIBUTE,
   FORMULAX_IMAGE_URL_ATTRIBUTE,
   FORMULAX_IMAGE_WIDTH_ATTRIBUTE,
-  FORMULAX_OUTPUT_ATTRIBUTE,
 } from '@formulaxjs/renderer-image';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import {
@@ -28,7 +30,7 @@ import type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOpti
 
 export interface FormulaXNodeAttributes {
   latex: string;
-  output: 'svg' | 'image';
+  output: 'latex' | 'svg' | 'image';
   imageUrl: string | null;
   imageWidth: number | null;
   imageHeight: number | null;
@@ -195,13 +197,18 @@ function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
       }
 
       if (typeof document === 'undefined') {
+        if (node.attrs.output === 'latex') {
+          return [
+            'span',
+            {
+              ...createFormulaNodeRootAttributes(node.attrs, this.options),
+            },
+          ] as const;
+        }
+
         return [
           'span',
-          {
-            'data-formulax': 'true',
-            [this.options.formulaAttributeName]: node.attrs.latex,
-            'data-latex': node.attrs.latex,
-          },
+          createFormulaNodeRootAttributes(node.attrs, this.options),
           node.attrs.latex || '\\square',
         ] as const;
       }
@@ -427,6 +434,7 @@ function createFormulaDomElement(
     return createFormulaElement(ownerDocument, attrs.latex, {
       attributeName: options.formulaAttributeName,
       className: options.formulaClassName,
+      output: attrs.output,
       cursorStyle: options.cursorStyle,
       renderHtml: createFormulaImageHtml({
         src: attrs.imageUrl,
@@ -443,6 +451,7 @@ function createFormulaDomElement(
   return createFormulaElement(ownerDocument, attrs.latex, {
     attributeName: options.formulaAttributeName,
     className: options.formulaClassName,
+    output: attrs.output,
     cursorStyle: options.cursorStyle,
     extraAttributes: createFormulaNodeExtraAttributes(attrs),
   });
@@ -521,6 +530,8 @@ async function renderFormulaIntoElement(
     const placeholder = dom.querySelector<HTMLElement>(`.${options.formulaClassName}__render`);
     if (placeholder) {
       placeholder.textContent = latex;
+    } else {
+      dom.innerHTML = createFormulaSourceHtml(attrs.latex, options.formulaClassName);
     }
   }
 }
@@ -528,8 +539,14 @@ async function renderFormulaIntoElement(
 function createFormulaNodeExtraAttributes(
   attrs: FormulaXNodeAttributes,
 ): Record<string, string | undefined> {
+  if (attrs.output === 'latex') {
+    return {
+      [FORMULAX_OUTPUT_ATTRIBUTE]: 'latex',
+    };
+  }
+
   return createFormulaDisplayAttributes({
-    output: attrs.output,
+    output: attrs.output === 'image' ? 'image' : 'svg',
     latex: attrs.latex,
     renderHtml: '',
     source: {
@@ -585,13 +602,8 @@ function createFormulaImageViewAttributes(
   };
 }
 
-function readOutputModeFromElement(element: HTMLElement): 'svg' | 'image' {
-  const explicit = element.getAttribute(FORMULAX_OUTPUT_ATTRIBUTE);
-  if (explicit === 'image') {
-    return 'image';
-  }
-
-  return element.querySelector('img[data-formulax-image]') ? 'image' : 'svg';
+function readOutputModeFromElement(element: HTMLElement): 'latex' | 'svg' | 'image' {
+  return getFormulaOutputFromElement(element);
 }
 
 function readImageUrlFromElement(element: HTMLElement): string | null {

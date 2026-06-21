@@ -4,11 +4,12 @@ import type {
   FormulaXEditorPreloadMode,
   FormulaXIconOptions,
 } from '@formulaxjs/editor';
-import type { FormulaRenderer } from '@formulaxjs/renderer';
+import type { FormulaMarkupOutput, FormulaRenderer } from '@formulaxjs/renderer';
 import type {
   FormulaXImageOptions,
-  FormulaXOutputMode,
 } from '@formulaxjs/renderer-image';
+
+export type FormulaXOutputMode = FormulaMarkupOutput;
 
 export interface TinyMceLike {
   PluginManager?: {

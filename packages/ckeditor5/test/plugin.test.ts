@@ -200,6 +200,55 @@ describe('ckeditor5 adapter', () => {
       ],
     });
   });
+
+  it('upcasts latex-only wrappers into latex output attrs', () => {
+    const { editor, conversions } = createPluginTestContext();
+    const plugin = new FormulaX(editor as never);
+
+    plugin.init();
+
+    const upcast = conversions.upcast[0];
+    const writer = {
+      createElement: vi.fn((name: string, attrs: Record<string, unknown>) => ({ name, attrs })),
+    };
+    const model = upcast?.model?.(createViewFormulaElement({
+      'data-formulax-latex': '\\sqrt{x}',
+      'data-formulax-output': 'latex',
+    }), { writer });
+
+    expect(model).toEqual({
+      name: 'formulaX',
+      attrs: expect.objectContaining({
+        latex: '\\sqrt{x}',
+        output: 'latex',
+      }),
+    });
+  });
+
+  it('downcasts latex output without rendered children', () => {
+    const { editor, conversions } = createPluginTestContext();
+    const plugin = new FormulaX(editor as never);
+
+    plugin.init();
+
+    const dataDowncast = conversions.dataDowncast[0];
+    const writer = createViewWriter();
+    const view = dataDowncast?.view?.(
+      createModelElement({
+        latex: '\\sqrt{x}',
+        output: 'latex',
+      }),
+      { writer },
+    );
+
+    expect(view).toMatchObject({
+      name: 'span',
+      attrs: expect.objectContaining({
+        'data-formulax-output': 'latex',
+      }),
+      children: [],
+    });
+  });
 });
 
 function createPluginTestContext(configValue: Record<string, unknown> = {}) {

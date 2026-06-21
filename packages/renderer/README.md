@@ -17,9 +17,10 @@ npm install @formulaxjs/renderer
 ## Highlights
 
 - `FormulaRenderer`, `FormulaRenderOptions`, and `FormulaRenderResult`
-- `createFormulaMarkup` and `createFormulaElement`
+- `createFormulaMarkup`, `createLatexFormulaMarkup`, and `createFormulaElement`
 - `ensureFormulaXBaseStyles`
 - `createFormulaRenderCacheKey`
+- `createFormulaRenderer`
 - `readRenderedFormulaSvgBox` and `serializeSvgForInsertion`
 
 ## Example
@@ -27,13 +28,16 @@ npm install @formulaxjs/renderer
 ```ts
 import {
   createFormulaMarkup,
+  createFormulaSourceHtml,
   ensureFormulaXBaseStyles,
   serializeSvgForInsertion,
 } from '@formulaxjs/renderer';
 
 ensureFormulaXBaseStyles(document);
 
-const markup = createFormulaMarkup('\\sqrt{x}');
+const markup = createFormulaMarkup('\\sqrt{x}', {
+  renderHtml: createFormulaSourceHtml('\\sqrt{x}'),
+});
 
 const svg = document.querySelector('svg');
 if (svg instanceof SVGSVGElement) {
@@ -45,7 +49,7 @@ if (svg instanceof SVGSVGElement) {
 
 Use this package when you need shared renderer-facing primitives:
 
-- host-editor adapters that need stable formula markup helpers
+- host-editor adapters that need stable latex wrapper and formula markup helpers
 - concrete renderer packages such as `@formulaxjs/renderer-kity`
 - export or post-processing flows that work with rendered SVG
 

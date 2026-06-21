@@ -13,7 +13,13 @@ import {
 } from '@formulaxjs/editor';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import { createTinyMceCompat, warnUnsupportedTinyMceVersion } from './compat';
-import { findFormulaElement } from './markup';
+import {
+  createFormulaSourceHtml,
+  findFormulaElement,
+  FORMULA_FLAG_ATTRIBUTE,
+  getFormulaOutputFromElement,
+  serializeFormulaHtml,
+} from './markup';
 import { openFormulaXOverlayModal } from './modal';
 import { ensureTinyMceStyles } from './styles';
 
@@ -36,6 +42,10 @@ const FORMULAX_SVG_VALID_ELEMENTS = [
 
 const FORMULAX_IMAGE_VALID_ELEMENTS = [
   'img[class|style|src|alt|width|height|data-formulax-image|data-mce-src]',
+].join(',');
+
+const FORMULAX_WRAPPER_VALID_ELEMENTS = [
+  'span[class|style|contenteditable|role|tabindex|data-formulax|data-formulax-latex|data-latex|data-formulax-output|data-formulax-image-url|data-formulax-image-width|data-formulax-image-height|data-formulax-image-style|data-mce-contenteditable]',
 ].join(',');
 
 const FORMULAX_TINYMCE_CONTEXT_NAME = 'formulax';
@@ -100,7 +110,9 @@ export function registerFormulaXTinyMcePlugin(
     function FormulaXTinyMcePlugin(editor: TinyMceEditorLike): undefined {
       const compat = createTinyMceCompat(editor, tinymce);
       let preloadCleanup: (() => void) | null = null;
-      editor.schema?.addValidElements?.(`${FORMULAX_SVG_VALID_ELEMENTS},${FORMULAX_IMAGE_VALID_ELEMENTS}`);
+      editor.schema?.addValidElements?.(
+        `${FORMULAX_WRAPPER_VALID_ELEMENTS},${FORMULAX_SVG_VALID_ELEMENTS},${FORMULAX_IMAGE_VALID_ELEMENTS}`,
+      );
 
       const open = (target?: HTMLElement | null): void => {
         const resolvedTarget = target ?? compat.getSelectedFormulaElement();
@@ -146,12 +158,28 @@ export function registerFormulaXTinyMcePlugin(
         const editorDoc = editor.getDoc?.();
         if (editorDoc) {
           ensureTinyMceStyles(editorDoc);
+          hydrateTinyMceFormulaElements(editorDoc.body, resolved);
         }
 
         preloadCleanup = scheduleFormulaXEditorPreload(
           resolved.preload,
           editor.getBody?.() ?? null,
         );
+      });
+
+      editor.on('BeforeSetContent', (event: { content?: string }) => {
+        if (typeof event.content !== 'string') {
+          return;
+        }
+
+        event.content = prepareTinyMceFormulaHtml(event.content, resolved);
+      });
+
+      editor.on('SetContent', () => {
+        const editorDoc = editor.getDoc?.();
+        if (editorDoc) {
+          hydrateTinyMceFormulaElements(editorDoc.body, resolved);
+        }
       });
 
       editor.on('dblclick', (event: unknown) => {
@@ -170,6 +198,17 @@ export function registerFormulaXTinyMcePlugin(
         open(formula);
       });
 
+      editor.on('GetContent', (event: { content?: string }) => {
+        if (typeof event.content !== 'string') {
+          return;
+        }
+
+        event.content = serializeFormulaHtml(event.content, {
+          attributeName: resolved.formulaAttributeName,
+          output: resolved.output,
+        });
+      });
+
       editor.on('remove', () => {
         preloadCleanup?.();
         preloadCleanup = null;
@@ -178,6 +217,20 @@ export function registerFormulaXTinyMcePlugin(
       return undefined;
     },
   );
+}
+
+function prepareTinyMceFormulaHtml(
+  html: string,
+  options: RequiredFormulaXTinyMceOptions,
+): string {
+  if (typeof document === 'undefined') {
+    return html;
+  }
+
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  prepareTinyMceFormulaElements(container, options);
+  return container.innerHTML;
 }
 
 function isFormulaXActionEnabled(
@@ -197,4 +250,75 @@ function isFormulaXActionEnabled(
   }
 
   return Boolean(compat.getSelectedFormulaElement());
+}
+
+function hydrateTinyMceFormulaElements(
+  root: HTMLElement | null | undefined,
+  options: RequiredFormulaXTinyMceOptions,
+): void {
+  prepareTinyMceFormulaElements(root, options).forEach((element) => {
+    void renderTinyMceFormulaElement(element, options);
+  });
+}
+
+function prepareTinyMceFormulaElements(
+  root: HTMLElement | null | undefined,
+  options: RequiredFormulaXTinyMceOptions,
+): HTMLElement[] {
+  if (!root) {
+    return [];
+  }
+
+  const elements: HTMLElement[] = [];
+
+  root.querySelectorAll<HTMLElement>(`[${options.formulaAttributeName}]`).forEach((element) => {
+    if (element.getAttribute(FORMULA_FLAG_ATTRIBUTE) !== 'true') {
+      return;
+    }
+
+    if (getFormulaOutputFromElement(element) !== 'latex') {
+      return;
+    }
+
+    const latex = element.getAttribute(options.formulaAttributeName)
+      ?? element.getAttribute('data-latex')
+      ?? '';
+    if (!element.innerHTML.trim()) {
+      element.innerHTML = createFormulaSourceHtml(latex, options.formulaClassName);
+    }
+    elements.push(element);
+  });
+
+  return elements;
+}
+
+async function renderTinyMceFormulaElement(
+  element: HTMLElement,
+  options: RequiredFormulaXTinyMceOptions,
+): Promise<void> {
+  const latex = element.getAttribute(options.formulaAttributeName)
+    ?? element.getAttribute('data-latex')
+    ?? '';
+
+  if (!latex.trim()) {
+    return;
+  }
+
+  try {
+    const rendered = await options.renderer.renderLatex(latex, {
+      fontSize: options.editor.render?.fontsize ?? 40,
+      className: options.formulaClassName,
+    });
+
+    if (
+      element.isConnected
+      && element.getAttribute(FORMULA_FLAG_ATTRIBUTE) === 'true'
+      && getFormulaOutputFromElement(element) === 'latex'
+      && (element.getAttribute(options.formulaAttributeName) ?? element.getAttribute('data-latex') ?? '') === latex
+    ) {
+      element.innerHTML = rendered.html;
+    }
+  } catch {
+    element.innerHTML = createFormulaSourceHtml(latex, options.formulaClassName);
+  }
 }

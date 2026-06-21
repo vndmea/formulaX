@@ -283,13 +283,18 @@ async function inlineCssUrls(
 
 function ensureSvgDefs(svg: SVGElement): SVGDefsElement {
   const existing = svg.querySelector(':scope > defs');
-  if (existing instanceof SVGDefsElement) {
+  if (isSvgDefsElement(existing)) {
     return existing;
   }
 
   const defs = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'defs');
   svg.prepend(defs);
   return defs;
+}
+
+function isSvgDefsElement(node: Element | null): node is SVGDefsElement {
+  return node?.namespaceURI === 'http://www.w3.org/2000/svg'
+    && node.localName === 'defs';
 }
 
 function readFormulaImageDisplayStyle(styleText: string | null): string | undefined {

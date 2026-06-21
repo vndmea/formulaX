@@ -129,6 +129,122 @@ describe('tiptap adapter', () => {
     ]);
   });
 
+  it('renders latex output as an empty persisted wrapper', () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const node = createFormulaXNode({ create }) as {
+      config: {
+        addOptions: () => unknown;
+        renderHTML: (
+          input: {
+            node: {
+              attrs: {
+                latex: string;
+                output: 'latex' | 'svg' | 'image';
+                imageUrl: string | null;
+                imageWidth: number | null;
+                imageHeight: number | null;
+                imageStyle: string | null;
+              };
+            };
+          },
+        ) => unknown;
+      };
+    };
+
+    const rendered = node.config.renderHTML.call(
+      { options: node.config.addOptions() },
+      {
+        node: {
+          attrs: {
+            latex: '\\sqrt{x}',
+            output: 'latex',
+            imageUrl: null,
+            imageWidth: null,
+            imageHeight: null,
+            imageStyle: null,
+          },
+        },
+      },
+    ) as HTMLElement | null;
+
+    expect(rendered?.getAttribute('data-formulax-output')).toBe('latex');
+    expect(rendered?.innerHTML).toBe('');
+  });
+
+  it('renders latex output as svg in the editable node view', async () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const renderer = {
+      renderLatex: vi.fn(async () => ({
+        engine: 'test',
+        output: 'svg',
+        latex: '\\sqrt{x}',
+        html: '<svg data-rendered-formula="true"></svg>',
+      })),
+    };
+    const node = createFormulaXNode({ create }, {
+      output: 'latex',
+      renderer: renderer as any,
+    }) as {
+      config: {
+        name: string;
+        addOptions: () => unknown;
+        addNodeView: (this: unknown) => (input: {
+          editor: {
+            commands: {
+              openFormulaX: () => boolean;
+              setNodeSelection: (position: number) => boolean;
+            };
+          };
+          getPos: () => number;
+          node: {
+            attrs: {
+              latex: string;
+              output: 'latex' | 'svg' | 'image';
+              imageUrl: string | null;
+              imageWidth: number | null;
+              imageHeight: number | null;
+              imageStyle: string | null;
+            };
+          };
+        }) => { dom: HTMLElement };
+      };
+    };
+
+    const renderNodeView = node.config.addNodeView.call({
+      name: node.config.name,
+      options: node.config.addOptions(),
+    });
+    const view = renderNodeView({
+      editor: {
+        commands: {
+          openFormulaX: vi.fn(() => true),
+          setNodeSelection: vi.fn(() => true),
+        },
+      },
+      getPos: () => 1,
+      node: {
+        attrs: {
+          latex: '\\sqrt{x}',
+          output: 'latex',
+          imageUrl: null,
+          imageWidth: null,
+          imageHeight: null,
+          imageStyle: null,
+        },
+      },
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(renderer.renderLatex).toHaveBeenCalledWith('\\sqrt{x}', expect.objectContaining({
+      className: 'formulax-math',
+    }));
+    expect(view.dom.getAttribute('data-formulax-output')).toBe('latex');
+    expect(view.dom.innerHTML).toContain('data-rendered-formula="true"');
+    expect(view.dom.innerHTML).not.toContain('formulax-math__source');
+  });
+
   it('parses persisted image metadata from wrapper markup', () => {
     const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
     const node = createFormulaXNode({ create }) as {
@@ -172,6 +288,37 @@ describe('tiptap adapter', () => {
       imageWidth: 128,
       imageHeight: 48,
       imageStyle: 'width:2.5em; height:0.94em',
+    });
+  });
+
+  it('parses latex output wrappers without rendered children', () => {
+    const create = vi.fn((config) => ({ config })) as unknown as TiptapNodeFactory['create'];
+    const node = createFormulaXNode({ create }) as {
+      config: {
+        addOptions: () => unknown;
+        parseHTML: () => Array<{
+          getAttrs: (element: HTMLElement) => unknown;
+        }>;
+      };
+    };
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+      <span
+        class="formulax-math"
+        data-formulax="true"
+        data-formulax-latex="\\sqrt{x}"
+        data-formulax-output="latex"
+      ></span>
+    `;
+
+    const parsed = node.config.parseHTML.call(
+      { options: node.config.addOptions() },
+    )[0]?.getAttrs(wrapper.firstElementChild as HTMLElement) as Record<string, unknown>;
+
+    expect(parsed).toMatchObject({
+      latex: '\\sqrt{x}',
+      output: 'latex',
+      imageUrl: null,
     });
   });
 });

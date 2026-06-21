@@ -4,16 +4,31 @@ import type {
 } from './types';
 import { createFormulaImageHtml } from './image-markup';
 import { svgMarkupToPngBlob } from './svg-to-png';
+import {
+  FORMULAX_IMAGE_HEIGHT_ATTRIBUTE,
+  FORMULAX_IMAGE_STYLE_ATTRIBUTE,
+  FORMULAX_IMAGE_URL_ATTRIBUTE,
+  FORMULAX_IMAGE_WIDTH_ATTRIBUTE,
+  FORMULAX_OUTPUT_ATTRIBUTE,
+} from '@formulaxjs/renderer';
 
-export const FORMULAX_OUTPUT_ATTRIBUTE = 'data-formulax-output';
-export const FORMULAX_IMAGE_URL_ATTRIBUTE = 'data-formulax-image-url';
-export const FORMULAX_IMAGE_WIDTH_ATTRIBUTE = 'data-formulax-image-width';
-export const FORMULAX_IMAGE_HEIGHT_ATTRIBUTE = 'data-formulax-image-height';
-export const FORMULAX_IMAGE_STYLE_ATTRIBUTE = 'data-formulax-image-style';
+export {
+  FORMULAX_OUTPUT_ATTRIBUTE,
+  FORMULAX_IMAGE_URL_ATTRIBUTE,
+  FORMULAX_IMAGE_WIDTH_ATTRIBUTE,
+  FORMULAX_IMAGE_HEIGHT_ATTRIBUTE,
+  FORMULAX_IMAGE_STYLE_ATTRIBUTE,
+};
 
 export async function renderFormulaDisplayHtml(
   options: FormulaXImageRenderOptions,
 ): Promise<FormulaXDisplayRenderResult> {
+  if ((options.output as string | undefined) === 'latex') {
+    throw new Error(
+      'FormulaX renderer-image only supports svg or image output. Convert latex persistence mode to svg preview before calling renderFormulaDisplayHtml.',
+    );
+  }
+
   const source = await options.renderer.renderLatex(options.latex, {
     ...options.render,
     className: options.className,

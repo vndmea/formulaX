@@ -2,8 +2,11 @@ import { JSDOM } from 'jsdom';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  createFormulaRenderer,
   createFormulaMarkup,
   createFormulaRenderCacheKey,
+  createFormulaSourceHtml,
+  createLatexFormulaMarkup,
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
   escapeAttribute,
@@ -25,18 +28,19 @@ describe('renderer markup utilities', () => {
     );
   });
 
-  it('creates formula markup with default attributes and escaped fallback render content', () => {
+  it('creates latex-only formula markup by default', () => {
     const markup = createFormulaMarkup('x < y & z');
 
     expect(markup).toContain(`class="${DEFAULT_FORMULA_CLASS}"`);
     expect(markup).toContain(`${FORMULA_FLAG_ATTRIBUTE}="true"`);
     expect(markup).toContain(`${DEFAULT_FORMULA_ATTRIBUTE}="x &lt; y &amp; z"`);
     expect(markup).toContain('data-latex="x &lt; y &amp; z"');
+    expect(markup).toContain('data-formulax-output="latex"');
     expect(markup).toContain('contenteditable="false"');
     expect(markup).toContain('role="button"');
     expect(markup).toContain('tabindex="0"');
     expect(markup).toContain('style="cursor: pointer"');
-    expect(markup).toContain('<span class="formulax-math__render">x &lt; y &amp; z</span>');
+    expect(markup.endsWith('></span>')).toBe(true);
   });
 
   it('creates formula markup with custom classes, block mode, render HTML and extra attributes', () => {
@@ -64,6 +68,27 @@ describe('renderer markup utilities', () => {
     expect(markup).toContain('style="vertical-align: middle; cursor: default"');
     expect(markup).toContain('<svg data-test="rendered"></svg>');
   });
+
+  it('keeps svg placeholder markup when output is explicitly svg', () => {
+    const markup = createFormulaMarkup('\\sqrt{x}', {
+      output: 'svg',
+    });
+
+    expect(markup).toContain('data-formulax-output="svg"');
+    expect(markup).toContain('formulax-math__render');
+  });
+
+  it('creates latex helper markup without rendered inner html', () => {
+    const markup = createLatexFormulaMarkup('\\sqrt{x}');
+
+    expect(markup).toContain('data-formulax-output="latex"');
+    expect(markup).not.toContain('formulax-math__render');
+    expect(markup.endsWith('></span>')).toBe(true);
+  });
+
+  it('creates source preview html for runtime latex mode', () => {
+    expect(createFormulaSourceHtml('\\sqrt{x}')).toContain('formulax-math__source');
+  });
 });
 
 describe('renderer cache utilities', () => {
@@ -89,6 +114,17 @@ describe('renderer cache utilities', () => {
         assetCacheKey: 'assets-v1',
       }),
     );
+  });
+});
+
+describe('renderer default latex renderer', () => {
+  it('returns latex output without rendered html', async () => {
+    await expect(createFormulaRenderer().renderLatex('\\sqrt{x}')).resolves.toEqual({
+      engine: 'latex',
+      output: 'latex',
+      latex: '\\sqrt{x}',
+      html: '',
+    });
   });
 });
 

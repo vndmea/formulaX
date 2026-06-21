@@ -5,12 +5,15 @@ import {
   FORMULA_FLAG_ATTRIBUTE,
   createFormulaElement,
   createFormulaMarkup,
+  createFormulaSourceHtml,
   escapeAttribute,
   escapeHtml,
   findFormulaElement,
   getFormulaLatexFromElement,
+  getFormulaOutputFromElement,
   isFormulaElement,
   replaceFormulaElement,
+  serializeFormulaHtml,
   type CreateFormulaMarkupOptions,
 } from '@formulaxjs/renderer';
 
@@ -61,7 +64,10 @@ export {
   escapeAttribute,
   escapeHtml,
   findFormulaElement,
+  createFormulaSourceHtml,
   getFormulaLatexFromElement,
+  getFormulaOutputFromElement,
   isFormulaElement,
   replaceFormulaElement,
+  serializeFormulaHtml,
 };

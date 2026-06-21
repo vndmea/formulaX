@@ -40,6 +40,8 @@ pnpm --filter @formulaxjs/renderer-image build
 
 High-level helper used by host adapters. It renders LaTeX through a FormulaX renderer, optionally uploads a PNG, and returns either SVG HTML or image HTML.
 
+`renderFormulaDisplayHtml` only accepts display outputs: `svg` and `image`. If an adapter persists `output: 'latex'`, convert that to `svg` for editing-time preview before calling this helper.
+
 ```ts
 import { renderFormulaDisplayHtml } from '@formulaxjs/renderer-image';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';

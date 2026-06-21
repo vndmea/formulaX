@@ -17,9 +17,10 @@ npm install @formulaxjs/renderer
 ## 功能概览
 
 - `FormulaRenderer`、`FormulaRenderOptions`、`FormulaRenderResult`
-- `createFormulaMarkup` 与 `createFormulaElement`
+- `createFormulaMarkup`、`createLatexFormulaMarkup` 与 `createFormulaElement`
 - `ensureFormulaXBaseStyles`
 - `createFormulaRenderCacheKey`
+- `createFormulaRenderer`
 - `readRenderedFormulaSvgBox` 与 `serializeSvgForInsertion`
 
 ## 示例
@@ -27,13 +28,16 @@ npm install @formulaxjs/renderer
 ```ts
 import {
   createFormulaMarkup,
+  createFormulaSourceHtml,
   ensureFormulaXBaseStyles,
   serializeSvgForInsertion,
 } from '@formulaxjs/renderer';
 
 ensureFormulaXBaseStyles(document);
 
-const markup = createFormulaMarkup('\\sqrt{x}');
+const markup = createFormulaMarkup('\\sqrt{x}', {
+  renderHtml: createFormulaSourceHtml('\\sqrt{x}'),
+});
 
 const svg = document.querySelector('svg');
 if (svg instanceof SVGSVGElement) {
@@ -45,7 +49,7 @@ if (svg instanceof SVGSVGElement) {
 
 当你需要面向 renderer 的共享基础能力时，请使用这个包：
 
-- 需要稳定公式 markup helper 的宿主编辑器 adapter
+- 需要稳定 LaTeX wrapper 与公式 markup helper 的宿主编辑器 adapter
 - `@formulaxjs/renderer-kity` 这类具体 renderer 包
 - 处理渲染后 SVG 的导出或后处理流程
 

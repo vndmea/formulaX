@@ -179,7 +179,10 @@ describe('registerFormulaXTinyMcePlugin', () => {
 
     expect(addValidElements).toHaveBeenCalledTimes(1);
     expect(addValidElements.mock.calls[0]?.[0]).toContain('svg[');
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('span[');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('img[');
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('data-formulax-output');
+    expect(addValidElements.mock.calls[0]?.[0]).toContain('data-mce-contenteditable');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('viewbox');
     expect(addValidElements.mock.calls[0]?.[0]).toContain('preserveaspectratio');
   });
@@ -247,6 +250,165 @@ describe('registerFormulaXTinyMcePlugin', () => {
     expect(html).toContain('data-formulax-image-url="http://localhost:3109/f/48231.png"');
     expect(html).toContain('<img');
     expect(html).toContain('data-formulax-image="true"');
+  });
+
+  it('creates latex-only TinyMCE markup without rendered children', () => {
+    const html = createTinyMceFormulaMarkup('\\sqrt{x}', {
+      output: 'latex',
+    });
+
+    expect(html).toContain('data-formulax-output="latex"');
+    expect(html).not.toContain('<img');
+    expect(html).not.toContain('formulax-math__render');
+  });
+
+  it('keeps explicit latex preview markup for TinyMCE editing', () => {
+    const html = createTinyMceFormulaMarkup('\\sqrt{x}', {
+      output: 'latex',
+      renderHtml: '<span class="formulax-math__source">\\sqrt{x}</span>',
+    });
+
+    expect(html).toContain('data-formulax-output="latex"');
+    expect(html).toContain('formulax-math__source');
+  });
+
+  it('serializes GetContent results to latex-only wrappers in latex mode', () => {
+    const events = new Map<string, Function>();
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(new Map(), new Map(), events);
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any, {
+      output: 'latex',
+    });
+
+    const payload = {
+      content: '<span data-formulax="true" data-formulax-latex="\\\\sqrt{x}" data-formulax-output="image"><img data-formulax-image="true" src="https://example.com/a.png" /></span>',
+    };
+
+    events.get('GetContent')?.(payload);
+
+    expect(payload.content).toContain('data-formulax-output="latex"');
+    expect(payload.content).not.toContain('<img');
+  });
+
+  it('keeps latex-only wrappers alive before TinyMCE parses content', () => {
+    const events = new Map<string, Function>();
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(new Map(), new Map(), events);
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any, {
+      output: 'latex',
+    });
+
+    const payload = {
+      content: `
+        <p>
+          <span
+            class="formulax-math"
+            data-formulax="true"
+            data-formulax-latex="\\sqrt{x}"
+            data-formulax-output="latex"
+          ></span>
+        </p>
+      `,
+    };
+
+    events.get('BeforeSetContent')?.(payload);
+
+    expect(payload.content).toContain('formulax-math__source');
+    expect(payload.content).toContain('\\sqrt{x}');
+  });
+
+  it('renders latex persistence wrappers as svg in TinyMCE editing content', async () => {
+    const events = new Map<string, Function>();
+    document.body.innerHTML = `
+      <span
+        class="formulax-math"
+        data-formulax="true"
+        data-formulax-latex="\\sqrt{x}"
+        data-formulax-output="latex"
+      ></span>
+    `;
+    const renderer = {
+      renderLatex: vi.fn().mockResolvedValue({
+        engine: 'test',
+        output: 'svg',
+        latex: '\\sqrt{x}',
+        html: '<svg data-rendered-formula="true"></svg>',
+      }),
+    };
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(new Map(), new Map(), events);
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any, {
+      output: 'latex',
+      renderer,
+    });
+
+    events.get('SetContent')?.({});
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(renderer.renderLatex).toHaveBeenCalledWith('\\sqrt{x}', expect.objectContaining({
+      className: 'formulax-math',
+    }));
+    expect(document.body.innerHTML).toContain('data-rendered-formula="true"');
+    expect(document.body.innerHTML).toContain('data-formulax-output="latex"');
+  });
+
+  it('hydrates latex-only wrappers into source preview on init', () => {
+    const events = new Map<string, Function>();
+    document.body.innerHTML = `
+      <span
+        class="formulax-math"
+        data-formulax="true"
+        data-formulax-latex="\\sqrt{x}"
+        data-formulax-output="latex"
+      ></span>
+    `;
+
+    const tinymce = {
+      majorVersion: '7',
+      PluginManager: {
+        add(_name: string, factory: unknown) {
+          const editor = createFakeEditor(new Map(), new Map(), events);
+          (factory as any)(editor);
+        },
+      },
+    };
+
+    registerFormulaXTinyMcePlugin(tinymce as any, {
+      output: 'latex',
+    });
+
+    events.get('init')?.({});
+
+    expect(document.body.innerHTML).toContain('formulax-math__source');
+    expect(document.body.innerHTML).toContain('\\sqrt{x}');
   });
 });
 

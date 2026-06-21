@@ -29,7 +29,7 @@ export async function waitForKityFormulaSvgLayout(root: HTMLElement): Promise<vo
 
   let previous = readRenderedFormulaBox(root);
 
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
     await waitForAnimationFrame(view);
     const current = readRenderedFormulaBox(root);
 

@@ -3,3 +3,4 @@ export * from './markup';
 export * from './styles';
 export * from './cache';
 export * from './svg';
+export * from './renderer';

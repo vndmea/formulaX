@@ -1,4 +1,6 @@
-export type FormulaRenderOutput = 'svg' | 'html' | 'mathml';
+export type FormulaRenderOutput = 'latex' | 'svg' | 'html' | 'mathml';
+
+export type FormulaMarkupOutput = 'latex' | 'svg' | 'image';
 
 export interface FormulaRenderOptions {
   displayMode?: boolean;
@@ -17,4 +19,10 @@ export interface FormulaRenderResult {
 
 export interface FormulaRenderer {
   renderLatex(latex: string, options?: FormulaRenderOptions): Promise<FormulaRenderResult>;
+}
+
+export interface ParsedFormulaElement {
+  latex: string;
+  output: FormulaMarkupOutput;
+  displayMode: boolean;
 }

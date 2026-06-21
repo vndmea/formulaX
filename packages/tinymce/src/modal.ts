@@ -135,7 +135,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
       const latex = await activeMounted.getLatex();
       const display = latex.trim()
         ? await renderFormulaDisplayHtml({
-            output: options.output,
+            output: options.output === 'latex' ? 'svg' : options.output,
             image: options.image,
             renderer: options.renderer,
             latex,
@@ -148,6 +148,7 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
         : null;
 
       const renderHtml = display?.renderHtml;
+      const resolvedRenderHtml = renderHtml;
       const extraAttributes = display
         ? createFormulaDisplayAttributes(display)
         : undefined;
@@ -157,8 +158,9 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
           const next = replaceFormulaElement(target, latex, {
             attributeName: options.formulaAttributeName,
             className: options.formulaClassName,
+            output: options.output,
             cursorStyle: options.cursorStyle,
-            renderHtml,
+            renderHtml: resolvedRenderHtml,
             extraAttributes,
           });
           if (next) {
@@ -170,8 +172,9 @@ export function openFormulaXOverlayModal(input: FormulaXModalOpenOptions): OpenF
             latex,
             options.formulaAttributeName,
             options.formulaClassName,
+            options.output,
             options.cursorStyle,
-            renderHtml,
+            resolvedRenderHtml,
             extraAttributes,
           );
         }
@@ -234,6 +237,7 @@ function insertFormulaElementIntoEditor(
   latex: string,
   attributeName: string,
   className: string,
+  output: 'latex' | 'svg' | 'image',
   cursorStyle: string,
   renderHtml?: string,
   extraAttributes?: Record<string, string | boolean | null | undefined>,
@@ -242,6 +246,7 @@ function insertFormulaElementIntoEditor(
   const next = createTinyMceFormulaElement(editorDoc, latex, {
     attributeName,
     className,
+    output,
     cursorStyle,
     renderHtml,
     extraAttributes,
@@ -256,6 +261,7 @@ function insertFormulaElementIntoEditor(
     latex,
     attributeName,
     className,
+    output,
     cursorStyle,
     renderHtml,
     extraAttributes,
@@ -324,6 +330,7 @@ function insertFormulaElementWithPlaceholder(
   latex: string,
   attributeName: string,
   className: string,
+  output: 'latex' | 'svg' | 'image',
   cursorStyle: string,
   renderHtml?: string,
   extraAttributes?: Record<string, string | boolean | null | undefined>,
@@ -337,6 +344,7 @@ function insertFormulaElementWithPlaceholder(
     const html = createTinyMceFormulaMarkup(latex, {
       attributeName,
       className,
+      output,
       cursorStyle,
       renderHtml,
       extraAttributes,
@@ -348,6 +356,7 @@ function insertFormulaElementWithPlaceholder(
   const next = createTinyMceFormulaElement(editorDoc, latex, {
     attributeName,
     className,
+    output,
     cursorStyle,
     renderHtml,
     extraAttributes,

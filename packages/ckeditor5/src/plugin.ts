@@ -11,8 +11,11 @@ import {
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,
   FORMULA_FLAG_ATTRIBUTE,
+  FORMULAX_OUTPUT_ATTRIBUTE,
   createFormulaMarkup,
+  createFormulaSourceHtml,
   ensureFormulaXBaseStyles,
+  getFormulaOutputFromElement,
 } from '@formulaxjs/renderer';
 import {
   createFormulaDisplayAttributes,
@@ -21,7 +24,6 @@ import {
   FORMULAX_IMAGE_STYLE_ATTRIBUTE,
   FORMULAX_IMAGE_URL_ATTRIBUTE,
   FORMULAX_IMAGE_WIDTH_ATTRIBUTE,
-  FORMULAX_OUTPUT_ATTRIBUTE,
 } from '@formulaxjs/renderer-image';
 import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
 import {
@@ -313,6 +315,10 @@ function createFormulaRawElement(
     return element;
   }
 
+  if (attrs.output === 'latex') {
+    return element;
+  }
+
   writer.insert(writer.createPositionAt(element, 0), writer.createText(attrs.latex || '\\square'));
 
   return element;
@@ -351,25 +357,29 @@ function createFormulaViewAttributes(
   attrs: FormulaModelState,
   options: RequiredFormulaXCKEditor5Options,
 ): Record<string, string> {
-  const imageAttributes = createFormulaDisplayAttributes({
-    output: attrs.output,
-    latex: attrs.latex,
-    renderHtml: '',
-    source: {
-      engine: 'ckeditor5',
-      output: 'svg',
-      latex: attrs.latex,
-      html: '',
-    },
-    image: attrs.output === 'image' && attrs.imageUrl
-      ? {
-          url: attrs.imageUrl,
-          width: attrs.imageWidth ?? 0,
-          height: attrs.imageHeight ?? 0,
-          displayStyle: attrs.imageStyle ?? undefined,
-        }
-      : undefined,
-  });
+  const imageAttributes = attrs.output === 'latex'
+    ? {
+        [FORMULAX_OUTPUT_ATTRIBUTE]: 'latex',
+      }
+    : createFormulaDisplayAttributes({
+        output: attrs.output === 'image' ? 'image' : 'svg',
+        latex: attrs.latex,
+        renderHtml: '',
+        source: {
+          engine: 'ckeditor5',
+          output: 'svg',
+          latex: attrs.latex,
+          html: '',
+        },
+        image: attrs.output === 'image' && attrs.imageUrl
+          ? {
+              url: attrs.imageUrl,
+              width: attrs.imageWidth ?? 0,
+              height: attrs.imageHeight ?? 0,
+              displayStyle: attrs.imageStyle ?? undefined,
+            }
+          : undefined,
+      });
 
   return {
     class: options.formulaClassName,
@@ -431,9 +441,14 @@ function createFormulaFallbackMarkup(
     });
   }
 
+  if (attrs.output === 'latex') {
+    return '';
+  }
+
   const markup = createFormulaMarkup(attrs.latex, {
     attributeName: options.formulaAttributeName,
     className: options.formulaClassName,
+    output: 'svg',
   });
   return extractInnerHtml(markup);
 }
@@ -510,12 +525,13 @@ async function renderFormulaIntoElement(
     }
 
     console.error('[FormulaX] Failed to render CKEditor5 formula widget:', error);
+    domElement.innerHTML = createFormulaSourceHtml(attrs.latex, options.formulaClassName);
   }
 }
 
 interface FormulaModelState {
   latex: string;
-  output: 'svg' | 'image';
+  output: 'latex' | 'svg' | 'image';
   imageUrl: string | null;
   imageWidth: number | null;
   imageHeight: number | null;
@@ -534,9 +550,11 @@ function createFormulaModelAttributes(payload: FormulaXPayload): Record<string, 
 }
 
 function readFormulaModelElementState(modelElement: any): FormulaModelState {
+  const output = modelElement.getAttribute('output');
+
   return {
     latex: String(modelElement.getAttribute('latex') ?? ''),
-    output: modelElement.getAttribute('output') === 'image' ? 'image' : 'svg',
+    output: output === 'image' || output === 'latex' ? output : 'svg',
     imageUrl: readOptionalString(modelElement.getAttribute('imageUrl')),
     imageWidth: readImageDimension(modelElement.getAttribute('imageWidth')),
     imageHeight: readImageDimension(modelElement.getAttribute('imageHeight')),
@@ -559,13 +577,21 @@ function createFormulaImageViewAttributes(
   };
 }
 
-function readFormulaOutputFromView(viewElement: any): 'svg' | 'image' {
-  const explicit = viewElement.getAttribute(FORMULAX_OUTPUT_ATTRIBUTE);
-  if (explicit === 'image') {
-    return 'image';
-  }
+function readFormulaOutputFromView(viewElement: any): 'latex' | 'svg' | 'image' {
+  const element = {
+    getAttribute(name: string) {
+      return viewElement.getAttribute(name);
+    },
+    querySelector(selector: string) {
+      if (selector !== 'img[data-formulax-image]') {
+        return null;
+      }
 
-  return findFormulaImageViewChild(viewElement) ? 'image' : 'svg';
+      return findFormulaImageViewChild(viewElement);
+    },
+  } as HTMLElement;
+
+  return getFormulaOutputFromElement(element);
 }
 
 function readFormulaImageUrlFromView(viewElement: any): string | null {
