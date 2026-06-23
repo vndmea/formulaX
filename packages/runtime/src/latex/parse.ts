@@ -1,0 +1,412 @@
+import { createFormulaNodeId } from '../core/ids';
+import type {
+  FormulaDiagnostic,
+  FormulaDoc,
+  FormulaEnvironmentName,
+  FormulaFenceNode,
+  FormulaMatrixNode,
+  FormulaNode,
+  FormulaRowNode,
+  FormulaScriptNode,
+  FormulaSymbolNode,
+  FormulaUnsupportedNode,
+} from '../core/types';
+import { LATEX_SYMBOLS } from './symbols';
+
+type ScriptTarget = {
+  sup?: FormulaRowNode;
+  sub?: FormulaRowNode;
+  order: Array<'sup' | 'sub'>;
+};
+
+function createRow(children: FormulaNode[] = []): FormulaRowNode {
+  return {
+    type: 'row',
+    id: createFormulaNodeId('row'),
+    children,
+  };
+}
+
+function createSymbol(value: string, latex?: string): FormulaSymbolNode {
+  return {
+    type: 'symbol',
+    id: createFormulaNodeId('sym'),
+    value,
+    latex,
+  };
+}
+
+function createUnsupported(rawLatex: string, reason?: string): FormulaUnsupportedNode {
+  return {
+    type: 'unsupported',
+    id: createFormulaNodeId('unsupported'),
+    rawLatex,
+    reason,
+  };
+}
+
+class RuntimeLatexParser {
+  private index = 0;
+  private readonly diagnostics: FormulaDiagnostic[] = [];
+
+  constructor(private readonly input: string) {}
+
+  parse(): FormulaDoc {
+    const root = this.parseRow();
+    return {
+      type: 'doc',
+      id: createFormulaNodeId('doc'),
+      root,
+      sourceLatex: this.input,
+      version: 0,
+      diagnostics: this.diagnostics,
+    };
+  }
+
+  private parseRow(stop?: () => boolean): FormulaRowNode {
+    const children: FormulaNode[] = [];
+
+    while (this.index < this.input.length) {
+      if (stop?.()) {
+        break;
+      }
+
+      const current = this.input[this.index];
+
+      if (current === '}') {
+        break;
+      }
+
+      if (/\s/.test(current)) {
+        this.index += 1;
+        continue;
+      }
+
+      const atom = this.parseAtom();
+      if (!atom) {
+        break;
+      }
+
+      children.push(this.applyScripts(atom));
+    }
+
+    return createRow(children);
+  }
+
+  private parseAtom(): FormulaNode | null {
+    if (this.index >= this.input.length) {
+      return null;
+    }
+
+    if (this.peek('\\frac')) {
+      this.index += '\\frac'.length;
+      return {
+        type: 'frac',
+        id: createFormulaNodeId('frac'),
+        numerator: this.parseRequiredGroup('\\frac numerator'),
+        denominator: this.parseRequiredGroup('\\frac denominator'),
+      };
+    }
+
+    if (this.peek('\\sqrt')) {
+      this.index += '\\sqrt'.length;
+      return {
+        type: 'sqrt',
+        id: createFormulaNodeId('sqrt'),
+        value: this.parseRequiredGroup('\\sqrt value'),
+      };
+    }
+
+    if (this.peek('\\left')) {
+      return this.parseFence();
+    }
+
+    if (this.peek('\\begin')) {
+      return this.parseEnvironment();
+    }
+
+    const current = this.input[this.index];
+
+    if (current === '{') {
+      this.index += 1;
+      const row = this.parseRow(() => this.input[this.index] === '}');
+      this.consume('}');
+      return row;
+    }
+
+    if (current === '\\') {
+      return this.parseCommand();
+    }
+
+    this.index += 1;
+    return createSymbol(current);
+  }
+
+  private parseFence(): FormulaFenceNode | FormulaUnsupportedNode {
+    this.index += '\\left'.length;
+    const left = this.readDelimiter();
+    const body = this.parseRow(() => this.peek('\\right'));
+
+    if (!this.peek('\\right')) {
+      return createUnsupported(`\\left${left}${serializeRawRow(body)}`, 'Missing \\right delimiter');
+    }
+
+    this.index += '\\right'.length;
+    const right = this.readDelimiter();
+
+    return {
+      type: 'fence',
+      id: createFormulaNodeId('fence'),
+      left,
+      right,
+      body,
+    };
+  }
+
+  private parseEnvironment(): FormulaMatrixNode | FormulaUnsupportedNode {
+    const startIndex = this.index;
+    this.index += '\\begin'.length;
+    const environmentName = this.readGroupText();
+
+    if (environmentName !== 'matrix' && environmentName !== 'cases') {
+      return createUnsupported(this.input.slice(startIndex, this.findEnvironmentEnd(environmentName)), `Unsupported environment ${environmentName}`);
+    }
+
+    const endTag = `\\end{${environmentName}}`;
+    const closeIndex = this.input.indexOf(endTag, this.index);
+    if (closeIndex === -1) {
+      return createUnsupported(this.input.slice(startIndex), `Missing ${endTag}`);
+    }
+
+    const body = this.input.slice(this.index, closeIndex);
+    this.index = closeIndex + endTag.length;
+
+    return {
+      type: 'matrix',
+      id: createFormulaNodeId('matrix'),
+      environment: environmentName as FormulaEnvironmentName,
+      rows: splitMatrixRows(body).map((cells) => cells.map((cell) => new RuntimeLatexParser(cell).parse().root)),
+    };
+  }
+
+  private parseCommand(): FormulaNode {
+    const start = this.index;
+    this.index += 1;
+    let command = '';
+
+    while (this.index < this.input.length && /[a-zA-Z]/.test(this.input[this.index])) {
+      command += this.input[this.index];
+      this.index += 1;
+    }
+
+    if (!command) {
+      const escaped = this.input[this.index] ?? '';
+      this.index += escaped ? 1 : 0;
+      return createSymbol(escaped || '\\');
+    }
+
+    const mapped = LATEX_SYMBOLS[command];
+    if (mapped) {
+      return createSymbol(mapped, `\\${command}`);
+    }
+
+    const rawLatex = this.readUnsupportedCommandWithTrailingGroups(this.input.slice(start, this.index));
+    return createUnsupported(rawLatex, `Unsupported command \\${command}`);
+  }
+
+  private applyScripts(atom: FormulaNode): FormulaNode {
+    const scriptTarget: ScriptTarget = { order: [] };
+
+    while (this.index < this.input.length) {
+      const current = this.input[this.index];
+      if (current !== '^' && current !== '_') {
+        break;
+      }
+
+      this.index += 1;
+      const row = this.parseRequiredGroup(current === '^' ? 'superscript' : 'subscript');
+      if (current === '^') {
+        scriptTarget.sup = row;
+        scriptTarget.order.push('sup');
+      } else {
+        scriptTarget.sub = row;
+        scriptTarget.order.push('sub');
+      }
+    }
+
+    if (!scriptTarget.sup && !scriptTarget.sub) {
+      return atom;
+    }
+
+    return {
+      type: 'script',
+      id: createFormulaNodeId('script'),
+      base: atom,
+      sup: scriptTarget.sup,
+      sub: scriptTarget.sub,
+      order: scriptTarget.order,
+    } satisfies FormulaScriptNode;
+  }
+
+  private parseRequiredGroup(context: string): FormulaRowNode {
+    if (this.input[this.index] === '{') {
+      this.index += 1;
+      const row = this.parseRow(() => this.input[this.index] === '}');
+      this.consume('}');
+      return row;
+    }
+
+    const atom = this.parseAtom();
+    if (atom) {
+      return createRow([atom]);
+    }
+
+    this.diagnostics.push({
+      message: `Missing group for ${context}`,
+      severity: 'warning',
+    });
+
+    return createRow([]);
+  }
+
+  private readGroupText(): string {
+    if (!this.consume('{')) {
+      return '';
+    }
+
+    const start = this.index;
+    while (this.index < this.input.length && this.input[this.index] !== '}') {
+      this.index += 1;
+    }
+    const value = this.input.slice(start, this.index);
+    this.consume('}');
+    return value;
+  }
+
+  private readDelimiter(): string {
+    while (this.input[this.index] === ' ') {
+      this.index += 1;
+    }
+
+    if (this.input[this.index] === '\\') {
+      const start = this.index;
+      this.index += 1;
+      while (this.index < this.input.length && /[a-zA-Z.]/.test(this.input[this.index])) {
+        this.index += 1;
+      }
+      return this.input.slice(start, this.index);
+    }
+
+    const value = this.input[this.index] ?? '.';
+    this.index += 1;
+    return value;
+  }
+
+  private findEnvironmentEnd(name: string): number {
+    const endTag = `\\end{${name}}`;
+    const closeIndex = this.input.indexOf(endTag, this.index);
+    return closeIndex === -1 ? this.input.length : closeIndex + endTag.length;
+  }
+
+  private readUnsupportedCommandWithTrailingGroups(initial: string): string {
+    let raw = initial;
+
+    while (this.input[this.index] === '{') {
+      const start = this.index;
+      let depth = 0;
+      while (this.index < this.input.length) {
+        const char = this.input[this.index];
+        this.index += 1;
+        if (char === '{') {
+          depth += 1;
+        } else if (char === '}') {
+          depth -= 1;
+          if (depth === 0) {
+            break;
+          }
+        }
+      }
+      raw += this.input.slice(start, this.index);
+    }
+
+    return raw;
+  }
+
+  private peek(value: string): boolean {
+    return this.input.startsWith(value, this.index);
+  }
+
+  private consume(char: string): boolean {
+    if (this.input[this.index] !== char) {
+      return false;
+    }
+
+    this.index += 1;
+    return true;
+  }
+}
+
+function serializeRawRow(row: FormulaRowNode): string {
+  return row.children.map((child) => {
+    switch (child.type) {
+      case 'row':
+        return `{${serializeRawRow(child)}}`;
+      case 'symbol':
+        return child.latex ?? child.value;
+      case 'unsupported':
+        return child.rawLatex;
+      default:
+        return '';
+    }
+  }).join('');
+}
+
+function splitMatrixRows(input: string): string[][] {
+  const rows: string[][] = [];
+  let currentCell = '';
+  let currentRow: string[] = [];
+  let depth = 0;
+
+  for (let index = 0; index < input.length; index += 1) {
+    const char = input[index];
+    const next = input[index + 1];
+
+    if (char === '{') {
+      depth += 1;
+      currentCell += char;
+      continue;
+    }
+
+    if (char === '}') {
+      depth = Math.max(0, depth - 1);
+      currentCell += char;
+      continue;
+    }
+
+    if (depth === 0 && char === '&') {
+      currentRow.push(currentCell);
+      currentCell = '';
+      continue;
+    }
+
+    if (depth === 0 && char === '\\' && next === '\\') {
+      currentRow.push(currentCell);
+      rows.push(currentRow);
+      currentRow = [];
+      currentCell = '';
+      index += 1;
+      continue;
+    }
+
+    currentCell += char;
+  }
+
+  currentRow.push(currentCell);
+  rows.push(currentRow);
+
+  return rows.map((row) => row.map((cell) => cell.trim()));
+}
+
+export function parseLatexToFormulaDoc(input: string): FormulaDoc {
+  return new RuntimeLatexParser(input).parse();
+}

@@ -1,0 +1,173 @@
+export type FormulaEnvironmentName = 'matrix' | 'cases';
+
+export interface FormulaDiagnostic {
+  message: string;
+  severity: 'error' | 'warning';
+}
+
+export interface FormulaDoc {
+  type: 'doc';
+  id: string;
+  root: FormulaRowNode;
+  sourceLatex: string;
+  version: number;
+  diagnostics: FormulaDiagnostic[];
+}
+
+export interface FormulaRowNode {
+  type: 'row';
+  id: string;
+  children: FormulaNode[];
+}
+
+export interface FormulaSymbolNode {
+  type: 'symbol';
+  id: string;
+  value: string;
+  latex?: string;
+}
+
+export interface FormulaFractionNode {
+  type: 'frac';
+  id: string;
+  numerator: FormulaRowNode;
+  denominator: FormulaRowNode;
+}
+
+export interface FormulaSqrtNode {
+  type: 'sqrt';
+  id: string;
+  value: FormulaRowNode;
+}
+
+export interface FormulaScriptNode {
+  type: 'script';
+  id: string;
+  base: FormulaNode;
+  sup?: FormulaRowNode;
+  sub?: FormulaRowNode;
+  order?: Array<'sup' | 'sub'>;
+}
+
+export interface FormulaFenceNode {
+  type: 'fence';
+  id: string;
+  left: string;
+  right: string;
+  body: FormulaRowNode;
+}
+
+export interface FormulaMatrixNode {
+  type: 'matrix';
+  id: string;
+  environment: FormulaEnvironmentName;
+  rows: FormulaRowNode[][];
+}
+
+export interface FormulaUnsupportedNode {
+  type: 'unsupported';
+  id: string;
+  rawLatex: string;
+  reason?: string;
+}
+
+export type FormulaNode =
+  | FormulaRowNode
+  | FormulaSymbolNode
+  | FormulaFractionNode
+  | FormulaSqrtNode
+  | FormulaScriptNode
+  | FormulaFenceNode
+  | FormulaMatrixNode
+  | FormulaUnsupportedNode;
+
+export interface FormulaSelection {
+  rowId: string;
+  offset: number;
+}
+
+export interface FormulaHistorySnapshot {
+  doc: FormulaDoc;
+  selection: FormulaSelection | null;
+}
+
+export type FormulaHistoryReason =
+  | 'insert'
+  | 'delete'
+  | 'replace'
+  | 'structure'
+  | 'paste'
+  | 'composition'
+  | 'programmatic'
+  | 'unknown';
+
+export interface RuntimeEditorAssets {
+  fontFamily?: string;
+}
+
+export interface RuntimeEditorOptions {
+  initialLatex?: string;
+  height?: number | string;
+  autofocus?: boolean;
+  readOnly?: boolean;
+  assets?: Partial<RuntimeEditorAssets>;
+  render?: {
+    fontSize?: number;
+    fontsize?: number;
+  };
+  locale?: string;
+}
+
+export interface RuntimeEditorHandle {
+  root: HTMLElement;
+  editor: {
+    getLatex(): string;
+    setLatex(latex: string): void;
+    getRenderHtml(): string;
+    dispatch(command: FormulaCommand, options?: FormulaDispatchOptions): void;
+    focus(): void;
+    destroy(): void;
+  };
+  ready: Promise<void>;
+  getLatex(): string;
+  setLatex(latex: string): void;
+  getRenderHtml(): string;
+  focus(): void;
+  destroy(): void;
+}
+
+export interface FormulaDispatchOptions {
+  addToHistory?: boolean;
+  historyReason?: FormulaHistoryReason;
+  mergeWithPrevious?: boolean;
+}
+
+export type FormulaCommandName =
+  | 'insertText'
+  | 'deleteBackward'
+  | 'moveLeft'
+  | 'moveRight'
+  | 'insertFraction'
+  | 'insertSqrt'
+  | 'insertSuperscript'
+  | 'insertSubscript'
+  | 'undo'
+  | 'redo';
+
+export interface FormulaCommandPayloadMap {
+  insertText: { text: string };
+  deleteBackward: undefined;
+  moveLeft: undefined;
+  moveRight: undefined;
+  insertFraction: undefined;
+  insertSqrt: undefined;
+  insertSuperscript: undefined;
+  insertSubscript: undefined;
+  undo: undefined;
+  redo: undefined;
+}
+
+export interface FormulaCommand<Name extends FormulaCommandName = FormulaCommandName> {
+  type: Name;
+  payload: FormulaCommandPayloadMap[Name];
+}

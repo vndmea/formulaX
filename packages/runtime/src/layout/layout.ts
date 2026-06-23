@@ -1,0 +1,340 @@
+import type { FormulaDoc, FormulaMatrixNode, FormulaNode, FormulaRowNode } from '../core/types';
+import type { FormulaMetrics, FormulaLayoutOptions, LayoutBox, LayoutResult, TextMetricsBox } from './types';
+
+const DEFAULT_FONT_FAMILY = '"Cambria Math", "Times New Roman", serif';
+
+function createOptions(options: Partial<FormulaLayoutOptions>): FormulaLayoutOptions {
+  return {
+    fontSize: options.fontSize ?? 40,
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    scriptScale: options.scriptScale ?? 0.72,
+    lineGap: options.lineGap ?? 6,
+    ruleThickness: options.ruleThickness ?? 1.5,
+    cellGap: options.cellGap ?? 12,
+  };
+}
+
+export function layoutFormula(
+  doc: FormulaDoc,
+  metrics: FormulaMetrics,
+  options: Partial<FormulaLayoutOptions> = {},
+): LayoutResult {
+  const resolvedOptions = createOptions(options);
+  const nodeMap = new Map<string, LayoutBox>();
+  const root = layoutRow(doc.root, metrics, resolvedOptions, nodeMap);
+  const baseline = root.ascent;
+  return {
+    root,
+    width: root.width,
+    height: root.height,
+    baseline,
+    nodeMap,
+  };
+}
+
+function layoutRow(
+  row: FormulaRowNode,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const children = row.children.map((child) => layoutNode(child, metrics, options, nodeMap));
+  const ascent = children.length ? Math.max(...children.map((child) => child.ascent)) : options.fontSize * 0.8;
+  const descent = children.length ? Math.max(...children.map((child) => child.descent)) : options.fontSize * 0.3;
+  let cursorX = 0;
+  const placedChildren = children.map((child) => {
+    const nextChild = {
+      ...child,
+      x: cursorX,
+      y: ascent - child.ascent,
+    };
+    cursorX += child.width;
+    return nextChild;
+  });
+  const box: LayoutBox = {
+    id: row.id,
+    nodeId: row.id,
+    kind: 'row',
+    rowId: row.id,
+    x: 0,
+    y: 0,
+    width: Math.max(cursorX, options.fontSize * 0.3),
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: placedChildren,
+  };
+  nodeMap.set(box.nodeId, box);
+  return box;
+}
+
+function layoutNode(
+  node: FormulaNode,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  switch (node.type) {
+    case 'row':
+      return layoutRow(node, metrics, options, nodeMap);
+    case 'symbol':
+      return layoutTextBox(node.id, node.id, 'symbol', node.value, metrics.measureText(node.value, {
+        fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+        fontSize: options.fontSize,
+      }), nodeMap);
+    case 'unsupported':
+      return layoutTextBox(node.id, node.id, 'unsupported', node.rawLatex, metrics.measureText(node.rawLatex, {
+        fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+        fontSize: options.fontSize * 0.8,
+      }), nodeMap);
+    case 'frac':
+      return layoutFraction(node, metrics, options, nodeMap);
+    case 'sqrt':
+      return layoutSqrt(node, metrics, options, nodeMap);
+    case 'script':
+      return layoutScript(node, metrics, options, nodeMap);
+    case 'fence':
+      return layoutFence(node, metrics, options, nodeMap);
+    case 'matrix':
+      return layoutMatrix(node, metrics, options, nodeMap);
+  }
+}
+
+function layoutTextBox(
+  id: string,
+  nodeId: string,
+  kind: string,
+  text: string,
+  metrics: TextMetricsBox,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const box: LayoutBox = {
+    id,
+    nodeId,
+    kind,
+    x: 0,
+    y: 0,
+    width: Math.max(metrics.width, 2),
+    height: metrics.height,
+    ascent: metrics.ascent,
+    descent: metrics.descent,
+    text,
+    children: [],
+  };
+  nodeMap.set(nodeId, box);
+  return box;
+}
+
+function layoutFraction(
+  node: Extract<FormulaNode, { type: 'frac' }>,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const numerator = layoutRow(node.numerator, metrics, options, nodeMap);
+  const denominator = layoutRow(node.denominator, metrics, options, nodeMap);
+  const width = Math.max(numerator.width, denominator.width) + options.fontSize * 0.4;
+  const ascent = numerator.height + (options.lineGap ?? 0) + (options.ruleThickness ?? 0);
+  const descent = denominator.height + (options.lineGap ?? 0);
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: 'frac',
+    x: 0,
+    y: 0,
+    width,
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: [
+      {
+        ...numerator,
+        x: (width - numerator.width) / 2,
+        y: 0,
+      },
+      {
+        ...denominator,
+        x: (width - denominator.width) / 2,
+        y: ascent + (options.lineGap ?? 0),
+      },
+    ],
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}
+
+function layoutSqrt(
+  node: Extract<FormulaNode, { type: 'sqrt' }>,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const radical = metrics.measureText('√', {
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontSize: options.fontSize,
+  });
+  const radicalBox = layoutTextBox(`${node.id}-radical`, node.id, 'sqrt-radical', '√', radical, nodeMap);
+  const value = layoutRow(node.value, metrics, options, nodeMap);
+  const ascent = Math.max(radicalBox.ascent, value.ascent + (options.ruleThickness ?? 0));
+  const descent = Math.max(radicalBox.descent, value.descent);
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: 'sqrt',
+    x: 0,
+    y: 0,
+    width: radicalBox.width + value.width + options.fontSize * 0.15,
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: [
+      {
+        ...radicalBox,
+        x: 0,
+        y: ascent - radicalBox.ascent,
+      },
+      {
+        ...value,
+        x: radicalBox.width + options.fontSize * 0.15,
+        y: ascent - value.ascent,
+      },
+    ],
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}
+
+function layoutScript(
+  node: Extract<FormulaNode, { type: 'script' }>,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const base = layoutNode(node.base, metrics, options, nodeMap);
+  const scriptOptions = {
+    ...options,
+    fontSize: options.fontSize * options.scriptScale!,
+  };
+  const sup = node.sup ? layoutRow(node.sup, metrics, scriptOptions, nodeMap) : null;
+  const sub = node.sub ? layoutRow(node.sub, metrics, scriptOptions, nodeMap) : null;
+  const stackWidth = Math.max(sup?.width ?? 0, sub?.width ?? 0);
+  const ascent = base.ascent + (sup ? sup.height * 0.65 : 0);
+  const descent = base.descent + (sub ? sub.height * 0.65 : 0);
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: 'script',
+    x: 0,
+    y: 0,
+    width: base.width + stackWidth,
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: [
+      {
+        ...base,
+        x: 0,
+        y: ascent - base.ascent,
+      },
+      ...(sup ? [{
+        ...sup,
+        x: base.width,
+        y: 0,
+      }] : []),
+      ...(sub ? [{
+        ...sub,
+        x: base.width,
+        y: ascent + base.descent * 0.35,
+      }] : []),
+    ],
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}
+
+function layoutFence(
+  node: Extract<FormulaNode, { type: 'fence' }>,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const left = layoutTextBox(`${node.id}-left`, `${node.id}-left`, 'fence-delimiter', node.left, metrics.measureText(node.left, {
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontSize: options.fontSize,
+  }), nodeMap);
+  const right = layoutTextBox(`${node.id}-right`, `${node.id}-right`, 'fence-delimiter', node.right, metrics.measureText(node.right, {
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontSize: options.fontSize,
+  }), nodeMap);
+  const body = layoutRow(node.body, metrics, options, nodeMap);
+  const ascent = Math.max(left.ascent, body.ascent, right.ascent);
+  const descent = Math.max(left.descent, body.descent, right.descent);
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: 'fence',
+    x: 0,
+    y: 0,
+    width: left.width + body.width + right.width,
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: [
+      { ...left, x: 0, y: ascent - left.ascent },
+      { ...body, x: left.width, y: ascent - body.ascent },
+      { ...right, x: left.width + body.width, y: ascent - right.ascent },
+    ],
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}
+
+function layoutMatrix(
+  node: FormulaMatrixNode,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const rows = node.rows.map((rowGroup) => rowGroup.map((row) => layoutRow(row, metrics, options, nodeMap)));
+  const columnCount = Math.max(...rows.map((rowGroup) => rowGroup.length), 0);
+  const columnWidths = Array.from({ length: columnCount }, (_, columnIndex) => Math.max(
+    0,
+    ...rows.map((rowGroup) => rowGroup[columnIndex]?.width ?? 0),
+  ));
+  const rowHeights = rows.map((rowGroup) => Math.max(...rowGroup.map((row) => row.height), options.fontSize));
+
+  let cursorY = 0;
+  const children: LayoutBox[] = [];
+  rows.forEach((rowGroup, rowIndex) => {
+    let cursorX = 0;
+    rowGroup.forEach((row, columnIndex) => {
+      children.push({
+        ...row,
+        x: cursorX + (columnWidths[columnIndex] - row.width) / 2,
+        y: cursorY + (rowHeights[rowIndex] - row.height) / 2,
+      });
+      cursorX += columnWidths[columnIndex] + (options.cellGap ?? 0);
+    });
+    cursorY += rowHeights[rowIndex] + (options.lineGap ?? 0);
+  });
+
+  const width = columnWidths.reduce((total, value) => total + value, 0)
+    + Math.max(0, columnWidths.length - 1) * (options.cellGap ?? 0);
+  const height = rowHeights.reduce((total, value) => total + value, 0)
+    + Math.max(0, rowHeights.length - 1) * (options.lineGap ?? 0);
+  const ascent = height * 0.55;
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: node.environment,
+    x: 0,
+    y: 0,
+    width,
+    height,
+    ascent,
+    descent: height - ascent,
+    children,
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}

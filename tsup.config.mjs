@@ -29,5 +29,7 @@ export default defineConfig({
     '@formulaxjs/renderer': path.resolve(__dirname, 'packages/renderer/src/index.ts'),
     '@formulaxjs/renderer-image': path.resolve(__dirname, 'packages/renderer-image/src/index.ts'),
     '@formulaxjs/renderer-kity': path.resolve(__dirname, 'packages/renderer-kity/src/index.ts'),
+    '@formulaxjs/renderer-v2': path.resolve(__dirname, 'packages/renderer-v2/src/index.ts'),
+    '@formulaxjs/runtime': path.resolve(__dirname, 'packages/runtime/src/index.ts'),
   },
 });

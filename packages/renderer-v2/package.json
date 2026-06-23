@@ -1,0 +1,47 @@
+{
+  "name": "@formulaxjs/renderer-v2",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "Runtime v2 SVG renderer for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/renderer-v2"
+  },
+  "keywords": [
+    "formulax",
+    "formula",
+    "renderer",
+    "svg",
+    "runtime"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "unpkg": "./dist/index.global.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.mjs",
+    "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
+    "test": "vitest run packages/renderer-v2/test",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@formulaxjs/renderer": "workspace:*",
+    "@formulaxjs/runtime": "workspace:*"
+  }
+}
