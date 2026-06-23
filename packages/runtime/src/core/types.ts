@@ -91,6 +91,12 @@ export interface FormulaHistorySnapshot {
   selection: FormulaSelection | null;
 }
 
+export interface FormulaHistoryState {
+  undoStack: FormulaHistorySnapshot[];
+  redoStack: FormulaHistorySnapshot[];
+  maxDepth: number;
+}
+
 export type FormulaHistoryReason =
   | 'insert'
   | 'delete'
@@ -111,6 +117,10 @@ export interface RuntimeEditorOptions {
   autofocus?: boolean;
   readOnly?: boolean;
   assets?: Partial<RuntimeEditorAssets>;
+  wrap?: 'none' | 'soft';
+  maxWidth?: number | 'host';
+  lineGap?: number;
+  continuationIndent?: number;
   render?: {
     fontSize?: number;
     fontsize?: number;
@@ -122,15 +132,20 @@ export interface RuntimeEditorHandle {
   root: HTMLElement;
   editor: {
     getLatex(): string;
-    setLatex(latex: string): void;
+    setLatex(latex: string, options?: FormulaDispatchOptions): void;
     getRenderHtml(): string;
     dispatch(command: FormulaCommand, options?: FormulaDispatchOptions): void;
+    undo(): boolean;
+    redo(): boolean;
+    canUndo(): boolean;
+    canRedo(): boolean;
+    clearHistory(): void;
     focus(): void;
     destroy(): void;
   };
   ready: Promise<void>;
   getLatex(): string;
-  setLatex(latex: string): void;
+  setLatex(latex: string, options?: FormulaDispatchOptions): void;
   getRenderHtml(): string;
   focus(): void;
   destroy(): void;
@@ -140,6 +155,7 @@ export interface FormulaDispatchOptions {
   addToHistory?: boolean;
   historyReason?: FormulaHistoryReason;
   mergeWithPrevious?: boolean;
+  preserveHistory?: boolean;
 }
 
 export type FormulaCommandName =
@@ -147,6 +163,8 @@ export type FormulaCommandName =
   | 'deleteBackward'
   | 'moveLeft'
   | 'moveRight'
+  | 'moveUp'
+  | 'moveDown'
   | 'insertFraction'
   | 'insertSqrt'
   | 'insertSuperscript'
@@ -159,6 +177,8 @@ export interface FormulaCommandPayloadMap {
   deleteBackward: undefined;
   moveLeft: undefined;
   moveRight: undefined;
+  moveUp: undefined;
+  moveDown: undefined;
   insertFraction: undefined;
   insertSqrt: undefined;
   insertSuperscript: undefined;

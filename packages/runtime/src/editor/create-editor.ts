@@ -17,7 +17,7 @@ export async function createRuntimeEditor(
     editor,
     ready: editor.ready,
     getLatex: () => editor.getLatex(),
-    setLatex: (latex) => editor.setLatex(latex),
+    setLatex: (latex, dispatchOptions) => editor.setLatex(latex, dispatchOptions),
     getRenderHtml: () => editor.getRenderHtml(),
     focus: () => editor.focus(),
     destroy: () => editor.destroy(),

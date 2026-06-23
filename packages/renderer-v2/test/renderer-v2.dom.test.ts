@@ -27,4 +27,15 @@ describe('renderer-v2', () => {
     const [left, right] = await Promise.all([first, second]);
     expect(left.html).toBe(right.html);
   });
+
+  it('passes wrap options through to the runtime renderer', async () => {
+    const result = await renderLatexToSvgMarkup('a+b+c+d+e+f+g+h', {
+      fontSize: 28,
+      wrap: 'soft',
+      maxWidth: 120,
+    });
+
+    expect(result.html).toContain('data-formulax-line-index="0"');
+    expect(result.html).toContain('data-formulax-line-index="1"');
+  });
 });

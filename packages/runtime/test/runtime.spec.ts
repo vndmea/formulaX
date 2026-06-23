@@ -42,4 +42,35 @@ test.describe('runtime v2 editor and renderer', () => {
     expect(result.html).toContain('<svg');
     expect(result.html).toContain('data-formulax-runtime="solid-svg"');
   });
+
+  test('wraps long formulas across multiple svg lines', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      return window.__FORMULAX_RUNTIME_TEST__!.renderLatexToSvgMarkup('a+b+c+d+e+f+g+h', {
+        fontSize: 30,
+        wrap: 'soft',
+        maxWidth: 120,
+      });
+    });
+
+    expect(result.html).toContain('data-formulax-line-index="0"');
+    expect(result.html).toContain('data-formulax-line-index="1"');
+  });
+
+  test('moves the caret across wrapped lines with arrow keys', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount('a+b+c+d+e+f+g+h', {
+      wrap: 'soft',
+      maxWidth: 120,
+    }));
+
+    await page.locator('#runtime-editor .fx-runtime-editor__input').focus();
+    await page.keyboard.press('End');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowDown');
+
+    const html = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getRenderHtml());
+    expect(html).toContain('data-formulax-role="caret"');
+  });
 });

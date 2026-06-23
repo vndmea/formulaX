@@ -4,7 +4,7 @@ import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-v2';
 declare global {
   interface Window {
     __FORMULAX_RUNTIME_TEST__?: {
-      mount: (latex?: string) => Promise<void>;
+      mount: (latex?: string, options?: { wrap?: 'none' | 'soft'; maxWidth?: number }) => Promise<void>;
       getLatex: () => string;
       getRenderHtml: () => string;
       dispatch: (command: FormulaCommand) => void;
@@ -15,7 +15,7 @@ declare global {
 
 let handle: Awaited<ReturnType<typeof createRuntimeEditor>> | null = null;
 
-async function mount(latex = ''): Promise<void> {
+async function mount(latex = '', options: { wrap?: 'none' | 'soft'; maxWidth?: number } = {}): Promise<void> {
   const host = document.querySelector<HTMLElement>('#runtime-editor');
   if (!host) {
     throw new Error('runtime test host not found');
@@ -26,12 +26,14 @@ async function mount(latex = ''): Promise<void> {
     initialLatex: latex,
     autofocus: false,
     height: 180,
+    wrap: options.wrap,
+    maxWidth: options.maxWidth,
   });
 }
 
 window.__FORMULAX_RUNTIME_TEST__ = {
-  async mount(latex?: string) {
-    await mount(latex);
+  async mount(latex?: string, options?: { wrap?: 'none' | 'soft'; maxWidth?: number }) {
+    await mount(latex, options);
   },
   getLatex() {
     if (!handle) {

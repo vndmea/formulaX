@@ -1,14 +1,30 @@
 import type { FormulaDoc, FormulaMatrixNode, FormulaNode, FormulaRowNode } from '../core/types';
-import type { FormulaMetrics, FormulaLayoutOptions, LayoutBox, LayoutResult, TextMetricsBox } from './types';
+import type {
+  FormulaMetrics,
+  FormulaLayoutOptions,
+  FormulaWrapMode,
+  LayoutBox,
+  LayoutFragment,
+  LayoutLine,
+  LayoutResult,
+  TextMetricsBox,
+} from './types';
 
 const DEFAULT_FONT_FAMILY = '"Cambria Math", "Times New Roman", serif';
+const RELATION_SYMBOLS = new Set(['=', '<', '>', '≤', '≥', '≈']);
+const BINARY_SYMBOLS = new Set(['+', '-', '±', '·', '×', '÷']);
+const PUNCTUATION_SYMBOLS = new Set([',', ';', ':']);
 
 function createOptions(options: Partial<FormulaLayoutOptions>): FormulaLayoutOptions {
   return {
     fontSize: options.fontSize ?? 40,
     fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    maxWidth: options.maxWidth,
+    wrap: options.wrap ?? 'none',
+    continuationIndent: options.continuationIndent ?? (options.fontSize ?? 40) * 0.75,
+    breakStrategy: options.breakStrategy ?? 'operator',
     scriptScale: options.scriptScale ?? 0.72,
-    lineGap: options.lineGap ?? 6,
+    lineGap: options.lineGap ?? (options.fontSize ?? 40) * 0.35,
     ruleThickness: options.ruleThickness ?? 1.5,
     cellGap: options.cellGap ?? 12,
   };
@@ -22,14 +38,213 @@ export function layoutFormula(
   const resolvedOptions = createOptions(options);
   const nodeMap = new Map<string, LayoutBox>();
   const root = layoutRow(doc.root, metrics, resolvedOptions, nodeMap);
-  const baseline = root.ascent;
+  const { lines, fragmentsByNodeId, width, height, baseline } = createLineLayout(root, resolvedOptions);
   return {
     root,
+    width,
+    height,
+    baseline,
+    lines,
+    nodeMap,
+    fragmentsByNodeId,
+  };
+}
+
+function createLineLayout(
+  root: LayoutBox,
+  options: FormulaLayoutOptions,
+): {
+  lines: LayoutLine[];
+  fragmentsByNodeId: Map<string, LayoutFragment[]>;
+  width: number;
+  height: number;
+  baseline: number;
+} {
+  const wrapMode = resolveWrapMode(root, options);
+  const lines = wrapMode === 'soft'
+    ? wrapRootRow(root, options)
+    : [createSingleLine(root)];
+  const fragmentsByNodeId = new Map<string, LayoutFragment[]>();
+
+  for (const line of lines) {
+    for (const fragment of line.fragments) {
+      const fragments = fragmentsByNodeId.get(fragment.nodeId) ?? [];
+      fragments.push(fragment);
+      fragmentsByNodeId.set(fragment.nodeId, fragments);
+    }
+  }
+
+  return {
+    lines,
+    fragmentsByNodeId,
+    width: Math.max(...lines.map((line) => line.width), 0),
+    height: lines.length === 0
+      ? root.height
+      : lines[lines.length - 1].y + lines[lines.length - 1].height,
+    baseline: lines[0]?.baseline ?? root.ascent,
+  };
+}
+
+function resolveWrapMode(root: LayoutBox, options: FormulaLayoutOptions): FormulaWrapMode {
+  if (options.wrap !== 'soft') {
+    return 'none';
+  }
+
+  if (!options.maxWidth || root.children.length <= 1) {
+    return 'none';
+  }
+
+  return root.width > options.maxWidth ? 'soft' : 'none';
+}
+
+function createSingleLine(root: LayoutBox): LayoutLine {
+  return {
+    id: `${root.id}-line-0`,
+    index: 0,
+    x: 0,
+    y: 0,
     width: root.width,
     height: root.height,
-    baseline,
-    nodeMap,
+    ascent: root.ascent,
+    descent: root.descent,
+    baseline: root.ascent,
+    startOffset: 0,
+    endOffset: root.children.length,
+    fragments: root.children.map((child, childIndex) => ({
+      id: `${child.id}-fragment-0`,
+      nodeId: child.nodeId,
+      boxId: child.id,
+      lineIndex: 0,
+      childIndex,
+      x: child.x,
+      y: 0,
+      width: child.width,
+      height: child.height,
+      ascent: child.ascent,
+      descent: child.descent,
+      box: child,
+    })),
   };
+}
+
+function wrapRootRow(root: LayoutBox, options: FormulaLayoutOptions): LayoutLine[] {
+  const lines: LayoutLine[] = [];
+  const maxWidth = Math.max(options.maxWidth ?? root.width, options.fontSize);
+  const continuationIndent = options.continuationIndent ?? 0;
+  let lineBoxes: Array<{ box: LayoutBox; childIndex: number }> = [];
+  let lineWidth = 0;
+  let lineStartOffset = 0;
+  let cursorY = 0;
+
+  const flush = (lineIndex: number): void => {
+    if (lineBoxes.length === 0) {
+      return;
+    }
+
+    const ascent = Math.max(...lineBoxes.map(({ box }) => box.ascent));
+    const descent = Math.max(...lineBoxes.map(({ box }) => box.descent));
+    const height = ascent + descent;
+    let cursorX = lineIndex === 0 ? 0 : continuationIndent;
+    const fragments: LayoutFragment[] = lineBoxes.map(({ box, childIndex }) => {
+      const fragment: LayoutFragment = {
+        id: `${box.id}-fragment-${lineIndex}`,
+        nodeId: box.nodeId,
+        boxId: box.id,
+        lineIndex,
+        childIndex,
+        x: cursorX,
+        y: 0,
+        width: box.width,
+        height: box.height,
+        ascent: box.ascent,
+        descent: box.descent,
+        box,
+      };
+      cursorX += box.width;
+      return fragment;
+    });
+
+    lines.push({
+      id: `${root.id}-line-${lineIndex}`,
+      index: lineIndex,
+      x: 0,
+      y: cursorY,
+      width: fragments.length === 0
+        ? 0
+        : fragments[fragments.length - 1].x + fragments[fragments.length - 1].width,
+      height,
+      ascent,
+      descent,
+      baseline: ascent,
+      startOffset: lineStartOffset,
+      endOffset: lineStartOffset + lineBoxes.length,
+      fragments,
+    });
+
+    cursorY += height + (options.lineGap ?? 0);
+    lineStartOffset += lineBoxes.length;
+    lineBoxes = [];
+    lineWidth = 0;
+  };
+
+  root.children.forEach((child, childIndex) => {
+    const projectedWidth = lineBoxes.length === 0
+      ? child.width + (lines.length > 0 ? continuationIndent : 0)
+      : lineWidth + child.width;
+    const shouldBreak = lineBoxes.length > 0
+      && projectedWidth > maxWidth
+      && canBreakBeforeChild(lineBoxes, child, options);
+
+    if (shouldBreak) {
+      flush(lines.length);
+    }
+
+    lineBoxes.push({ box: child, childIndex });
+    lineWidth = (lineBoxes.length === 1 && lines.length > 0 ? continuationIndent : 0)
+      + lineBoxes.reduce((sum, item) => sum + item.box.width, 0);
+  });
+
+  flush(lines.length);
+  return lines.length === 0 ? [createSingleLine(root)] : lines;
+}
+
+function canBreakBeforeChild(
+  currentLine: Array<{ box: LayoutBox; childIndex: number }>,
+  nextChild: LayoutBox,
+  options: FormulaLayoutOptions,
+): boolean {
+  if (options.breakStrategy === 'greedy') {
+    return true;
+  }
+
+  const previous = currentLine[currentLine.length - 1]?.box;
+  if (!previous) {
+    return false;
+  }
+
+  const previousPriority = getBreakPriority(previous);
+  const nextPriority = getBreakPriority(nextChild);
+  return previousPriority > 0 || nextPriority > 0;
+}
+
+function getBreakPriority(box: LayoutBox): number {
+  if (box.kind !== 'symbol' || !box.text) {
+    return 0;
+  }
+
+  if (RELATION_SYMBOLS.has(box.text)) {
+    return 3;
+  }
+
+  if (BINARY_SYMBOLS.has(box.text)) {
+    return 2;
+  }
+
+  if (PUNCTUATION_SYMBOLS.has(box.text)) {
+    return 1;
+  }
+
+  return 0;
 }
 
 function layoutRow(

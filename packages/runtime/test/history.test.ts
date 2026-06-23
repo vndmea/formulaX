@@ -36,4 +36,21 @@ describe('runtime history', () => {
     });
     expect(history.canUndo()).toBe(true);
   });
+
+  it('merges continuous inserts while preserving the original undo entry', () => {
+    const history = new FormulaHistory();
+    const empty = createEmptyFormulaDoc('');
+    const x = createEmptyFormulaDoc('x');
+    const xy = createEmptyFormulaDoc('xy');
+
+    history.push(empty, { rowId: empty.root.id, offset: 0 }, 'insert', {
+      mergeWithPrevious: true,
+    });
+    history.push(x, { rowId: x.root.id, offset: 1 }, 'insert', {
+      mergeWithPrevious: true,
+    });
+
+    const undone = history.undo(xy, { rowId: xy.root.id, offset: 2 });
+    expect(undone?.doc.root.children).toHaveLength(0);
+  });
 });

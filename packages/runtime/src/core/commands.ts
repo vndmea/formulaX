@@ -286,6 +286,16 @@ export function applyFormulaCommand(
       return moveSelectionLeft(doc, currentSelection);
     case 'moveRight':
       return moveSelectionRight(doc, currentSelection);
+    case 'moveUp':
+    case 'moveDown':
+      return {
+        doc,
+        selection: currentSelection,
+        changed: false,
+        dispatchOptions: {
+          addToHistory: false,
+        },
+      };
     case 'insertFraction':
       return insertFractionAtSelection(doc, currentSelection);
     case 'insertSqrt':

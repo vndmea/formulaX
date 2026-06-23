@@ -20,4 +20,25 @@ describe('FormulaRuntimeEditor', () => {
     handle.destroy();
     expect(root.innerHTML).toBe('');
   });
+
+  it('clears history on setLatex by default and supports wrapped layout', async () => {
+    document.body.innerHTML = '<div id="root" style="width: 160px"></div>';
+    const root = document.getElementById('root') as HTMLElement;
+    const handle = await createRuntimeEditor(root, {
+      initialLatex: '',
+      autofocus: false,
+      wrap: 'soft',
+      maxWidth: 120,
+    });
+
+    handle.editor.dispatch({
+      type: 'insertText',
+      payload: { text: 'abcdef' },
+    });
+    expect(handle.editor.canUndo()).toBe(true);
+
+    handle.setLatex('a+b+c+d+e+f+g+h');
+    expect(handle.editor.canUndo()).toBe(false);
+    expect(handle.getRenderHtml()).toContain('data-formulax-line-index="1"');
+  });
 });

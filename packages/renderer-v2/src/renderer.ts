@@ -75,12 +75,19 @@ async function renderLatexToSvgMarkupUncached(
   }
 
   const host = createHiddenRenderHost(document);
+  if (typeof options.maxWidth === 'number' && options.maxWidth > 0) {
+    host.style.width = `${options.maxWidth}px`;
+  }
   const handle = await createRuntimeEditor(host, {
     initialLatex: latex,
     autofocus: false,
     height: options.height ?? '100%',
     readOnly: true,
     assets: options.runtime?.assets,
+    wrap: options.wrap,
+    maxWidth: options.maxWidth,
+    lineGap: options.lineGap,
+    continuationIndent: options.continuationIndent,
     render: {
       fontSize: options.fontSize ?? 40,
     },

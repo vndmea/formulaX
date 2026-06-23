@@ -93,4 +93,41 @@ describe('runtime commands and layout', () => {
     expect(layout.root.kind).toBe('row');
     expect(layout.root.children[0]?.kind).toBe('frac');
   });
+
+  it('returns a single line layout by default', () => {
+    const doc = createEmptyFormulaDoc('a+b+c+d');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+    });
+
+    expect(layout.lines).toHaveLength(1);
+    expect(layout.lines[0]?.fragments).toHaveLength(doc.root.children.length);
+    expect(layout.fragmentsByNodeId.size).toBeGreaterThan(0);
+  });
+
+  it('wraps long formulas into multiple visual lines without changing latex', () => {
+    const doc = createEmptyFormulaDoc('a+b+c+d+e+f+g+h');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+      wrap: 'soft',
+      maxWidth: 120,
+    });
+
+    expect(layout.lines.length).toBeGreaterThan(1);
+    expect(layout.lines.every((line) => line.width <= 150 || line.fragments.length === 1)).toBe(true);
+    expect(serializeFormulaDocToLatex(doc)).toBe('a+b+c+d+e+f+g+h');
+  });
+
+  it('does not split indivisible structures while wrapping', () => {
+    const doc = createEmptyFormulaDoc('\\frac{a}{b}+\\sqrt{x+1}');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+      wrap: 'soft',
+      maxWidth: 40,
+    });
+
+    expect(layout.lines.length).toBeGreaterThan(1);
+    expect(layout.lines.some((line) => line.fragments.some((fragment) => fragment.box.kind === 'frac'))).toBe(true);
+    expect(layout.lines.some((line) => line.fragments.some((fragment) => fragment.box.kind === 'sqrt'))).toBe(true);
+  });
 });

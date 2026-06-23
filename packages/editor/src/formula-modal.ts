@@ -33,6 +33,10 @@ export interface FormulaXEditorOptions {
   locale?: FormulaXLocale;
   assets?: Partial<KityEditorAssets>;
   runtimeAssets?: Partial<RuntimeEditorAssets>;
+  wrap?: 'none' | 'soft';
+  maxWidth?: number | 'host';
+  lineGap?: number;
+  continuationIndent?: number;
   render?: {
     fontsize?: number;
     fontSize?: number;
@@ -412,6 +416,10 @@ async function mountRuntimeV2Handle(
     autofocus: options.autofocus ?? true,
     readOnly: false,
     assets: options.runtimeAssets,
+    wrap: options.wrap,
+    maxWidth: options.maxWidth,
+    lineGap: options.lineGap,
+    continuationIndent: options.continuationIndent,
     render: {
       fontSize: options.render?.fontSize ?? options.render?.fontsize ?? 40,
     },

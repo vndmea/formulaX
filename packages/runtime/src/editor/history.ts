@@ -56,7 +56,11 @@ export class FormulaHistory {
     );
 
     if (canMerge) {
-      this.undoStack[this.undoStack.length - 1] = entry;
+      this.undoStack[this.undoStack.length - 1] = {
+        ...previous,
+        timestamp: entry.timestamp,
+        reason: entry.reason,
+      };
     } else {
       this.undoStack.push(entry);
       if (this.undoStack.length > this.maxDepth) {
@@ -98,5 +102,13 @@ export class FormulaHistory {
   clear(): void {
     this.undoStack = [];
     this.redoStack = [];
+  }
+
+  getState() {
+    return {
+      undoStack: [...this.undoStack],
+      redoStack: [...this.redoStack],
+      maxDepth: this.maxDepth,
+    };
   }
 }
