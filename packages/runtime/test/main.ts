@@ -1,4 +1,5 @@
 import { createRuntimeEditor, type FormulaCommand } from '@formulaxjs/runtime';
+import { ensureFormulaXModalStyles, mountFormulaXEditor } from '@formulaxjs/editor';
 import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
 
 declare global {
@@ -9,11 +10,15 @@ declare global {
       getRenderHtml: () => string;
       dispatch: (command: FormulaCommand) => void;
       renderLatexToSvgMarkup: typeof renderLatexToSvgMarkup;
+      mountModal: (latex?: string) => Promise<void>;
+      getModalLatex: () => Promise<string>;
+      destroyModal: () => void;
     };
   }
 }
 
 let handle: Awaited<ReturnType<typeof createRuntimeEditor>> | null = null;
+let modalHandle: ReturnType<typeof mountFormulaXEditor> | null = null;
 
 async function mount(latex = '', options: { wrap?: 'none' | 'soft'; maxWidth?: number } = {}): Promise<void> {
   const host = document.querySelector<HTMLElement>('#runtime-editor');
@@ -54,6 +59,34 @@ window.__FORMULAX_RUNTIME_TEST__ = {
     handle.editor.dispatch(command);
   },
   renderLatexToSvgMarkup,
+  async mountModal(latex = '') {
+    ensureFormulaXModalStyles();
+
+    let host = document.querySelector<HTMLElement>('#runtime-modal');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'runtime-modal';
+      document.body.appendChild(host);
+    }
+
+    modalHandle?.destroy();
+    modalHandle = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: latex,
+      autofocus: false,
+    });
+    await modalHandle.getLatex();
+  },
+  async getModalLatex() {
+    if (!modalHandle) {
+      throw new Error('runtime test modal not mounted');
+    }
+    return modalHandle.getLatex();
+  },
+  destroyModal() {
+    modalHandle?.destroy();
+    modalHandle = null;
+  },
 };
 
 void mount('\\frac{a}{b}');

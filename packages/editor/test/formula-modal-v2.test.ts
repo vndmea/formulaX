@@ -65,4 +65,28 @@ describe('mountFormulaXEditor runtime=v2', () => {
 
     mounted.destroy();
   });
+
+  it('renders floating popovers that close on outside click and insert nth roots', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-button="radicals"]')?.click();
+    const popover = host.querySelector<HTMLElement>('.fx-runtime-toolbar__popover');
+    expect(popover?.classList.contains('is-hidden')).toBe(false);
+
+    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-latex="\\\\sqrt [3] \\\\placeholder"]')?.click();
+    expect(await mounted.getLatex()).toBe('x\\sqrt[3]{}');
+
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    expect(popover?.classList.contains('is-hidden')).toBe(true);
+
+    mounted.destroy();
+  });
 });

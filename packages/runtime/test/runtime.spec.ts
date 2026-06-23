@@ -73,4 +73,27 @@ test.describe('runtime v2 editor and renderer', () => {
     const html = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getRenderHtml());
     expect(html).toContain('data-formulax-role="caret"');
   });
+
+  test('mounts the runtime-v2 toolbar popover and inserts legacy-style templates', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mountModal('x'));
+
+    const modal = page.locator('#runtime-modal');
+    await expect(modal).toBeVisible();
+    await expect(modal).toHaveClass(/fx-formula-runtime-host/);
+
+    await modal.locator('[data-formulax-toolbar-button="radicals"]').click();
+    await expect(modal.locator('.fx-runtime-toolbar__popover-card')).toBeVisible();
+
+    await modal.locator('[data-formulax-toolbar-latex="\\\\sqrt [3] \\\\placeholder"]').click();
+    await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getModalLatex())).toBe('x\\sqrt[3]{}');
+
+    await modal.locator('[data-formulax-toolbar-button="brackets"]').click();
+    await expect(modal.locator('.fx-runtime-toolbar__popover-card')).toBeVisible();
+
+    await page.mouse.click(8, 8);
+    await expect(modal.locator('.fx-runtime-toolbar__popover')).toHaveClass(/is-hidden/);
+
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.destroyModal());
+  });
 });

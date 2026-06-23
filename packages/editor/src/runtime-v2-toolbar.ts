@@ -10,6 +10,7 @@ type RuntimeToolbarItem = {
   label: string;
   latex: string;
   preview: string;
+  previewFontFamily?: string;
 };
 
 type RuntimeToolbarGroup = {
@@ -32,6 +33,7 @@ type RawToolbarContentItem = {
   label?: string;
   key?: string;
   unicode?: string;
+  unicodeFont?: string;
   item?: {
     val?: string;
   };
@@ -48,14 +50,7 @@ type RawToolbarConfig = Array<{
         title?: string;
         items?: Array<{
           title?: string;
-          content?: Array<{
-            label?: string;
-            key?: string;
-            unicode?: string;
-            item?: {
-              val?: string;
-            };
-          }>;
+          content?: RawToolbarContentItem[];
         }>;
       }>;
     };
@@ -67,6 +62,16 @@ const TOOLBAR_SYMBOL_LABELS: Record<FormulaXLocale, string> = {
   zh_CN: '符号',
 };
 
+const UNDO_LABELS: Record<FormulaXLocale, string> = {
+  en_US: 'Undo',
+  zh_CN: '撤销',
+};
+
+const REDO_LABELS: Record<FormulaXLocale, string> = {
+  en_US: 'Redo',
+  zh_CN: '重做',
+};
+
 export function mountRuntimeV2Toolbar(
   host: HTMLElement,
   runtimeHandle: RuntimeEditorHandle,
@@ -75,18 +80,24 @@ export function mountRuntimeV2Toolbar(
   const locale = normalizeFormulaXLocale(options.locale);
   const panels = createRuntimeToolbarPanels(locale);
   const doc = host.ownerDocument ?? document;
+
   const shell = doc.createElement('div');
   shell.className = 'fx-runtime-toolbar';
 
   const buttonRow = doc.createElement('div');
   buttonRow.className = 'fx-runtime-toolbar__row';
 
-  const panelRoot = doc.createElement('div');
-  panelRoot.className = 'fx-runtime-toolbar__panel is-hidden';
+  const popover = doc.createElement('div');
+  popover.className = 'fx-runtime-toolbar__popover is-hidden';
+  popover.setAttribute('role', 'dialog');
+  popover.setAttribute('aria-modal', 'false');
 
-  const undoButton = createActionButton(doc, 'undo', locale === 'zh_CN' ? '撤销' : 'Undo');
-  const redoButton = createActionButton(doc, 'redo', locale === 'zh_CN' ? '重做' : 'Redo');
+  const popoverCard = doc.createElement('div');
+  popoverCard.className = 'fx-runtime-toolbar__popover-card';
+  popover.appendChild(popoverCard);
 
+  const undoButton = createActionButton(doc, 'undo', UNDO_LABELS[locale]);
+  const redoButton = createActionButton(doc, 'redo', REDO_LABELS[locale]);
   undoButton.addEventListener('click', () => {
     runtimeHandle.editor.undo();
     runtimeHandle.focus();
@@ -97,11 +108,10 @@ export function mountRuntimeV2Toolbar(
     runtimeHandle.focus();
     updateHistoryButtons();
   });
-
   buttonRow.append(undoButton, redoButton);
 
-  let activePanelId: string | null = null;
   const panelButtons = new Map<string, HTMLButtonElement>();
+  let activePanelId: string | null = null;
 
   for (const panel of panels) {
     const button = doc.createElement('button');
@@ -111,50 +121,105 @@ export function mountRuntimeV2Toolbar(
     button.innerHTML = panel.label;
     button.addEventListener('click', () => {
       activePanelId = activePanelId === panel.id ? null : panel.id;
-      renderActivePanel();
+      renderPopover(panelButtons.get(panel.id) ?? button);
     });
     panelButtons.set(panel.id, button);
     buttonRow.appendChild(button);
   }
 
-  shell.append(buttonRow, panelRoot);
+  shell.append(buttonRow, popover);
   host.innerHTML = '';
   host.appendChild(shell);
+
+  const closeOnPointerDown = (event: Event): void => {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+    if (host.contains(target)) {
+      return;
+    }
+    activePanelId = null;
+    renderPopover();
+  };
+
+  const closeOnEscape = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !activePanelId) {
+      return;
+    }
+    activePanelId = null;
+    renderPopover();
+  };
+
+  const reposition = (): void => {
+    if (!activePanelId) {
+      return;
+    }
+    const button = panelButtons.get(activePanelId);
+    if (button) {
+      positionPopover(button);
+    }
+  };
+
+  doc.addEventListener('pointerdown', closeOnPointerDown, true);
+  doc.addEventListener('keydown', closeOnEscape, true);
+  doc.defaultView?.addEventListener('resize', reposition);
 
   function updateHistoryButtons(): void {
     undoButton.disabled = !runtimeHandle.editor.canUndo();
     redoButton.disabled = !runtimeHandle.editor.canRedo();
   }
 
-  function renderActivePanel(): void {
+  function renderPopover(anchor?: HTMLButtonElement): void {
     for (const [id, button] of panelButtons) {
       button.dataset.active = id === activePanelId ? 'true' : 'false';
     }
 
+    updateHistoryButtons();
+
     if (!activePanelId) {
-      panelRoot.classList.add('is-hidden');
-      panelRoot.innerHTML = '';
-      updateHistoryButtons();
+      popover.classList.add('is-hidden');
+      popoverCard.innerHTML = '';
       return;
     }
 
     const panel = panels.find((item) => item.id === activePanelId);
     if (!panel) {
       activePanelId = null;
-      renderActivePanel();
+      renderPopover();
       return;
     }
 
-    panelRoot.classList.remove('is-hidden');
-    panelRoot.innerHTML = '';
+    popover.classList.remove('is-hidden');
+    popoverCard.innerHTML = '';
+
+    const header = doc.createElement('div');
+    header.className = 'fx-runtime-toolbar__popover-header';
+
+    const title = doc.createElement('div');
+    title.className = 'fx-runtime-toolbar__popover-title';
+    title.innerHTML = panel.label;
+
+    const closeButton = doc.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'fx-runtime-toolbar__popover-close';
+    closeButton.setAttribute('aria-label', locale === 'zh_CN' ? '关闭' : 'Close');
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => {
+      activePanelId = null;
+      renderPopover();
+    });
+
+    header.append(title, closeButton);
+    popoverCard.appendChild(header);
 
     for (const group of panel.groups) {
       const section = doc.createElement('section');
       section.className = 'fx-runtime-toolbar__section';
 
-      const title = doc.createElement('h3');
-      title.className = 'fx-runtime-toolbar__section-title';
-      title.innerHTML = group.title;
+      const sectionTitle = doc.createElement('h3');
+      sectionTitle.className = 'fx-runtime-toolbar__section-title';
+      sectionTitle.textContent = stripHtml(group.title);
 
       const grid = doc.createElement('div');
       grid.className = 'fx-runtime-toolbar__grid';
@@ -170,6 +235,9 @@ export function mountRuntimeV2Toolbar(
         const preview = doc.createElement('span');
         preview.className = 'fx-runtime-toolbar__item-preview';
         preview.textContent = item.preview;
+        if (item.previewFontFamily) {
+          preview.style.fontFamily = item.previewFontFamily;
+        }
 
         const label = doc.createElement('span');
         label.className = 'fx-runtime-toolbar__item-label';
@@ -181,21 +249,42 @@ export function mountRuntimeV2Toolbar(
           runtimeHandle.focus();
           updateHistoryButtons();
         });
+
         grid.appendChild(itemButton);
       }
 
-      section.append(title, grid);
-      panelRoot.appendChild(section);
+      section.append(sectionTitle, grid);
+      popoverCard.appendChild(section);
     }
 
-    updateHistoryButtons();
+    if (anchor) {
+      positionPopover(anchor);
+    }
   }
 
-  renderActivePanel();
-  updateHistoryButtons();
+  function positionPopover(anchor: HTMLButtonElement): void {
+    const shellRect = shell.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+    const preferredLeft = anchorRect.left - shellRect.left;
+    const preferredTop = anchorRect.bottom - shellRect.top + 10;
+    const maxWidth = Math.max(360, Math.min(shellRect.width - 16, 760));
+
+    popover.style.maxWidth = `${maxWidth}px`;
+    popover.style.minWidth = `${Math.min(maxWidth, 420)}px`;
+    popover.style.top = `${preferredTop}px`;
+
+    const estimatedWidth = Math.min(maxWidth, 560);
+    const left = Math.max(8, Math.min(preferredLeft, shellRect.width - estimatedWidth - 8));
+    popover.style.left = `${left}px`;
+  }
+
+  renderPopover();
 
   return {
     destroy() {
+      doc.removeEventListener('pointerdown', closeOnPointerDown, true);
+      doc.removeEventListener('keydown', closeOnEscape, true);
+      doc.defaultView?.removeEventListener('resize', reposition);
       host.innerHTML = '';
     },
   };
@@ -240,7 +329,9 @@ function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel
   return panels;
 }
 
-function extractToolbarGroups(groups: NonNullable<NonNullable<RawToolbarConfig[number]['options']>['box']>['group']): RuntimeToolbarGroup[] {
+function extractToolbarGroups(
+  groups: NonNullable<NonNullable<RawToolbarConfig[number]['options']>['box']>['group'],
+): RuntimeToolbarGroup[] {
   const normalizedGroups: RuntimeToolbarGroup[] = [];
 
   for (const group of groups ?? []) {
@@ -253,10 +344,9 @@ function extractToolbarGroups(groups: NonNullable<NonNullable<RawToolbarConfig[n
         continue;
       }
 
-      const title = item.title ?? group.title ?? 'Items';
       normalizedGroups.push({
-        id: createPanelId(title),
-        title,
+        id: createPanelId(item.title ?? group.title ?? 'Items'),
+        title: item.title ?? group.title ?? 'Items',
         items: normalizedItems,
       });
     }
@@ -272,20 +362,67 @@ function normalizeToolbarItem(item: RawToolbarContentItem): RuntimeToolbarItem |
       id: createPanelId(`${item.label ?? latex}-${latex}`),
       label: stripHtml(item.label ?? latex),
       latex,
-      preview: stripHtml(item.label ?? latex),
+      preview: createTemplatePreview(latex),
     };
   }
 
   if (typeof item.key === 'string' && item.key.trim()) {
+    const preview = stripHtml(item.unicode ?? item.key);
     return {
       id: createPanelId(item.key),
-      label: stripHtml(item.unicode ?? item.key),
+      label: preview,
       latex: item.key,
-      preview: stripHtml(item.unicode ?? item.key),
+      preview,
+      previewFontFamily: item.unicodeFont,
     };
   }
 
   return null;
+}
+
+function createTemplatePreview(latex: string): string {
+  const compact = latex.replace(/\s+/g, ' ').trim();
+
+  switch (compact) {
+    case '\\frac \\placeholder\\placeholder':
+      return 'a / b';
+    case '{\\placeholder/\\placeholder}':
+      return 'a/b';
+    case '\\placeholder^\\placeholder':
+      return 'x²';
+    case '\\placeholder_\\placeholder':
+      return 'x₁';
+    case '\\placeholder^\\placeholder_\\placeholder':
+      return 'x₁²';
+    case '{^\\placeholder_\\placeholder\\placeholder}':
+      return 'ⁿCᵣ';
+    case '\\sqrt \\placeholder':
+      return '√x';
+    case '\\sqrt [\\placeholder] \\placeholder':
+      return 'ⁿ√x';
+    case '\\sqrt [2] \\placeholder':
+      return '²√x';
+    case '\\sqrt [3] \\placeholder':
+      return '³√x';
+    case '\\int \\placeholder':
+      return '∫x';
+    case '\\iint\\placeholder':
+      return '∬x';
+    case '\\iiint\\placeholder':
+      return '∭x';
+    case '\\sum\\placeholder':
+      return '∑x';
+    case '\\prod\\placeholder':
+      return '∏x';
+  }
+
+  return compact
+    .replace(/\\placeholder/g, '□')
+    .replace(/\\left/g, '')
+    .replace(/\\right/g, '')
+    .replace(/\\,/g, ' ')
+    .replace(/\\/g, '')
+    .trim();
 }
 
 function applyToolbarItem(runtimeHandle: RuntimeEditorHandle, latex: string): void {

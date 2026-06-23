@@ -167,6 +167,7 @@ export const formulaXModalStyles = `
 }
 
 .fx-formula-runtime-shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -177,10 +178,15 @@ export const formulaXModalStyles = `
 .fx-formula-runtime-toolbar-host {
   flex: 0 0 auto;
   border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.96));
+  position: relative;
+  z-index: 20;
+  overflow: visible;
 }
 
 .fx-runtime-toolbar {
+  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -188,26 +194,30 @@ export const formulaXModalStyles = `
 .fx-runtime-toolbar__row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 10px 12px 12px;
 }
 
 .fx-runtime-toolbar__button {
   appearance: none;
   border: 1px solid #d1d5db;
-  background: #fff;
-  color: #111827;
-  border-radius: 8px;
-  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 7px 11px;
   font-size: 12px;
+  font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
 .fx-runtime-toolbar__button[data-active="true"] {
-  border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .fx-runtime-toolbar__button:disabled {
@@ -215,16 +225,55 @@ export const formulaXModalStyles = `
   cursor: not-allowed;
 }
 
-.fx-runtime-toolbar__panel {
-  border-top: 1px solid #e5e7eb;
-  background: #fff;
-  max-height: 156px;
-  overflow: auto;
-  padding: 12px;
+.fx-runtime-toolbar__popover {
+  position: absolute;
+  left: 8px;
+  top: calc(100% + 6px);
+  z-index: 40;
 }
 
-.fx-runtime-toolbar__panel.is-hidden {
+.fx-runtime-toolbar__popover.is-hidden {
   display: none;
+}
+
+.fx-runtime-toolbar__popover-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 48px rgba(15, 23, 42, 0.16),
+    0 8px 20px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(10px);
+  padding: 12px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.fx-runtime-toolbar__popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.fx-runtime-toolbar__popover-title {
+  font-size: 12px;
+  font-weight: 650;
+  color: #475569;
+}
+
+.fx-runtime-toolbar__popover-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .fx-runtime-toolbar__section + .fx-runtime-toolbar__section {
@@ -246,29 +295,39 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__item {
   appearance: none;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  border-radius: 8px;
-  min-height: 52px;
-  padding: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.96));
+  border-radius: 12px;
+  min-height: 60px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   gap: 4px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .fx-runtime-toolbar__item-preview {
   font-family: "Cambria Math", "Times New Roman", serif;
   font-size: 16px;
-  color: #111827;
+  color: #020617;
 }
 
 .fx-runtime-toolbar__item-label {
   font-size: 11px;
-  color: #6b7280;
+  color: #64748b;
   text-align: left;
+}
+
+.fx-runtime-toolbar__item:hover,
+.fx-runtime-toolbar__item:focus-visible {
+  border-color: rgba(59, 130, 246, 0.34);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.12);
+  transform: translateY(-1px);
 }
 
 .fx-formula-runtime-surface {
