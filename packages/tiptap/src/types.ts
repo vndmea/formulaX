@@ -61,6 +61,10 @@ export interface RequiredFormulaXTiptapOptions {
     locale: FormulaXEditorOptions['locale'];
     assets: FormulaXEditorOptions['assets'];
     runtimeAssets: FormulaXEditorOptions['runtimeAssets'];
+    wrap: NonNullable<FormulaXEditorOptions['wrap']>;
+    maxWidth: NonNullable<FormulaXEditorOptions['maxWidth']>;
+    lineGap: number;
+    continuationIndent: number;
     render: {
       fontsize: number;
     };

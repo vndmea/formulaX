@@ -107,7 +107,11 @@ export interface RequiredFormulaXTinyMceOptions {
   renderer: FormulaRenderer;
   preload: FormulaXEditorPreloadMode;
   modal: Required<FormulaXModalOptions>;
-  editor: Required<Omit<FormulaXEditorOptions, 'initialLatex'>>;
+  editor: Required<Omit<FormulaXEditorOptions, 'initialLatex' | 'render'>> & {
+    render: {
+      fontsize: number;
+    };
+  };
 }
 
 export interface FormulaXModalOpenOptions {

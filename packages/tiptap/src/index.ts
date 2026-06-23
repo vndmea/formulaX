@@ -78,6 +78,10 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
       locale,
       assets: options.editor?.assets ?? {},
       runtimeAssets: options.editor?.runtimeAssets ?? {},
+      wrap: options.editor?.wrap ?? 'none',
+      maxWidth: options.editor?.maxWidth ?? 'host',
+      lineGap: options.editor?.lineGap ?? 14,
+      continuationIndent: options.editor?.continuationIndent ?? 30,
       render: {
         fontsize: options.editor?.render?.fontsize ?? options.editor?.render?.fontSize ?? 40,
       },

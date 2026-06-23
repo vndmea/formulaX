@@ -216,6 +216,22 @@ describe('registerFormulaXTinyMcePlugin', () => {
     });
   });
 
+  it('resolves runtime v2 wrap defaults for modal editors', () => {
+    expect(resolveOptions({
+      editor: {
+        runtime: 'v2',
+      },
+    })).toMatchObject({
+      editor: {
+        runtime: 'v2',
+        wrap: 'none',
+        maxWidth: 'host',
+        lineGap: 14,
+        continuationIndent: 30,
+      },
+    });
+  });
+
   it('creates TinyMCE image markup with persisted image attrs', () => {
     const html = createTinyMceFormulaMarkup('\\sqrt{x}', {
       renderHtml: createFormulaImageHtml({

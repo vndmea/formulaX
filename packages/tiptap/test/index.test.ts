@@ -83,6 +83,22 @@ describe('tiptap adapter', () => {
     });
   });
 
+  it('resolves wrap-aware modal editor defaults', () => {
+    expect(resolveOptions({
+      editor: {
+        runtime: 'v2',
+      },
+    })).toMatchObject({
+      editor: {
+        runtime: 'v2',
+        wrap: 'none',
+        maxWidth: 'host',
+        lineGap: 14,
+        continuationIndent: 30,
+      },
+    });
+  });
+
   it('creates default toolbar actions with the shared icon metadata', () => {
     const editor = {
       commands: {

@@ -38,6 +38,22 @@ describe('ckeditor5 adapter', () => {
     });
   });
 
+  it('resolves wrap-aware modal editor defaults', () => {
+    expect(resolveOptions({
+      editor: {
+        runtime: 'v2',
+      },
+    })).toMatchObject({
+      editor: {
+        runtime: 'v2',
+        wrap: 'none',
+        maxWidth: 'host',
+        lineGap: 14,
+        continuationIndent: 30,
+      },
+    });
+  });
+
   it('logs and aborts initialization when the model name already exists', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const register = vi.fn();
