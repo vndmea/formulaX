@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FormulaX Runtime Test</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 24px;
+      }
+
+      #app {
+        display: grid;
+        gap: 16px;
+      }
+
+      .runtime-test-host {
+        min-height: 180px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="runtime-editor" class="runtime-test-host"></div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+  </html>
