@@ -10,7 +10,7 @@
       "@formulaxjs/renderer": ["packages/renderer/src/index.ts"],
       "@formulaxjs/renderer-image": ["packages/renderer-image/src/index.ts"],
       "@formulaxjs/renderer-kity": ["packages/renderer-kity/src/index.ts"],
-      "@formulaxjs/renderer-v2": ["packages/renderer-v2/src/index.ts"],
+      "@formulaxjs/renderer-next": ["packages/renderer-next/src/index.ts"],
       "@formulaxjs/runtime": ["packages/runtime/src/index.ts"],
       "@formulaxjs/tiptap": ["packages/tiptap/src/index.ts"],
       "@formulaxjs/tinymce": ["packages/tinymce/src/index.ts"],

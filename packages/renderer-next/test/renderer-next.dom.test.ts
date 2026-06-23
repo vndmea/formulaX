@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createFormulaRendererV2, renderLatexToSvgMarkup } from '../src';
 
-describe('renderer-v2', () => {
+describe('renderer-next', () => {
   it('renders latex into svg markup', async () => {
     document.body.innerHTML = '';
     const result = await renderLatexToSvgMarkup('\\frac{a}{b}', {

@@ -71,7 +71,7 @@ async function renderLatexToSvgMarkupUncached(
   options: RendererV2RenderOptions,
 ): Promise<FormulaRenderResult> {
   if (typeof document === 'undefined') {
-    throw new Error('renderer-v2 requires a browser document.');
+    throw new Error('renderer-next requires a browser document.');
   }
 
   const host = createHiddenRenderHost(document);

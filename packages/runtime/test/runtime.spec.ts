@@ -28,7 +28,7 @@ test.describe('runtime v2 editor and renderer', () => {
     await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex())).toBe('x');
   });
 
-  test('renders readonly svg through renderer-v2', async ({ page }) => {
+  test('renders readonly svg through renderer-next', async ({ page }) => {
     await page.goto('/');
 
     const result = await page.evaluate(async () => {

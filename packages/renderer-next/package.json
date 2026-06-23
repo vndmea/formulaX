@@ -1,5 +1,5 @@
 {
-  "name": "@formulaxjs/renderer-v2",
+  "name": "@formulaxjs/renderer-next",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -8,7 +8,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vndmea/formulaX.git",
-    "directory": "packages/renderer-v2"
+    "directory": "packages/renderer-next"
   },
   "keywords": [
     "formulax",
@@ -37,7 +37,7 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/renderer-v2/test",
+    "test": "vitest run packages/renderer-next/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

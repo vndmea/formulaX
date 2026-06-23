@@ -1,5 +1,5 @@
 import { createRuntimeEditor, type FormulaCommand } from '@formulaxjs/runtime';
-import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-v2';
+import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
 
 declare global {
   interface Window {
