@@ -160,6 +160,7 @@ export interface FormulaDispatchOptions {
 
 export type FormulaCommandName =
   | 'insertText'
+  | 'insertLatex'
   | 'deleteBackward'
   | 'moveLeft'
   | 'moveRight'
@@ -174,6 +175,7 @@ export type FormulaCommandName =
 
 export interface FormulaCommandPayloadMap {
   insertText: { text: string };
+  insertLatex: { latex: string };
   deleteBackward: undefined;
   moveLeft: undefined;
   moveRight: undefined;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyFormulaCommand,
   createEmptyFormulaDoc,
   deleteBackwardAtSelection,
   insertFractionAtSelection,
@@ -129,5 +130,29 @@ describe('runtime commands and layout', () => {
     expect(layout.lines.length).toBeGreaterThan(1);
     expect(layout.lines.some((line) => line.fragments.some((fragment) => fragment.box.kind === 'frac'))).toBe(true);
     expect(layout.lines.some((line) => line.fragments.some((fragment) => fragment.box.kind === 'sqrt'))).toBe(true);
+  });
+
+  it('inserts latex snippets at the active selection', () => {
+    const doc = createEmptyFormulaDoc('x');
+    const result = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 1 }, {
+      type: 'insertLatex',
+      payload: { latex: '\\frac \\placeholder\\placeholder' },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(serializeFormulaDocToLatex(result.doc)).toBe('x\\frac{}{}');
+    expect(result.selection.rowId).toBe((result.doc.root.children[1] as { numerator: { id: string } }).numerator.id);
+  });
+
+  it('normalizes toolbar placeholders into editable rows', () => {
+    const doc = createEmptyFormulaDoc('');
+    const result = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+      type: 'insertLatex',
+      payload: { latex: '\\sin\\placeholder' },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(serializeFormulaDocToLatex(result.doc)).toBe('\\sin{}');
+    expect(result.selection.offset).toBe(0);
   });
 });

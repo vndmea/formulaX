@@ -75,6 +75,54 @@ export function insertTextAtSelection(
   };
 }
 
+export function insertLatexAtSelection(
+  doc: FormulaDoc,
+  selection: FormulaSelection,
+  latex: string,
+): FormulaEditResult {
+  const normalizedLatex = normalizeToolbarLatex(latex);
+  if (!normalizedLatex) {
+    return {
+      doc,
+      selection: clampSelection(doc, selection),
+      changed: false,
+    };
+  }
+
+  const safeSelection = clampSelection(doc, selection);
+  const row = findRowById(doc, safeSelection.rowId);
+
+  if (!row) {
+    return { doc, selection: safeSelection, changed: false };
+  }
+
+  const fragment = parseLatexToFormulaDoc(normalizedLatex);
+  const insertedChildren = fragment.root.children;
+
+  if (insertedChildren.length === 0) {
+    return { doc, selection: safeSelection, changed: false };
+  }
+
+  const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
+    ...currentRow,
+    children: [
+      ...currentRow.children.slice(0, safeSelection.offset),
+      ...insertedChildren,
+      ...currentRow.children.slice(safeSelection.offset),
+    ],
+  }));
+
+  return {
+    doc: nextDoc,
+    selection: resolveInsertedSelection(insertedChildren, row.id, safeSelection.offset),
+    changed: nextDoc !== doc,
+    dispatchOptions: {
+      addToHistory: true,
+      historyReason: normalizedLatex.includes('\\') ? 'structure' : 'insert',
+    },
+  };
+}
+
 export function deleteBackwardAtSelection(
   doc: FormulaDoc,
   selection: FormulaSelection,
@@ -205,6 +253,48 @@ function insertStructureAtSelection(
   };
 }
 
+function normalizeToolbarLatex(latex: string): string {
+  return latex
+    .replace(/\\placeholder/g, '{}')
+    .replace(/\\([a-zA-Z]+)\s+\{/g, '\\$1{')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function resolveInsertedSelection(
+  insertedChildren: FormulaNode[],
+  fallbackRowId: string,
+  fallbackOffset: number,
+): FormulaSelection {
+  for (const child of insertedChildren) {
+    const rowId = findFirstEditableRowId(child);
+    if (rowId) {
+      return createSelection(rowId, 0);
+    }
+  }
+
+  return createSelection(fallbackRowId, fallbackOffset + insertedChildren.length);
+}
+
+function findFirstEditableRowId(node: FormulaNode): string | null {
+  switch (node.type) {
+    case 'row':
+      return node.id;
+    case 'frac':
+      return node.numerator.id;
+    case 'sqrt':
+      return node.value.id;
+    case 'script':
+      return node.sup?.id ?? node.sub?.id ?? findFirstEditableRowId(node.base);
+    case 'fence':
+      return node.body.id;
+    case 'matrix':
+      return node.rows[0]?.[0]?.id ?? null;
+    default:
+      return null;
+  }
+}
+
 function insertScriptAtSelection(
   doc: FormulaDoc,
   selection: FormulaSelection,
@@ -278,8 +368,14 @@ export function applyFormulaCommand(
   const currentSelection = selection ?? getInitialSelection(doc);
 
   switch (command.type) {
-    case 'insertText':
-      return insertTextAtSelection(doc, currentSelection, command.payload?.text ?? '');
+    case 'insertText': {
+      const payload = command.payload as { text?: string } | undefined;
+      return insertTextAtSelection(doc, currentSelection, payload?.text ?? '');
+    }
+    case 'insertLatex': {
+      const payload = command.payload as { latex?: string } | undefined;
+      return insertLatexAtSelection(doc, currentSelection, payload?.latex ?? '');
+    }
     case 'deleteBackward':
       return deleteBackwardAtSelection(doc, currentSelection);
     case 'moveLeft':
