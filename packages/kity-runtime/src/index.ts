@@ -4,6 +4,7 @@ export * from './asset-manifest';
 export * from './create-editor';
 export * from './dom-utils';
 export * from './i18n';
+export * from './legacy/toolbar-config';
 export * from './vendor/legacy-box-type';
 export * from './vendor/legacy-common';
 export * from './vendor/legacy-component';

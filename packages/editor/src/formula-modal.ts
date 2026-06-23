@@ -19,6 +19,7 @@ import {
   measureFormulaXPerf,
   recordFormulaXPerfPoint,
 } from './perf';
+import { mountRuntimeV2Toolbar } from './runtime-v2-toolbar';
 
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
 const STYLE_ID = 'fx-formula-modal-styles';
@@ -154,6 +155,126 @@ export const formulaXModalStyles = `
   min-height: var(--fx-formula-editor-body-height);
   overflow: visible;
   position: relative;
+}
+
+.fx-formula-runtime-host {
+  width: 100%;
+  height: var(--fx-formula-editor-body-height);
+  min-height: var(--fx-formula-editor-body-height);
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+.fx-formula-runtime-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.fx-formula-runtime-toolbar-host {
+  flex: 0 0 auto;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.fx-runtime-toolbar {
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-runtime-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.fx-runtime-toolbar__button {
+  appearance: none;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.fx-runtime-toolbar__button[data-active="true"] {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.fx-runtime-toolbar__button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fx-runtime-toolbar__panel {
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  max-height: 156px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.fx-runtime-toolbar__panel.is-hidden {
+  display: none;
+}
+
+.fx-runtime-toolbar__section + .fx-runtime-toolbar__section {
+  margin-top: 12px;
+}
+
+.fx-runtime-toolbar__section-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #4b5563;
+}
+
+.fx-runtime-toolbar__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+.fx-runtime-toolbar__item {
+  appearance: none;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  min-height: 52px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.fx-runtime-toolbar__item-preview {
+  font-family: "Cambria Math", "Times New Roman", serif;
+  font-size: 16px;
+  color: #111827;
+}
+
+.fx-runtime-toolbar__item-label {
+  font-size: 11px;
+  color: #6b7280;
+  text-align: left;
+}
+
+.fx-formula-runtime-surface {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .fx-formula-kity-host {
@@ -410,7 +531,23 @@ async function mountRuntimeV2Handle(
   root: HTMLElement,
   options: FormulaXEditorOptions & { initialLatex: string },
 ): Promise<MountedFormulaXHandle> {
-  const handle = await createRuntimeEditor(root, {
+  root.classList.remove('fx-formula-kity-host');
+  root.classList.add('fx-formula-runtime-host');
+  root.innerHTML = '';
+
+  const shell = document.createElement('div');
+  shell.className = 'fx-formula-runtime-shell';
+
+  const toolbarHost = document.createElement('div');
+  toolbarHost.className = 'fx-formula-runtime-toolbar-host';
+
+  const surfaceHost = document.createElement('div');
+  surfaceHost.className = 'fx-formula-runtime-surface';
+
+  shell.append(toolbarHost, surfaceHost);
+  root.appendChild(shell);
+
+  const handle = await createRuntimeEditor(surfaceHost, {
     initialLatex: options.initialLatex,
     height: options.height ?? '100%',
     autofocus: options.autofocus ?? true,
@@ -425,11 +562,18 @@ async function mountRuntimeV2Handle(
     },
   });
 
+  const toolbar = mountRuntimeV2Toolbar(toolbarHost, handle, {
+    locale: options.locale,
+  });
+
   return {
     ready: handle.ready,
     getLatex: async () => handle.getLatex(),
     getRenderHtml: async () => handle.getRenderHtml(),
-    destroy: () => handle.destroy(),
+    destroy: () => {
+      toolbar.destroy();
+      handle.destroy();
+    },
   };
 }
 

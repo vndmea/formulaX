@@ -17,4 +17,52 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
     expect(host.innerHTML).toBe('');
   });
+
+  it('renders a runtime toolbar and inserts structures from toolbar actions', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    const fractionPanelButton = host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-button="fraction"]');
+    expect(fractionPanelButton).not.toBeNull();
+    fractionPanelButton?.click();
+
+    const fractionItem = host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"]');
+    expect(fractionItem).not.toBeNull();
+    fractionItem?.click();
+
+    expect(await mounted.getLatex()).toBe('x\\frac{}{}');
+
+    mounted.destroy();
+  });
+
+  it('supports undo and redo from the runtime toolbar', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-button="fraction"]')?.click();
+    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"]')?.click();
+    expect(await mounted.getLatex()).toBe('x\\frac{}{}');
+
+    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-action="undo"]')?.click();
+    expect(await mounted.getLatex()).toBe('x');
+
+    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-action="redo"]')?.click();
+    expect(await mounted.getLatex()).toBe('x\\frac{}{}');
+
+    mounted.destroy();
+  });
 });
