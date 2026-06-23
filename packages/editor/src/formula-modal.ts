@@ -3,8 +3,11 @@ import {
   mountKityEditor,
   type FormulaXLocale,
   type KityEditorAssets,
-  type KityEditorHandle,
 } from '@formulaxjs/kity-runtime';
+import {
+  createRuntimeEditor,
+  type RuntimeEditorAssets,
+} from '@formulaxjs/runtime';
 import { escapeHtml, ensureFormulaXBaseStyles } from '@formulaxjs/renderer';
 import {
   serializeKityFormulaFromRoot,
@@ -20,14 +23,19 @@ import {
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
 const STYLE_ID = 'fx-formula-modal-styles';
 
+export type FormulaXEditorRuntime = 'kity' | 'v2';
+
 export interface FormulaXEditorOptions {
   initialLatex?: string;
   height?: number | string;
   autofocus?: boolean;
+  runtime?: FormulaXEditorRuntime;
   locale?: FormulaXLocale;
   assets?: Partial<KityEditorAssets>;
+  runtimeAssets?: Partial<RuntimeEditorAssets>;
   render?: {
     fontsize?: number;
+    fontSize?: number;
   };
 }
 
@@ -35,6 +43,13 @@ export interface MountedFormulaXEditor {
   root: HTMLElement;
   getLatex: () => Promise<string>;
   getState: () => Promise<FormulaState>;
+  getRenderHtml: () => Promise<string>;
+  destroy: () => void;
+}
+
+interface MountedFormulaXHandle {
+  ready: Promise<void>;
+  getLatex: () => Promise<string>;
   getRenderHtml: () => Promise<string>;
   destroy: () => void;
 }
@@ -285,23 +300,19 @@ export function mountFormulaXEditor(
   const mountStart = markFormulaXPerf('fx:formula-editor:mount:start:scope');
   let destroyed = false;
   let latestLatex = options.initialLatex ?? '';
-  let handle: KityEditorHandle | null = null;
+  let handle: MountedFormulaXHandle | null = null;
   const initialLatex = latestLatex.trim() ? latestLatex : EMPTY_FORMULA_PLACEHOLDER;
+  const runtime = options.runtime ?? 'kity';
 
   renderFormulaXEditorLoadingState(root);
   const loadingVisibleMark = markFormulaXPerf('fx:formula-editor:loading-visible');
   measureFormulaXPerf('fx:formula-editor:loading-visible', mountStart, loadingVisibleMark);
   clearFormulaXPerfMarks(loadingVisibleMark);
 
-  const readyPromise = mountKityEditor(root, {
+  const readyPromise = mountFormulaEditorHandle(root, {
+    ...options,
     initialLatex,
-    height: options.height ?? '100%',
-    autofocus: options.autofocus ?? true,
-    locale: options.locale,
-    assets: options.assets,
-    render: {
-      fontsize: options.render?.fontsize ?? 40,
-    },
+    runtime,
   })
     .then((nextHandle) => {
       if (destroyed) {
@@ -335,7 +346,7 @@ export function mountFormulaXEditor(
 
   const getCurrentLatex = async (): Promise<string> => {
     const readyHandle = handle ?? await readyPromise;
-    const latex = await tryReadLatexFromKityHandle(readyHandle);
+    const latex = await readyHandle.getLatex();
 
     if (latex !== null) {
       latestLatex = latex;
@@ -363,9 +374,8 @@ export function mountFormulaXEditor(
     },
 
     async getRenderHtml(): Promise<string> {
-      await readyPromise;
-      await waitForKityFormulaSvgLayout(root);
-      return serializeKityFormulaFromRoot(root);
+      const readyHandle = handle ?? await readyPromise;
+      return readyHandle.getRenderHtml();
     },
 
     destroy(): void {
@@ -381,7 +391,69 @@ export function mountFormulaXEditor(
   };
 }
 
-async function tryReadLatexFromKityHandle(handle: KityEditorHandle): Promise<string | null> {
+async function mountFormulaEditorHandle(
+  root: HTMLElement,
+  options: FormulaXEditorOptions & { initialLatex: string; runtime: FormulaXEditorRuntime },
+): Promise<MountedFormulaXHandle> {
+  if (options.runtime === 'v2') {
+    return mountRuntimeV2Handle(root, options);
+  }
+
+  return mountLegacyKityHandle(root, options);
+}
+
+async function mountRuntimeV2Handle(
+  root: HTMLElement,
+  options: FormulaXEditorOptions & { initialLatex: string },
+): Promise<MountedFormulaXHandle> {
+  const handle = await createRuntimeEditor(root, {
+    initialLatex: options.initialLatex,
+    height: options.height ?? '100%',
+    autofocus: options.autofocus ?? true,
+    readOnly: false,
+    assets: options.runtimeAssets,
+    render: {
+      fontSize: options.render?.fontSize ?? options.render?.fontsize ?? 40,
+    },
+  });
+
+  return {
+    ready: handle.ready,
+    getLatex: async () => handle.getLatex(),
+    getRenderHtml: async () => handle.getRenderHtml(),
+    destroy: () => handle.destroy(),
+  };
+}
+
+async function mountLegacyKityHandle(
+  root: HTMLElement,
+  options: FormulaXEditorOptions & { initialLatex: string },
+): Promise<MountedFormulaXHandle> {
+  const handle = await mountKityEditor(root, {
+    initialLatex: options.initialLatex,
+    height: options.height ?? '100%',
+    autofocus: options.autofocus ?? true,
+    locale: options.locale,
+    assets: options.assets as Partial<KityEditorAssets> | undefined,
+    render: {
+      fontsize: options.render?.fontsize ?? options.render?.fontSize ?? 40,
+    },
+  });
+
+  return {
+    ready: Promise.resolve(),
+    getLatex: async () => tryReadLatexFromKityHandle(handle),
+    getRenderHtml: async () => {
+      await waitForKityFormulaSvgLayout(root);
+      return serializeKityFormulaFromRoot(root);
+    },
+    destroy: () => handle.destroy(),
+  };
+}
+
+async function tryReadLatexFromKityHandle(handle: {
+  ready: (callback: (this: { execCommand: (name: string, value?: string) => unknown }) => void) => void;
+}): Promise<string> {
   try {
     let isEmpty = false;
 
@@ -429,5 +501,5 @@ async function tryReadLatexFromKityHandle(handle: KityEditorHandle): Promise<str
     }
   }
 
-  return null;
+  return '';
 }

@@ -74,10 +74,12 @@ export function resolveOptions(options: FormulaXTiptapOptions = {}): RequiredFor
     editor: {
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
+      runtime: options.editor?.runtime ?? 'kity',
       locale,
       assets: options.editor?.assets ?? {},
+      runtimeAssets: options.editor?.runtimeAssets ?? {},
       render: {
-        fontsize: options.editor?.render?.fontsize ?? 40,
+        fontsize: options.editor?.render?.fontsize ?? options.editor?.render?.fontSize ?? 40,
       },
     },
   };
