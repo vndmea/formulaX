@@ -20,6 +20,8 @@ export interface FormulaEditResult {
   dispatchOptions?: FormulaDispatchOptions;
 }
 
+const TOOLBAR_PLACEHOLDER_MARKER = '\uFFF0';
+
 export function createRow(children: FormulaNode[] = []): FormulaRowNode {
   return {
     type: 'row',
@@ -97,6 +99,7 @@ export function insertLatexAtSelection(
   }
 
   const fragment = parseLatexToFormulaDoc(normalizedLatex);
+  const placeholderSelection = stripToolbarPlaceholderMarkers(fragment.root);
   const insertedChildren = fragment.root.children;
 
   if (insertedChildren.length === 0) {
@@ -114,7 +117,13 @@ export function insertLatexAtSelection(
 
   return {
     doc: nextDoc,
-    selection: resolveInsertedSelection(insertedChildren, row.id, safeSelection.offset),
+    selection: resolveInsertedSelection(
+      insertedChildren,
+      row.id,
+      safeSelection.offset,
+      placeholderSelection,
+      fragment.root.id,
+    ),
     changed: nextDoc !== doc,
     dispatchOptions: {
       addToHistory: true,
@@ -255,7 +264,7 @@ function insertStructureAtSelection(
 
 function normalizeToolbarLatex(latex: string): string {
   return latex
-    .replace(/\\placeholder/g, '{}')
+    .replace(/\\placeholder/g, TOOLBAR_PLACEHOLDER_MARKER)
     .replace(/\\([a-zA-Z]+)\s+\{/g, '\\$1{')
     .replace(/\s+/g, ' ')
     .trim();
@@ -265,7 +274,16 @@ function resolveInsertedSelection(
   insertedChildren: FormulaNode[],
   fallbackRowId: string,
   fallbackOffset: number,
+  placeholderSelection?: FormulaSelection | null,
+  fragmentRootId?: string,
 ): FormulaSelection {
+  if (placeholderSelection) {
+    if (placeholderSelection.rowId === fragmentRootId) {
+      return createSelection(fallbackRowId, fallbackOffset + placeholderSelection.offset);
+    }
+    return placeholderSelection;
+  }
+
   for (const child of insertedChildren) {
     const rowId = findFirstEditableRowId(child);
     if (rowId) {
@@ -274,6 +292,76 @@ function resolveInsertedSelection(
   }
 
   return createSelection(fallbackRowId, fallbackOffset + insertedChildren.length);
+}
+
+function stripToolbarPlaceholderMarkers(row: FormulaRowNode): FormulaSelection | null {
+  let selection: FormulaSelection | null = null;
+  const nextChildren: FormulaNode[] = [];
+
+  for (const child of row.children) {
+    if (isToolbarPlaceholderSymbol(child)) {
+      selection ??= createSelection(row.id, nextChildren.length);
+      continue;
+    }
+
+    selection ??= stripToolbarPlaceholderFromNode(child);
+    nextChildren.push(child);
+  }
+
+  row.children = nextChildren;
+  return selection;
+}
+
+function stripToolbarPlaceholderFromNode(node: FormulaNode): FormulaSelection | null {
+  switch (node.type) {
+    case 'row':
+      return stripToolbarPlaceholderMarkers(node);
+    case 'frac': {
+      const numeratorSelection = stripToolbarPlaceholderMarkers(node.numerator);
+      const denominatorSelection = stripToolbarPlaceholderMarkers(node.denominator);
+      return numeratorSelection ?? denominatorSelection;
+    }
+    case 'sqrt': {
+      const indexSelection = node.index ? stripToolbarPlaceholderMarkers(node.index) : null;
+      const valueSelection = stripToolbarPlaceholderMarkers(node.value);
+      return indexSelection ?? valueSelection;
+    }
+    case 'script': {
+      let selection: FormulaSelection | null = null;
+
+      if (isToolbarPlaceholderSymbol(node.base)) {
+        const baseRow = createRow([]);
+        node.base = baseRow;
+        selection = createSelection(baseRow.id, 0);
+      } else {
+        selection = stripToolbarPlaceholderFromNode(node.base);
+      }
+
+      const supSelection = node.sup ? stripToolbarPlaceholderMarkers(node.sup) : null;
+      const subSelection = node.sub ? stripToolbarPlaceholderMarkers(node.sub) : null;
+
+      return selection ?? supSelection ?? subSelection;
+    }
+    case 'fence':
+      return stripToolbarPlaceholderMarkers(node.body);
+    case 'matrix':
+      for (const matrixRow of node.rows) {
+        for (const cell of matrixRow) {
+          const selection = stripToolbarPlaceholderMarkers(cell);
+          if (selection) {
+            return selection;
+          }
+        }
+      }
+      return null;
+    case 'symbol':
+    case 'unsupported':
+      return null;
+  }
+}
+
+function isToolbarPlaceholderSymbol(node: FormulaNode): boolean {
+  return node.type === 'symbol' && node.value === TOOLBAR_PLACEHOLDER_MARKER;
 }
 
 function findFirstEditableRowId(node: FormulaNode): string | null {

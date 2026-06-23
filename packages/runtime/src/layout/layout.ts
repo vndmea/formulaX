@@ -9,6 +9,7 @@ import type {
   LayoutResult,
   TextMetricsBox,
 } from './types';
+import { resolveRuntimeSymbol } from '../latex/symbols';
 
 const DEFAULT_FONT_FAMILY = '"Cambria Math", "Times New Roman", serif';
 const RELATION_SYMBOLS = new Set(['=', '<', '>', '≤', '≥', '≈']);
@@ -294,9 +295,9 @@ function layoutNode(
       return layoutRow(node, metrics, options, nodeMap);
     case 'symbol':
       return layoutTextBox(node.id, node.id, 'symbol', node.value, metrics.measureText(node.value, {
-        fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+        fontFamily: node.fontFamily ?? options.fontFamily ?? DEFAULT_FONT_FAMILY,
         fontSize: options.fontSize,
-      }), nodeMap);
+      }), nodeMap, node.fontFamily);
     case 'unsupported':
       return layoutTextBox(node.id, node.id, 'unsupported', node.rawLatex, metrics.measureText(node.rawLatex, {
         fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
@@ -322,6 +323,7 @@ function layoutTextBox(
   text: string,
   metrics: TextMetricsBox,
   nodeMap: Map<string, LayoutBox>,
+  fontFamily?: string,
 ): LayoutBox {
   const box: LayoutBox = {
     id,
@@ -334,6 +336,7 @@ function layoutTextBox(
     ascent: metrics.ascent,
     descent: metrics.descent,
     text,
+    fontFamily,
     children: [],
   };
   nodeMap.set(nodeId, box);
@@ -389,8 +392,18 @@ function layoutSqrt(
     fontSize: options.fontSize,
   });
   const radicalBox = layoutTextBox(`${node.id}-radical`, node.id, 'sqrt-radical', '√', radical, nodeMap);
+  const indexOptions = {
+    ...options,
+    fontSize: options.fontSize * options.scriptScale!,
+  };
+  const index = node.index ? layoutRow(node.index, metrics, indexOptions, nodeMap) : null;
   const value = layoutRow(node.value, metrics, options, nodeMap);
-  const ascent = Math.max(radicalBox.ascent, value.ascent + (options.ruleThickness ?? 0));
+  const radicalOffsetX = index ? index.width * 0.55 : 0;
+  const ascent = Math.max(
+    radicalBox.ascent,
+    value.ascent + (options.ruleThickness ?? 0),
+    index ? index.height + options.fontSize * 0.1 : 0,
+  );
   const descent = Math.max(radicalBox.descent, value.descent);
   const box: LayoutBox = {
     id: node.id,
@@ -398,19 +411,24 @@ function layoutSqrt(
     kind: 'sqrt',
     x: 0,
     y: 0,
-    width: radicalBox.width + value.width + options.fontSize * 0.15,
+    width: radicalOffsetX + radicalBox.width + value.width + options.fontSize * 0.15,
     height: ascent + descent,
     ascent,
     descent,
     children: [
+      ...(index ? [{
+        ...index,
+        x: 0,
+        y: 0,
+      }] : []),
       {
         ...radicalBox,
-        x: 0,
+        x: radicalOffsetX,
         y: ascent - radicalBox.ascent,
       },
       {
         ...value,
-        x: radicalBox.width + options.fontSize * 0.15,
+        x: radicalOffsetX + radicalBox.width + options.fontSize * 0.15,
         y: ascent - value.ascent,
       },
     ],
@@ -473,11 +491,13 @@ function layoutFence(
   options: FormulaLayoutOptions,
   nodeMap: Map<string, LayoutBox>,
 ): LayoutBox {
-  const left = layoutTextBox(`${node.id}-left`, `${node.id}-left`, 'fence-delimiter', node.left, metrics.measureText(node.left, {
+  const leftDelimiter = resolveDelimiterText(node.left);
+  const rightDelimiter = resolveDelimiterText(node.right);
+  const left = layoutTextBox(`${node.id}-left`, `${node.id}-left`, 'fence-delimiter', leftDelimiter, metrics.measureText(leftDelimiter, {
     fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
     fontSize: options.fontSize,
   }), nodeMap);
-  const right = layoutTextBox(`${node.id}-right`, `${node.id}-right`, 'fence-delimiter', node.right, metrics.measureText(node.right, {
+  const right = layoutTextBox(`${node.id}-right`, `${node.id}-right`, 'fence-delimiter', rightDelimiter, metrics.measureText(rightDelimiter, {
     fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
     fontSize: options.fontSize,
   }), nodeMap);
@@ -502,6 +522,27 @@ function layoutFence(
   };
   nodeMap.set(node.id, box);
   return box;
+}
+
+function resolveDelimiterText(delimiter: string): string {
+  const resolved = resolveRuntimeSymbol(delimiter);
+  if (resolved) {
+    return resolved.char;
+  }
+
+  if (delimiter === '\\{') {
+    return '{';
+  }
+
+  if (delimiter === '\\}') {
+    return '}';
+  }
+
+  if (delimiter === '\\|') {
+    return '|';
+  }
+
+  return delimiter;
 }
 
 function layoutMatrix(

@@ -20,14 +20,18 @@ export function serializeFormulaNode(node: FormulaNode): string {
   switch (node.type) {
     case 'row':
       return `{${serializeRow(node)}}`;
-    case 'symbol': {
+    case 'symbol':
+      if (node.latex) {
+        return node.latex;
+      }
+      {
       const command = SYMBOL_TO_LATEX[node.value];
       return command ? `\\${command}` : node.value;
-    }
+      }
     case 'frac':
       return `\\frac{${serializeRow(node.numerator)}}{${serializeRow(node.denominator)}}`;
     case 'sqrt':
-      return `\\sqrt{${serializeRow(node.value)}}`;
+      return `\\sqrt${node.index ? `[${serializeRow(node.index)}]` : ''}{${serializeRow(node.value)}}`;
     case 'script': {
       const base = serializeFormulaNode(node.base);
       const parts = node.order?.length

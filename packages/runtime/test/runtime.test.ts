@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { FormulaNode } from '../src/core/types';
 import {
   applyFormulaCommand,
   createEmptyFormulaDoc,
@@ -25,6 +26,52 @@ const testMetrics = {
   },
 };
 
+const LEGACY_TOOLBAR_LATEX_SAMPLES = [
+  '\\cos\\placeholder',
+  '\\cos{2x}',
+  '\\cot\\placeholder',
+  '\\csc\\placeholder',
+  '\\frac \\pi 2',
+  '\\frac \\placeholder\\placeholder',
+  '\\frac {\\Delta y}{\\Delta x}',
+  '\\frac {-b\\pm\\sqrt{b^2-4ac}}{2a}',
+  '\\frac {dy}{dx}',
+  '\\iiint\\placeholder',
+  '\\iiint^\\placeholder_\\placeholder\\placeholder',
+  '\\iint\\placeholder',
+  '\\iint^\\placeholder_\\placeholder\\placeholder',
+  '\\int \\placeholder',
+  '\\int^\\placeholder_\\placeholder\\placeholder',
+  '\\left(\\placeholder\\right)',
+  '\\left[\\placeholder\\right]',
+  '\\left\\{\\placeholder\\right\\}',
+  '\\left|\\placeholder\\right|',
+  '\\placeholder^\\placeholder',
+  '\\placeholder^\\placeholder_\\placeholder',
+  '\\placeholder_\\placeholder',
+  '\\sec\\placeholder',
+  '\\sin\\placeholder',
+  '\\sin\\theta',
+  '\\sqrt [\\placeholder] \\placeholder',
+  '\\sqrt [2] \\placeholder',
+  '\\sqrt [3] \\placeholder',
+  '\\sqrt \\placeholder',
+  '\\sqrt {a^2+b^2}',
+  '\\sum\\placeholder',
+  '\\sum^\\placeholder_\\placeholder\\placeholder',
+  '\\sum_\\placeholder\\placeholder',
+  '\\tan\\placeholder',
+  '\\tan\\theta=\\frac {\\sin\\theta}{\\cos\\theta}',
+  '{\\left(x+a\\right)}^2=\\sum^n_{k=0}{\\left(^n_k\\right)x^ka^{n-k}}',
+  '{\\placeholder/\\placeholder}',
+  '{^\\placeholder_\\placeholder\\placeholder}',
+  '{}^n_1Y',
+  'a^2+b^2=c^2',
+  'e^{-i\\omega t}',
+  'x^2',
+  'x=\\frac {-b\\pm\\sqrt {b^2-4ac}}{2a}',
+] as const;
+
 describe('runtime latex parser and serializer', () => {
   it('round-trips the supported runtime subset', () => {
     resetFormulaNodeIdsForTests();
@@ -35,7 +82,10 @@ describe('runtime latex parser and serializer', () => {
       'x_1^2',
       '\\frac{a}{b}',
       '\\sqrt{x+1}',
+      '\\sqrt[3]{x+1}',
       '\\left(x+1\\right)',
+      '\\left\\{x+1\\right\\}',
+      '\\mathcal{A}+\\mathbb{R}',
       '\\begin{matrix}a&b\\\\c&d\\end{matrix}',
       '\\begin{cases}x&1\\\\y&2\\end{cases}',
     ];
@@ -50,6 +100,28 @@ describe('runtime latex parser and serializer', () => {
     const parsed = parseLatexToFormulaDoc('\\foo{x}');
     expect(parsed.root.children[0]?.type).toBe('unsupported');
     expect(serializeFormulaDocToLatex(parsed)).toBe('\\foo{x}');
+  });
+
+  it('parses styled symbols with preserved font metadata', () => {
+    const parsed = parseLatexToFormulaDoc('\\mathcal{A}');
+    const symbol = parsed.root.children[0];
+
+    expect(symbol?.type).toBe('symbol');
+    expect(symbol && 'fontFamily' in symbol ? symbol.fontFamily : undefined).toContain('KF AMS CAL');
+    expect(serializeFormulaDocToLatex(parsed)).toBe('\\mathcal{A}');
+  });
+
+  it('parses the legacy kity toolbar template catalog without unsupported nodes', () => {
+    for (const sample of LEGACY_TOOLBAR_LATEX_SAMPLES) {
+      const doc = createEmptyFormulaDoc('');
+      const inserted = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+        type: 'insertLatex',
+        payload: { latex: sample },
+      });
+
+      expect(inserted.changed, sample).toBe(true);
+      expect(hasUnsupportedNode(inserted.doc.root), sample).toBe(false);
+    }
   });
 });
 
@@ -152,7 +224,61 @@ describe('runtime commands and layout', () => {
     });
 
     expect(result.changed).toBe(true);
-    expect(serializeFormulaDocToLatex(result.doc)).toBe('\\sin{}');
-    expect(result.selection.offset).toBe(0);
+    expect(serializeFormulaDocToLatex(result.doc)).toBe('\\sin');
+    expect(result.selection.rowId).toBe(result.doc.root.id);
+    expect(result.selection.offset).toBe(1);
+  });
+
+  it('keeps fence and nth-root toolbar placeholders editable without synthetic wrapper groups', () => {
+    const doc = createEmptyFormulaDoc('');
+    const fenced = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+      type: 'insertLatex',
+      payload: { latex: '\\left(\\placeholder\\right)' },
+    });
+    const fencedTyped = insertTextAtSelection(fenced.doc, fenced.selection, 'x');
+
+    expect(serializeFormulaDocToLatex(fencedTyped.doc)).toBe('\\left(x\\right)');
+
+    const rooted = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+      type: 'insertLatex',
+      payload: { latex: '\\sqrt [3] \\placeholder' },
+    });
+    const rootedTyped = insertTextAtSelection(rooted.doc, rooted.selection, 'y');
+
+    expect(serializeFormulaDocToLatex(rootedTyped.doc)).toBe('\\sqrt[3]{y}');
   });
 });
+
+function hasUnsupportedNode(node: FormulaNode): boolean {
+  if (node.type === 'unsupported') {
+    return true;
+  }
+
+  if (node.type === 'row') {
+    return node.children.some((child) => hasUnsupportedNode(child));
+  }
+
+  if (node.type === 'frac') {
+    return hasUnsupportedNode(node.numerator) || hasUnsupportedNode(node.denominator);
+  }
+
+  if (node.type === 'sqrt') {
+    return Boolean(node.index && hasUnsupportedNode(node.index)) || hasUnsupportedNode(node.value);
+  }
+
+  if (node.type === 'script') {
+    return hasUnsupportedNode(node.base)
+      || Boolean(node.sup && hasUnsupportedNode(node.sup))
+      || Boolean(node.sub && hasUnsupportedNode(node.sub));
+  }
+
+  if (node.type === 'fence') {
+    return hasUnsupportedNode(node.body);
+  }
+
+  if (node.type === 'matrix') {
+    return node.rows.some((row) => row.some((cell) => hasUnsupportedNode(cell)));
+  }
+
+  return false;
+}

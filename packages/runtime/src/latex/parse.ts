@@ -8,10 +8,11 @@ import type {
   FormulaNode,
   FormulaRowNode,
   FormulaScriptNode,
+  FormulaSqrtNode,
   FormulaSymbolNode,
   FormulaUnsupportedNode,
 } from '../core/types';
-import { LATEX_SYMBOLS } from './symbols';
+import { resolveRuntimeSymbol } from './symbols';
 
 type ScriptTarget = {
   sup?: FormulaRowNode;
@@ -27,12 +28,13 @@ function createRow(children: FormulaNode[] = []): FormulaRowNode {
   };
 }
 
-function createSymbol(value: string, latex?: string): FormulaSymbolNode {
+function createSymbol(value: string, latex?: string, fontFamily?: string): FormulaSymbolNode {
   return {
     type: 'symbol',
     id: createFormulaNodeId('sym'),
     value,
     latex,
+    fontFamily,
   };
 }
 
@@ -113,8 +115,9 @@ class RuntimeLatexParser {
       return {
         type: 'sqrt',
         id: createFormulaNodeId('sqrt'),
+        index: this.parseOptionalBracketGroup(),
         value: this.parseRequiredGroup('\\sqrt value'),
-      };
+      } satisfies FormulaSqrtNode;
     }
 
     if (this.peek('\\left')) {
@@ -202,16 +205,43 @@ class RuntimeLatexParser {
     if (!command) {
       const escaped = this.input[this.index] ?? '';
       this.index += escaped ? 1 : 0;
-      return createSymbol(escaped || '\\');
+      return createSymbol(escaped || '\\', escaped ? `\\${escaped}` : '\\');
     }
 
-    const mapped = LATEX_SYMBOLS[command];
-    if (mapped) {
-      return createSymbol(mapped, `\\${command}`);
+    if (command in { mathcal: true, mathfrak: true, mathbb: true, mathrm: true }) {
+      const styled = this.parseStyledCommand(command, this.input.slice(start, this.index));
+      if (styled) {
+        return styled;
+      }
+    }
+
+    const resolved = resolveRuntimeSymbol(`\\${command}`);
+    if (resolved) {
+      return createSymbol(resolved.char, resolved.latex, resolved.fontFamily);
     }
 
     const rawLatex = this.readUnsupportedCommandWithTrailingGroups(this.input.slice(start, this.index));
     return createUnsupported(rawLatex, `Unsupported command \\${command}`);
+  }
+
+  private parseStyledCommand(command: string, rawCommand: string): FormulaNode | null {
+    this.skipWhitespace();
+    const rawGroup = this.readBalancedGroup('{', '}');
+    if (!rawGroup) {
+      this.diagnostics.push({
+        message: `Missing group for \\${command}`,
+        severity: 'warning',
+      });
+      return createUnsupported(rawCommand, `Missing group for \\${command}`);
+    }
+
+    const rawLatex = `${rawCommand}${rawGroup.raw}`;
+    const resolved = resolveRuntimeSymbol(rawLatex);
+    if (!resolved) {
+      return createUnsupported(rawLatex, `Unsupported styled command \\${command}`);
+    }
+
+    return createSymbol(resolved.char, resolved.latex, resolved.fontFamily);
   }
 
   private applyScripts(atom: FormulaNode): FormulaNode {
@@ -249,6 +279,7 @@ class RuntimeLatexParser {
   }
 
   private parseRequiredGroup(context: string): FormulaRowNode {
+    this.skipWhitespace();
     if (this.input[this.index] === '{') {
       this.index += 1;
       const row = this.parseRow(() => this.input[this.index] === '}');
@@ -269,6 +300,16 @@ class RuntimeLatexParser {
     return createRow([]);
   }
 
+  private parseOptionalBracketGroup(): FormulaRowNode | undefined {
+    this.skipWhitespace();
+    const rawGroup = this.readBalancedGroup('[', ']');
+    if (!rawGroup) {
+      return undefined;
+    }
+
+    return new RuntimeLatexParser(rawGroup.content).parse().root;
+  }
+
   private readGroupText(): string {
     if (!this.consume('{')) {
       return '';
@@ -284,6 +325,8 @@ class RuntimeLatexParser {
   }
 
   private readDelimiter(): string {
+    this.skipWhitespace();
+
     while (this.input[this.index] === ' ') {
       this.index += 1;
     }
@@ -291,6 +334,10 @@ class RuntimeLatexParser {
     if (this.input[this.index] === '\\') {
       const start = this.index;
       this.index += 1;
+      if (this.index < this.input.length && !/[a-zA-Z.]/.test(this.input[this.index])) {
+        this.index += 1;
+        return this.input.slice(start, this.index);
+      }
       while (this.index < this.input.length && /[a-zA-Z.]/.test(this.input[this.index])) {
         this.index += 1;
       }
@@ -300,6 +347,44 @@ class RuntimeLatexParser {
     const value = this.input[this.index] ?? '.';
     this.index += 1;
     return value;
+  }
+
+  private readBalancedGroup(open: string, close: string): { raw: string; content: string } | null {
+    if (this.input[this.index] !== open) {
+      return null;
+    }
+
+    const start = this.index;
+    this.index += 1;
+    let depth = 1;
+    const contentStart = this.index;
+
+    while (this.index < this.input.length) {
+      const char = this.input[this.index];
+      if (char === open) {
+        depth += 1;
+      } else if (char === close) {
+        depth -= 1;
+        if (depth === 0) {
+          const content = this.input.slice(contentStart, this.index);
+          this.index += 1;
+          return {
+            raw: this.input.slice(start, this.index),
+            content,
+          };
+        }
+      }
+      this.index += 1;
+    }
+
+    this.index = start;
+    return null;
+  }
+
+  private skipWhitespace(): void {
+    while (this.index < this.input.length && /\s/.test(this.input[this.index])) {
+      this.index += 1;
+    }
   }
 
   private findEnvironmentEnd(name: string): number {

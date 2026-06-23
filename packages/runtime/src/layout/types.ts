@@ -9,6 +9,7 @@ export interface LayoutBox {
   ascent: number;
   descent: number;
   text?: string;
+  fontFamily?: string;
   rowId?: string;
   children: LayoutBox[];
 }

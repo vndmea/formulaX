@@ -134,6 +134,9 @@ function appendBox(
     text.setAttribute('y', String(box.ascent));
     text.setAttribute('dominant-baseline', 'alphabetic');
     text.setAttribute('font-size', String(Math.max(12, Math.round(box.height))));
+    if (box.fontFamily) {
+      text.setAttribute('font-family', box.fontFamily);
+    }
     group.appendChild(text);
   }
 

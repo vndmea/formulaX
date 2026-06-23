@@ -25,6 +25,7 @@ export interface FormulaSymbolNode {
   id: string;
   value: string;
   latex?: string;
+  fontFamily?: string;
 }
 
 export interface FormulaFractionNode {
@@ -37,6 +38,7 @@ export interface FormulaFractionNode {
 export interface FormulaSqrtNode {
   type: 'sqrt';
   id: string;
+  index?: FormulaRowNode;
   value: FormulaRowNode;
 }
 
