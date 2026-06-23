@@ -1,3 +1,4 @@
+import { createFormulaRendererV2 } from '@formulaxjs/renderer-next';
 import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 import {
   loadTinyMceRuntime,
@@ -77,6 +78,13 @@ function getDemoEditorHeight(): number {
   return Math.max(240, Math.min(360, viewportHeight - 330));
 }
 
+const demoRenderer = createFormulaRendererV2({
+  maxWidth: 720,
+  wrap: 'soft',
+  lineGap: 14,
+  continuationIndent: 30,
+});
+
 const app = queryRequiredElement<HTMLDivElement>('#app');
 
 app.innerHTML = `
@@ -102,7 +110,7 @@ app.innerHTML = `
         <label class="fx-demo-field fx-demo-field--compact">
           <span>Output</span>
           <select id="formulax-output-mode" aria-label="FormulaX output mode">
-            <option value="svg">Kity (SVG)</option>
+            <option value="svg">Renderer Next (SVG)</option>
             <option value="image">Image</option>
           </select>
         </label>
@@ -188,6 +196,7 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
       buttonName,
       menuItemName,
       tooltip: 'Insert or edit formula',
+      renderer: demoRenderer,
       output: outputMode,
       image: outputMode === 'image'
         ? {
@@ -196,6 +205,13 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
         : undefined,
       modal: {
         title: 'FormulaX Editor',
+      },
+      editor: {
+        runtime: 'v2',
+        wrap: 'soft',
+        maxWidth: 'host',
+        lineGap: 14,
+        continuationIndent: 30,
       },
     });
 
@@ -217,8 +233,8 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
 
     setStatus(
       outputMode === 'image'
-        ? `TinyMCE ${version} · image`
-        : `TinyMCE ${version} · svg`,
+        ? `TinyMCE ${version} · runtime v2 + image`
+        : `TinyMCE ${version} · runtime v2 + renderer-next`,
       'success',
     );
   } catch (error) {
