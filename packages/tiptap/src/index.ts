@@ -629,3 +629,4 @@ function readImageDimension(value: string | null | undefined): number | null {
 
 export type { FormulaXPayload, FormulaXTiptapOptions, RequiredFormulaXTiptapOptions } from './types';
 export { openFormulaXTiptapModal } from './modal';
+export * from './actions';

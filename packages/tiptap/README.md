@@ -13,6 +13,7 @@ Tiptap integration adapter for FormulaX.
 - Tiptap node extension export through `FormulaXNode`
 - Extension factory export through `createFormulaXNode`
 - `openFormulaX` command for toolbar buttons or programmatic opening
+- Shared SVG icon exports and `createFormulaXActions()` helper for headless toolbars
 - Double-click editing for existing formulas
 - Default SVG persistence in node attrs
 - Optional `output: 'image'` PNG persistence with user-provided upload
@@ -76,6 +77,23 @@ To open the FormulaX modal programmatically:
 
 ```ts
 editor.commands.openFormulaX();
+```
+
+## Toolbar helper
+
+Tiptap stays headless, so this package does not register a toolbar button for you. Instead, it exports a shared icon and action helper that you can wire into React, Vue, Element Plus, or any custom UI:
+
+```ts
+import {
+  createFormulaXActions,
+  FORMULAX_DEFAULT_ICON_SVG,
+} from '@formulaxjs/tiptap';
+
+const actions = createFormulaXActions(editor, {
+  formulaIcon: FORMULAX_DEFAULT_ICON_SVG,
+});
+
+actions.openFormulaX.run();
 ```
 
 ## Custom node names
@@ -229,9 +247,12 @@ interface FormulaXTiptapOptions {
 | --- | --- |
 | `FormulaXNode` | Default FormulaX Tiptap node extension. |
 | `createFormulaXNode` | Creates a FormulaX node extension, optionally with custom options. |
+| `createFormulaXActions` | Creates headless toolbar actions with shared FormulaX icon metadata. |
 | `resolveOptions` | Resolves user options into required defaults. |
 | `openFormulaXTiptapModal` | Opens the FormulaX modal directly. |
 | `FORMULAX_NODE_NAME` | Default Tiptap node name. |
+| `FORMULAX_DEFAULT_ICON_SVG` | Built-in FormulaX toolbar SVG icon string. |
+| `FORMULAX_DEFAULT_ICON_NAME` | Shared default FormulaX icon id. |
 | `createFormulaXPayload` | Parses LaTeX into a FormulaX document. |
 | `serializeFormulaXPayload` | Serializes a FormulaX document back to LaTeX. |
 

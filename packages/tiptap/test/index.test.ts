@@ -2,6 +2,9 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import {
+  FORMULAX_DEFAULT_ICON_SVG,
+  FORMULAX_DEFAULT_ICON_NAME,
+  createFormulaXActions,
   createFormulaXNode,
   createFormulaXPayload,
   resolveOptions,
@@ -78,6 +81,54 @@ describe('tiptap adapter', () => {
         locale: 'zh_CN',
       },
     });
+  });
+
+  it('creates default toolbar actions with the shared icon metadata', () => {
+    const editor = {
+      commands: {
+        openFormulaX: vi.fn(() => true),
+      },
+      can: () => ({
+        openFormulaX: () => true,
+      }),
+    };
+
+    const actions = createFormulaXActions(editor);
+
+    expect(actions.openFormulaX).toMatchObject({
+      icon: FORMULAX_DEFAULT_ICON_SVG,
+      iconName: FORMULAX_DEFAULT_ICON_NAME,
+      label: 'Insert formula',
+    });
+    expect(actions.openFormulaX.run()).toBe(true);
+    expect(editor.commands.openFormulaX).toHaveBeenCalledOnce();
+  });
+
+  it('allows custom toolbar action icon overrides', () => {
+    const actions = createFormulaXActions({
+      commands: {},
+    }, {
+      formulaIconName: 'custom-formula',
+      formulaIcon: ' <svg><path /></svg> ',
+      label: 'Formula',
+      tooltip: 'Insert Formula',
+    });
+
+    expect(actions.insertFormula).toMatchObject({
+      iconName: 'custom-formula',
+      icon: '<svg><path /></svg>',
+      label: 'Formula',
+      tooltip: 'Insert Formula',
+    });
+  });
+
+  it('disables toolbar actions when the open command is unavailable', () => {
+    const actions = createFormulaXActions({
+      commands: {},
+    });
+
+    expect(actions.openFormulaX.isEnabled()).toBe(false);
+    expect(actions.openFormulaX.run()).toBe(false);
   });
 
   it('renders persisted image metadata as img markup', () => {

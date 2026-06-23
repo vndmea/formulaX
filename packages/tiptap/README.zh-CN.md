@@ -13,6 +13,7 @@ FormulaX 的 Tiptap 集成适配器。
 - 通过 `FormulaXNode` 导出 Tiptap 节点扩展
 - 通过 `createFormulaXNode` 导出扩展工厂函数
 - 提供 `openFormulaX` 命令，便于接工具栏按钮或代码中主动打开
+- 导出共享 SVG icon 与 `createFormulaXActions()`，方便接无头 toolbar
 - 支持双击编辑已有公式
 - 默认在节点 attrs 中持久化 LaTeX
 - 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片元数据
@@ -76,6 +77,23 @@ const editor = new Editor({
 
 ```ts
 editor.commands.openFormulaX();
+```
+
+## Toolbar helper
+
+Tiptap 本身是 headless 的，这个包不会直接帮你注册工具栏按钮。你可以使用共享 icon 和 action helper，把它接到 React、Vue、Element Plus 或自定义 UI 里：
+
+```ts
+import {
+  createFormulaXActions,
+  FORMULAX_DEFAULT_ICON_SVG,
+} from '@formulaxjs/tiptap';
+
+const actions = createFormulaXActions(editor, {
+  formulaIcon: FORMULAX_DEFAULT_ICON_SVG,
+});
+
+actions.openFormulaX.run();
 ```
 
 ## 自定义节点名称
@@ -232,9 +250,12 @@ interface FormulaXTiptapOptions {
 | --- | --- |
 | `FormulaXNode` | 默认的 FormulaX Tiptap 节点扩展。 |
 | `createFormulaXNode` | 创建 FormulaX 节点扩展，可传入自定义配置。 |
+| `createFormulaXActions` | 创建带共享 FormulaX icon 元数据的无头 toolbar action。 |
 | `resolveOptions` | 将用户配置与默认配置合并为完整配置。 |
 | `openFormulaXTiptapModal` | 直接打开 FormulaX 弹窗。 |
 | `FORMULAX_NODE_NAME` | 默认的 Tiptap 节点名。 |
+| `FORMULAX_DEFAULT_ICON_SVG` | 内置 FormulaX 工具栏 SVG icon 字符串。 |
+| `FORMULAX_DEFAULT_ICON_NAME` | 共享的默认 FormulaX icon 标识。 |
 | `createFormulaXPayload` | 将 LaTeX 解析为 FormulaX 文档。 |
 | `serializeFormulaXPayload` | 将 FormulaX 文档序列化回 LaTeX。 |
 
