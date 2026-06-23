@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@formulaxjs/renderer-next": "workspace:*",
-    ": "workspace:*",
+    "@formulaxjs/tinymce": "workspace:*",
     "tinymce": "^7.7.1"
   }
 }
