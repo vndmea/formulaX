@@ -381,8 +381,11 @@ function layoutFraction(
   const numerator = layoutRow(node.numerator, metrics, options, nodeMap);
   const denominator = layoutRow(node.denominator, metrics, options, nodeMap);
   const width = Math.max(numerator.width, denominator.width) + options.fontSize * 0.4;
-  const ascent = numerator.height + (options.lineGap ?? 0) + (options.ruleThickness ?? 0);
-  const descent = denominator.height + (options.lineGap ?? 0);
+  const ruleY = numerator.height + (options.lineGap ?? 0);
+  const denominatorY = ruleY + (options.ruleThickness ?? 0) + (options.lineGap ?? 0);
+  const height = denominatorY + denominator.height;
+  const ascent = height / 2;
+  const descent = height - ascent;
   const box: LayoutBox = {
     id: node.id,
     nodeId: node.id,
@@ -390,7 +393,7 @@ function layoutFraction(
     x: 0,
     y: 0,
     width,
-    height: ascent + descent,
+    height,
     ascent,
     descent,
     children: [
@@ -402,7 +405,7 @@ function layoutFraction(
       {
         ...denominator,
         x: (width - denominator.width) / 2,
-        y: ascent + (options.lineGap ?? 0),
+        y: denominatorY,
       },
     ],
   };

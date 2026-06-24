@@ -217,6 +217,21 @@ describe('runtime commands and layout', () => {
       .toBeCloseTo(scriptBox!.y + scriptBox!.height / 2, 0);
   });
 
+  it('centers leading equation text beside tall fractions', () => {
+    const doc = createEmptyFormulaDoc('x=\\frac {-b\\pm\\sqrt {b^2-4ac}}{2a}');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+    });
+    const [xBox, equalsBox, fractionBox] = layout.root.children;
+    const fractionCenter = fractionBox!.y + fractionBox!.height / 2;
+
+    expect(xBox?.text).toBe('x');
+    expect(equalsBox?.text).toBe('=');
+    expect(fractionBox?.kind).toBe('frac');
+    expect(xBox!.y + xBox!.height / 2).toBeCloseTo(fractionCenter, 0);
+    expect(equalsBox!.y + equalsBox!.height / 2).toBeCloseTo(fractionCenter, 0);
+  });
+
   it('returns a single line layout by default', () => {
     const doc = createEmptyFormulaDoc('a+b+c+d');
     const layout = layoutFormula(doc, testMetrics, {
