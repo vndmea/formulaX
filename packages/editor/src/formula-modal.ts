@@ -71,9 +71,9 @@ export const formulaXModalStyles = `
   inset: 0;
   z-index: 2147483000;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 32px 20px;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -81,21 +81,21 @@ export const formulaXModalStyles = `
 .fx-formula-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.48);
+  background: rgba(48, 48, 48, 0.5);
 }
 
 .fx-formula-modal {
   --fx-formula-editor-body-height: 264px;
   --fx-formula-workspace-height: 168px;
   position: relative;
-  width: min(920px, calc(100vw - 32px));
+  width: min(900px, calc(100vw - 40px));
   height: auto;
   max-height: none;
   margin: 0 auto;
   background: #fff;
-  border: 1px solid #c9c7be;
-  border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border: 1px solid #b3aead;
+  border-radius: 3px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   overflow: visible;
@@ -109,12 +109,12 @@ export const formulaXModalStyles = `
 .fx-formula-modal__button,
 .fx-formula-editor-loading,
 .fx-formula-editor-error {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Helvetica, Arial, "微软雅黑", "Microsoft YaHei", "宋体", sans-serif;
 }
 
 .fx-formula-modal__header {
-  min-height: 48px;
-  padding: 0 16px;
+  min-height: 42px;
+  padding: 0 14px;
   border-bottom: 1px solid #d8d6cd;
   display: flex;
   align-items: center;
@@ -123,24 +123,32 @@ export const formulaXModalStyles = `
   position: relative;
   z-index: 3;
   background: #f7f6f0;
-  border-radius: 4px 4px 0 0;
+  border-radius: 3px 3px 0 0;
 }
 
 .fx-formula-modal__title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
   color: #333;
 }
 
 .fx-formula-modal__close {
-  border: 1px solid transparent;
-  background: transparent;
-  font-size: 20px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #cfc9bf;
+  background: linear-gradient(180deg, #ffffff, #ece8dc);
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  color: #666;
+  color: #5d5d5d;
   border-radius: 3px;
+}
+
+.fx-formula-modal__close:hover {
+  border-color: #9fcfa0;
+  background: #ebf7e6;
 }
 
 .fx-formula-modal__body {
@@ -151,6 +159,7 @@ export const formulaXModalStyles = `
   min-height: var(--fx-formula-editor-body-height);
   position: relative;
   z-index: 2;
+  background: #fff;
 }
 
 .fx-formula-editor-host {
@@ -159,6 +168,7 @@ export const formulaXModalStyles = `
   min-height: var(--fx-formula-editor-body-height);
   overflow: visible;
   position: relative;
+  background: #fff;
 }
 
 .fx-formula-runtime-host {
@@ -205,7 +215,8 @@ export const formulaXModalStyles = `
   width: 100%;
   min-width: 0;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
+  flex-wrap: nowrap;
   white-space: nowrap;
   overflow: visible;
 }
@@ -213,8 +224,9 @@ export const formulaXModalStyles = `
 .fx-runtime-toolbar__button {
   appearance: none;
   box-sizing: border-box;
-  padding: 8px 6px;
-  min-width: 46px;
+  flex: 0 0 auto;
+  padding: 8px 6px 6px;
+  min-width: 52px;
   height: 79px;
   font-size: 12px;
   display: inline-block;
@@ -228,6 +240,7 @@ export const formulaXModalStyles = `
   margin-right: 1px;
   background: transparent;
   color: inherit;
+  overflow: visible;
 }
 
 .fx-runtime-toolbar__history {
@@ -301,14 +314,15 @@ export const formulaXModalStyles = `
   width: 100%;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;
+  justify-content: flex-start;
+  overflow: visible;
 }
 
 .fx-runtime-toolbar__button-icon {
   width: 32px;
-  height: 30px;
-  flex: 0 0 30px;
-  margin: 0 auto 2px;
+  height: 32px;
+  flex: 0 0 auto;
+  margin: 2px auto 3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -321,12 +335,30 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-label {
-  margin-top: 8px;
+  margin-top: 10px;
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="presets"] {
+  min-width: 58px;
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="fraction"],
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="brackets"] {
+  min-width: 54px;
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="radicals"],
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="functions"] {
+  min-width: 56px;
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="integrals"] {
+  min-width: 58px;
 }
 
 .fx-runtime-toolbar__button[data-formulax-toolbar-control="large-ops"],
 .fx-runtime-toolbar__button[data-formulax-toolbar-control="大型-运算符"] {
-  min-width: 74px;
+  min-width: 76px;
 }
 
 .fx-runtime-toolbar__button-icon .fx-runtime-svg,
@@ -337,6 +369,36 @@ export const formulaXModalStyles = `
   height: auto;
   max-height: 100%;
   overflow: visible;
+  transform-origin: center center;
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="fraction"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: translateY(1px) scale(0.94);
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="scripts"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: translateY(1px) scale(0.96);
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="radicals"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: translateY(1px) scale(0.94);
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="integrals"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: translateY(1px) scale(0.94);
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="large-ops"] .fx-runtime-toolbar__button-icon .fx-runtime-svg,
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="大型-运算符"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="brackets"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: scale(0.94);
+}
+
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="functions"] .fx-runtime-toolbar__button-icon .fx-runtime-svg {
+  transform: translateY(1px) scale(0.92);
 }
 
 .fx-runtime-toolbar__button-icon[aria-busy="true"],
@@ -360,7 +422,7 @@ export const formulaXModalStyles = `
   align-items: stretch;
   position: relative;
   box-sizing: border-box;
-  margin-right: 1px;
+  margin-right: 10px;
   border: 1px solid #e0dfd5;
   border-radius: 4px;
   background: #fff;
@@ -370,7 +432,7 @@ export const formulaXModalStyles = `
 .fx-runtime-toolbar__area-container {
   width: 293px;
   height: 70px;
-  margin: 4px 0 4px 4px;
+  margin: 5px;
   display: grid;
   grid-template-columns: repeat(9, 32px);
   grid-auto-rows: 32px;
@@ -380,8 +442,6 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__area-item {
   appearance: none;
-  width: 32px;
-  height: 32px;
   padding: 0;
   border: 0;
   display: flex;
@@ -389,11 +449,6 @@ export const formulaXModalStyles = `
   justify-content: center;
   background: transparent;
   cursor: pointer;
-}
-
-.fx-runtime-toolbar__area-item .fx-runtime-toolbar__item-preview {
-  box-sizing: border-box;
-  transform: none;
 }
 
 .fx-runtime-toolbar__area-open {
@@ -415,15 +470,34 @@ export const formulaXModalStyles = `
   background-color: #45a949;
 }
 
+.fx-runtime-toolbar__area-item {
+  width: 32px;
+  height: 32px;
+}
+
+.fx-runtime-toolbar__area-item .fx-runtime-toolbar__item-preview {
+  box-sizing: border-box;
+  transform: none;
+}
+
+.fx-runtime-toolbar__area-item:hover .fx-runtime-toolbar__item-preview--symbol {
+  border-color: #6eb864;
+}
+
 .fx-runtime-toolbar__button-label {
   color: #666;
   text-align: center;
   display: block;
+  min-height: 26px;
   font-size: 12px;
-  line-height: 14px;
-  max-height: 28px;
-  overflow: hidden;
-  white-space: nowrap;
+  line-height: 12px;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  padding: 0 1px;
 }
 
 .fx-runtime-toolbar__button-sign {
@@ -431,10 +505,9 @@ export const formulaXModalStyles = `
   border-top-color: #2d2d2d;
   width: 0;
   height: 0;
-  display: block;
-  flex: 0 0 auto;
-  margin: 2px auto 0;
-  vertical-align: top;
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 .fx-runtime-toolbar__popover {
@@ -446,7 +519,7 @@ export const formulaXModalStyles = `
   border-radius: 3px;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.11);
   background: #fff;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .fx-runtime-toolbar__popover.is-hidden {
@@ -455,8 +528,8 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__popover-body,
 .fx-runtime-toolbar__popover-card {
-  max-height: 230px;
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 .fx-runtime-toolbar__section + .fx-runtime-toolbar__section {
@@ -605,16 +678,17 @@ export const formulaXModalStyles = `
   width: 100%;
   height: var(--fx-runtime-toolbar-preview-height, auto);
   min-height: var(--fx-runtime-toolbar-preview-height, 42px);
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 5px;
+  padding: 6px 5px 4px;
   overflow: hidden;
+  line-height: 0;
 }
 
 .fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
   max-width: 100%;
   max-height: 100%;
-  margin: auto;
+  margin: 0 auto;
 }
 
 .fx-runtime-toolbar__item:hover .fx-runtime-toolbar__item-preview--template {
@@ -747,27 +821,27 @@ export const formulaXModalStyles = `
 }
 
 .fx-formula-modal__footer {
-  min-height: 64px;
-  padding: 12px 16px;
+  min-height: 56px;
+  padding: 10px 14px;
   border-top: 1px solid #d8d6cd;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
   background: #f7f6f0;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 3px 3px;
 }
 
 .fx-formula-modal__button {
   appearance: none;
-  border: 1px solid #b9b7af;
-  background: linear-gradient(180deg, #fff, #efede4);
+  border: 1px solid #b1b1b1;
+  background: linear-gradient(180deg, #fff, #ece9dd);
   color: #333;
   border-radius: 3px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   font-size: 14px;
   cursor: pointer;
 }
@@ -776,6 +850,16 @@ export const formulaXModalStyles = `
   border-color: #53b856;
   background: linear-gradient(180deg, #6cc96a, #53b856);
   color: #fff;
+}
+
+.fx-formula-modal__button:hover {
+  border-color: #9fcfa0;
+  background: #ebf7e6;
+}
+
+.fx-formula-modal__button--primary:hover {
+  border-color: #45a949;
+  background: linear-gradient(180deg, #60c260, #45a949);
 }
 `;
 
@@ -933,18 +1017,19 @@ async function mountRuntimeV2Handle(
   root: HTMLElement,
   options: FormulaXEditorOptions & { initialLatex: string },
 ): Promise<MountedFormulaXHandle> {
+  const doc = root.ownerDocument ?? document;
   ensureRuntimeFontStyles(root.ownerDocument ?? document);
   root.classList.remove('fx-formula-kity-host');
   root.classList.add('fx-formula-runtime-host');
   root.innerHTML = '';
 
-  const shell = document.createElement('div');
-  shell.className = 'fx-formula-runtime-shell';
+  const shell = doc.createElement('div');
+  shell.className = 'fx-formula-runtime-shell kf-editor';
 
-  const toolbarHost = document.createElement('div');
+  const toolbarHost = doc.createElement('div');
   toolbarHost.className = 'fx-formula-runtime-toolbar-host';
 
-  const surfaceHost = document.createElement('div');
+  const surfaceHost = doc.createElement('div');
   surfaceHost.className = 'fx-formula-runtime-surface kf-editor-edit-area';
 
   shell.append(toolbarHost, surfaceHost);

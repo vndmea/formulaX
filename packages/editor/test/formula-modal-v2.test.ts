@@ -166,13 +166,22 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const fractionIcon = fractionButton?.querySelector<HTMLElement>(
       '.fx-runtime-toolbar__button-icon',
     );
+    const scriptsButton = host.querySelector<HTMLButtonElement>(
+      '[data-formulax-toolbar-button="scripts"]',
+    );
+    const scriptsIcon = scriptsButton?.querySelector<HTMLElement>(
+      '.fx-runtime-toolbar__button-icon',
+    );
     const controls = Array.from(
       host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__button'),
     );
 
     await expect.poll(() => fractionIcon?.querySelector('svg')).not.toBeNull();
+    await expect.poll(() => scriptsIcon?.querySelector('svg')).not.toBeNull();
     expect(fractionIcon?.style.backgroundImage).toBe('');
     expect(fractionIcon?.querySelector('[data-formulax-role="placeholder"]')).toBeNull();
+    expect(scriptsIcon?.style.backgroundImage).toBe('');
+    expect(scriptsIcon?.querySelector('[data-formulax-role="placeholder"]')).toBeNull();
     fractionButton?.click();
     const fractionPreview = host.querySelector<HTMLElement>(
       '[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"] '
@@ -269,6 +278,28 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
+  it('shows symbol catalog sections in a single popover without category switching', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
+
+    host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
+    const sections = Array.from(
+      host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__popover .fx-runtime-toolbar__section'),
+    );
+
+    expect(sections.length).toBeGreaterThan(4);
+
+    mounted.destroy();
+  });
+
   it('keeps the Large Ops toolbar button wide enough for the two-line label', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
@@ -283,7 +314,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     ensureFormulaXModalStyles(document);
 
     const largeOps = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="large-ops"]');
-    expect(getComputedStyle(largeOps as HTMLElement).minWidth).toBe('74px');
+    expect(parseInt(getComputedStyle(largeOps as HTMLElement).minWidth, 10)).toBeGreaterThanOrEqual(74);
 
     mounted.destroy();
   });

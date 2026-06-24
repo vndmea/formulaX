@@ -34,6 +34,7 @@ type RuntimeToolbarPanel = {
   label: string;
   width: number;
   groups: RuntimeToolbarGroup[];
+  buttonClassName?: string;
 };
 
 type RuntimeToolbarMountOptions = {
@@ -93,6 +94,16 @@ const UNDO_LABELS: Record<FormulaXLocale, string> = {
 const REDO_LABELS: Record<FormulaXLocale, string> = {
   en_US: 'Redo',
   zh_CN: '重做',
+};
+
+const TOOLBAR_BUTTON_ICON_PREVIEWS: Partial<Record<string, { latex: string; fontSize?: number }>> = {
+  fraction: { latex: '\\frac {a}{b}', fontSize: 18 },
+  scripts: { latex: '{}^n_1Y', fontSize: 18 },
+  radicals: { latex: '\\sqrt [3] x', fontSize: 18 },
+  integrals: { latex: '\\int_a^b', fontSize: 18 },
+  'large-ops': { latex: '\\sum_1^n', fontSize: 18 },
+  brackets: { latex: '\\left(x\\right)', fontSize: 19 },
+  functions: { latex: '\\sin x', fontSize: 18 },
 };
 
 function createToolbarPreviewRenderer(
@@ -343,7 +354,9 @@ export function mountRuntimeV2Toolbar(
 
     if (!activePanelId) {
       popover.classList.add('is-hidden');
+      popover.removeAttribute('data-formulax-toolbar-layout');
       popoverBody.innerHTML = '';
+      resetPopoverOverflow();
       return;
     }
 
@@ -355,9 +368,29 @@ export function mountRuntimeV2Toolbar(
     }
 
     popover.classList.remove('is-hidden');
+    popover.dataset.formulaxToolbarLayout = panel.layout;
     popoverBody.innerHTML = '';
 
-    for (const group of panel.groups) {
+    appendToolbarSections(popoverBody, panel.groups, panel.layout, (item) => {
+        applyToolbarItem(runtimeHandle, item.latex);
+        runtimeHandle.focus();
+        updateHistoryButtons();
+        activePanelId = null;
+        renderPopover();
+    });
+
+    if (anchor) {
+      positionPopover(anchor);
+    }
+  }
+
+  function appendToolbarSections(
+    sectionHost: HTMLElement,
+    groups: RuntimeToolbarGroup[],
+    layout: RuntimeToolbarPanel['layout'],
+    onSelect: (item: RuntimeToolbarItem) => void,
+  ): void {
+    for (const group of groups) {
       const section = doc.createElement('section');
       section.className = 'fx-runtime-toolbar__section kf-editor-ui-box-group';
 
@@ -366,20 +399,20 @@ export function mountRuntimeV2Toolbar(
       sectionTitle.textContent = stripHtml(group.title);
 
       const grid = doc.createElement('div');
-      grid.className = `fx-runtime-toolbar__grid fx-runtime-toolbar__grid--${panel.layout} kf-editor-ui-box-container`;
+      grid.className = `fx-runtime-toolbar__grid fx-runtime-toolbar__grid--${layout} kf-editor-ui-box-container`;
 
       for (const item of group.items) {
         const itemButton = doc.createElement('button');
         itemButton.type = 'button';
-        itemButton.className = `fx-runtime-toolbar__item fx-runtime-toolbar__item--${panel.layout} kf-editor-ui-box-item`;
+        itemButton.className = `fx-runtime-toolbar__item fx-runtime-toolbar__item--${layout} kf-editor-ui-box-item`;
         itemButton.dataset.formulaxToolbarItem = item.id;
         itemButton.dataset.formulaxToolbarLatex = item.latex;
         itemButton.title = item.title || item.latex;
-        applyToolbarItemSize(itemButton, item, panel.layout);
+        applyToolbarItemSize(itemButton, item, layout);
 
         const content = doc.createElement('span');
-        content.className = `fx-runtime-toolbar__item-content fx-runtime-toolbar__item-content--${panel.layout} kf-editor-ui-box-item-content`;
-        applyToolbarItemSize(content, item, panel.layout);
+        content.className = `fx-runtime-toolbar__item-content fx-runtime-toolbar__item-content--${layout} kf-editor-ui-box-item-content`;
+        applyToolbarItemSize(content, item, layout);
 
         if (item.label) {
           const label = doc.createElement('span');
@@ -389,31 +422,22 @@ export function mountRuntimeV2Toolbar(
         }
 
         const preview = createPreviewElement(doc, item, previewRenderer, true);
-        applyToolbarPreviewSize(preview, item, panel.layout);
+        applyToolbarPreviewSize(preview, item, layout);
         content.appendChild(preview);
         itemButton.appendChild(content);
-        itemButton.addEventListener('click', () => {
-          applyToolbarItem(runtimeHandle, item.latex);
-          runtimeHandle.focus();
-          updateHistoryButtons();
-          activePanelId = null;
-          renderPopover();
-        });
+        itemButton.addEventListener('click', () => onSelect(item));
 
         grid.appendChild(itemButton);
       }
 
       section.append(sectionTitle, grid);
-      popoverBody.appendChild(section);
-    }
-
-    if (anchor) {
-      positionPopover(anchor);
+      sectionHost.appendChild(section);
     }
   }
 
   function positionPopover(anchor: HTMLButtonElement): void {
-    const requestedWidth = panels.find((panel) => panel.id === activePanelId)?.width ?? 332;
+    const panel = panels.find((item) => item.id === activePanelId);
+    const requestedWidth = panel?.width ?? 332;
     const shellWidth = Math.max(shell.clientWidth, requestedWidth + 8);
     const width = Math.min(requestedWidth, Math.max(220, shellWidth - 8));
     const shellRect = shell.getBoundingClientRect();
@@ -428,10 +452,34 @@ export function mountRuntimeV2Toolbar(
     const preferredLeft = (leftAnchorRect.width > 0 ? measuredLeft : leftAnchor.offsetLeft) - 1;
     const left = Math.max(0, Math.min(preferredLeft, shellWidth - width - 1));
 
+    resetPopoverOverflow();
     popover.style.width = `${width}px`;
     popover.style.maxWidth = `${width}px`;
     popover.style.left = `${left}px`;
     popover.style.top = `${anchorRect.height > 0 ? measuredTop - 1 : anchor.offsetTop + anchor.offsetHeight - 1}px`;
+
+    if (panel?.layout !== 'symbols') {
+      return;
+    }
+
+    const viewportHeight = doc.defaultView?.innerHeight;
+    if (!viewportHeight) {
+      return;
+    }
+
+    const popoverRect = popover.getBoundingClientRect();
+    if (popoverRect.bottom <= viewportHeight) {
+      return;
+    }
+
+    const availableHeight = Math.max(120, Math.floor(viewportHeight - popoverRect.top - 30));
+    popoverBody.style.maxHeight = `${availableHeight}px`;
+    popoverBody.style.overflowY = 'auto';
+  }
+
+  function resetPopoverOverflow(): void {
+    popoverBody.style.maxHeight = '';
+    popoverBody.style.overflowY = '';
   }
 
   renderPopover();
@@ -465,13 +513,20 @@ function createPanelButton(
 ): HTMLButtonElement {
   const button = createToolbarButton(doc, panel.id, panel.label, '', true);
   button.classList.add(`fx-runtime-toolbar__button--${panel.layout}`);
+  if (panel.buttonClassName) {
+    for (const className of panel.buttonClassName.split(/\s+/).filter(Boolean)) {
+      button.classList.add(`kf-editor-ui-${className}`);
+    }
+  }
   const iconHost = button.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
   const previewItem = panel.groups[0]?.items[0];
   if (iconHost && previewItem && panel.layout !== 'presets') {
     iconHost.classList.add(`fx-runtime-toolbar__button-icon--${previewItem.kind}`);
-    const iconLatex = createToolbarButtonIconLatex(previewItem.previewLatex);
+    iconHost.dataset.formulaxToolbarIcon = panel.id;
+    const iconPreview = resolveToolbarButtonIconPreview(panel.id, previewItem.previewLatex);
+    const iconLatex = iconPreview.latex;
     iconHost.dataset.formulaxToolbarPreview = iconLatex;
-    previewRenderer.render(iconHost, iconLatex, 22, true);
+    previewRenderer.render(iconHost, iconLatex, iconPreview.fontSize ?? 22, true);
   }
   return button;
 }
@@ -483,10 +538,12 @@ function createToolbarButton(
   fallbackIcon: string,
   showSign: boolean,
 ): HTMLButtonElement {
+  const normalizedLabel = normalizeToolbarButtonLabel(label);
   const button = doc.createElement('button');
   button.type = 'button';
   button.className = 'fx-runtime-toolbar__button kf-editor-ui-button kf-editor-ui-enabled';
   button.dataset.formulaxToolbarControl = id;
+  button.title = stripHtml(normalizedLabel);
 
   const buttonInner = doc.createElement('span');
   buttonInner.className = 'fx-runtime-toolbar__button-in kf-editor-ui-button-in';
@@ -497,13 +554,13 @@ function createToolbarButton(
 
   const labelElement = doc.createElement('span');
   labelElement.className = 'fx-runtime-toolbar__button-label kf-editor-ui-button-label';
-  labelElement.innerHTML = label;
+  labelElement.innerHTML = normalizedLabel;
 
   buttonInner.append(iconElement, labelElement);
   if (showSign) {
     const sign = doc.createElement('span');
     sign.className = 'fx-runtime-toolbar__button-sign kf-editor-ui-button-sign';
-    buttonInner.appendChild(sign);
+    labelElement.appendChild(sign);
   }
 
   button.appendChild(buttonInner);
@@ -534,7 +591,8 @@ function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel
   const panels: RuntimeToolbarPanel[] = [];
 
   for (const entry of config) {
-    const groups = extractToolbarGroups(entry.options?.box?.group ?? []);
+    const rawGroups = entry.options?.box?.group ?? [];
+    const groups = extractToolbarGroups(rawGroups);
     if (groups.length === 0) {
       continue;
     }
@@ -552,6 +610,7 @@ function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel
       label: label ?? TOOLBAR_SYMBOL_LABELS[locale],
       width: entry.options?.box?.width ?? 332,
       groups,
+      buttonClassName: entry.options?.button?.className,
     });
   }
 
@@ -588,7 +647,7 @@ function extractToolbarGroups(
 
       normalizedGroups.push({
         id: createPanelId(item.title ?? group.title ?? 'Items'),
-        title: item.title ?? group.title ?? 'Items',
+        title: stripHtml(item.title ?? group.title ?? 'Items'),
         items: normalizedItems,
       });
     }
@@ -698,6 +757,21 @@ function createToolbarButtonIconLatex(latex: string): string {
     .trim();
 }
 
+function resolveToolbarButtonIconPreview(
+  panelId: string,
+  fallbackLatex: string,
+): { latex: string; fontSize?: number } {
+  const mapped = TOOLBAR_BUTTON_ICON_PREVIEWS[panelId];
+  if (mapped) {
+    return mapped;
+  }
+
+  return {
+    latex: createToolbarButtonIconLatex(fallbackLatex),
+    fontSize: 22,
+  };
+}
+
 function applyToolbarItem(runtimeHandle: RuntimeEditorHandle, latex: string): void {
   const normalized = latex.replace(/\s+/g, ' ').trim();
 
@@ -780,4 +854,10 @@ function createPanelId(value: string): string {
 
 function stripHtml(value: string): string {
   return value.replace(/<br\s*\/?>/gi, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function normalizeToolbarButtonLabel(value: string): string {
+  return value
+    .replace(/(?:<br\s*\/?>\s*)+$/gi, '')
+    .trim();
 }

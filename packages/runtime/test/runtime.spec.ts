@@ -103,4 +103,88 @@ test.describe('runtime v2 editor and renderer', () => {
 
     await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.destroyModal());
   });
+
+  test('runtime-v2 modal toolbar keeps labels visible and shows non-area popovers without scrollbars', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mountModal('x'));
+
+    const modal = page.locator('#runtime-modal');
+    await expect(modal).toBeVisible();
+    await expect(
+      modal.locator('[data-formulax-toolbar-control="scripts"] .fx-runtime-toolbar__button-icon svg'),
+    ).toBeVisible();
+
+    const labelMetrics = await modal.evaluate((node) => {
+      const ids = ['fraction', 'integrals', 'large-ops', 'functions'];
+
+      return ids.map((id) => {
+        const button = node.querySelector<HTMLElement>(`[data-formulax-toolbar-control="${id}"]`);
+        const label = button?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-label');
+        const buttonRect = button?.getBoundingClientRect();
+        const labelRect = label?.getBoundingClientRect();
+
+        return {
+          id,
+          hasButton: Boolean(buttonRect),
+          hasLabel: Boolean(labelRect),
+          leftInset: buttonRect && labelRect ? Math.round(labelRect.left - buttonRect.left) : null,
+          rightOverflow: buttonRect && labelRect ? Math.round(labelRect.right - buttonRect.right) : null,
+          bottomOverflow: buttonRect && labelRect ? Math.round(labelRect.bottom - buttonRect.bottom) : null,
+        };
+      });
+    });
+
+    for (const metric of labelMetrics) {
+      expect(metric.hasButton).toBe(true);
+      expect(metric.hasLabel).toBe(true);
+      expect(metric.leftInset).toBeGreaterThanOrEqual(0);
+      expect(metric.rightOverflow).toBeLessThanOrEqual(0);
+      expect(metric.bottomOverflow).toBeLessThanOrEqual(0);
+    }
+
+    const popoverButtons = ['presets', 'fraction', 'scripts', 'radicals', 'integrals', 'large-ops', 'brackets', 'functions'];
+    for (const id of popoverButtons) {
+      await modal.locator(`[data-formulax-toolbar-button="${id}"]`).click();
+      const popup = modal.locator('.fx-runtime-toolbar__popover:not(.is-hidden)').first();
+      await expect(popup).toBeVisible();
+
+      const metrics = await popup.evaluate((node) => {
+        const body = node.querySelector<HTMLElement>('.fx-runtime-toolbar__popover-body') ?? node;
+        const presetPreview = node.querySelector<HTMLElement>(
+          '.fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template',
+        );
+
+        return {
+          overflowY: getComputedStyle(body).overflowY,
+          presetAlignItems: presetPreview ? getComputedStyle(presetPreview).alignItems : null,
+        };
+      });
+
+      expect(metrics.overflowY).not.toBe('auto');
+      if (id === 'presets') {
+        expect(metrics.presetAlignItems).toBe('flex-start');
+      }
+
+      await page.mouse.click(8, 8);
+    }
+
+    await modal.locator('[data-formulax-toolbar-button="integrals"]').click();
+    const overflowMetrics = await modal.evaluate((node) => {
+      const shell = node.querySelector<HTMLElement>('.fx-formula-runtime-shell');
+      const popup = node.querySelector<HTMLElement>('.fx-runtime-toolbar__popover:not(.is-hidden)');
+      const shellRect = shell?.getBoundingClientRect();
+      const popupRect = popup?.getBoundingClientRect();
+
+      return {
+        shellBottom: shellRect ? Math.round(shellRect.bottom) : null,
+        popupBottom: popupRect ? Math.round(popupRect.bottom) : null,
+      };
+    });
+
+    expect(overflowMetrics.shellBottom).not.toBeNull();
+    expect(overflowMetrics.popupBottom).not.toBeNull();
+    expect((overflowMetrics.popupBottom ?? 0) > (overflowMetrics.shellBottom ?? 0)).toBe(true);
+
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.destroyModal());
+  });
 });
