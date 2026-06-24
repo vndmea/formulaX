@@ -84,6 +84,13 @@ test.describe('runtime v2 editor and renderer', () => {
 
     await modal.locator('[data-formulax-toolbar-button="radicals"]').click();
     await expect(modal.locator('.fx-runtime-toolbar__popover-card')).toBeVisible();
+    await expect(modal.locator('.fx-formula-runtime-shell')).toHaveCSS('overflow', 'visible');
+    const rootPreview = modal.locator(
+      '[data-formulax-toolbar-latex="\\\\sqrt [3] \\\\placeholder"] '
+      + '.fx-runtime-toolbar__item-preview',
+    );
+    await expect(rootPreview.locator('svg[data-formulax-runtime="solid-svg"]')).toBeVisible();
+    await expect(rootPreview).not.toHaveCSS('background-image', /url/);
 
     await modal.locator('[data-formulax-toolbar-latex="\\\\sqrt [3] \\\\placeholder"]').click();
     await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getModalLatex())).toBe('x\\sqrt[3]{}');
