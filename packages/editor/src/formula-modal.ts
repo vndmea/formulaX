@@ -324,6 +324,11 @@ export const formulaXModalStyles = `
   margin-top: 8px;
 }
 
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="large-ops"],
+.fx-runtime-toolbar__button[data-formulax-toolbar-control="大型-运算符"] {
+  min-width: 62px;
+}
+
 .fx-runtime-toolbar__button-icon .fx-runtime-svg,
 .fx-runtime-toolbar__item-preview .fx-runtime-svg {
   display: block;
@@ -593,16 +598,16 @@ export const formulaXModalStyles = `
   width: 100%;
   height: auto;
   min-height: 42px;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
   padding: 5px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
 }
 
 .fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
-  max-width: none;
+  max-width: 100%;
   max-height: none;
-  margin: 0;
+  margin: auto;
 }
 
 .fx-runtime-toolbar__item:hover .fx-runtime-toolbar__item-preview--template {

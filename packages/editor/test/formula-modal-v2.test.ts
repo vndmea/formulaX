@@ -253,7 +253,27 @@ describe('mountFormulaXEditor runtime=v2', () => {
     expect(presetsGrid).not.toBeNull();
     expect(getComputedStyle(presetsItem as HTMLElement).display).toBe('block');
     expect(getComputedStyle(presetsPreview as HTMLElement).width).toBe('100%');
-    expect(getComputedStyle(presetsPreview as HTMLElement).overflowX).toBe('auto');
+    expect(getComputedStyle(presetsPreview as HTMLElement).overflowX).toBe('hidden');
+    expect(getComputedStyle(presetsPreview?.querySelector('.fx-runtime-svg') as HTMLElement).maxWidth)
+      .toBe('100%');
+
+    mounted.destroy();
+  });
+
+  it('keeps the Large Ops toolbar button wide enough for the two-line label', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+      locale: 'en_US',
+    });
+
+    await mounted.getLatex();
+
+    const largeOps = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="large-ops"]');
+    expect(getComputedStyle(largeOps as HTMLElement).minWidth).toBe('62px');
 
     mounted.destroy();
   });
