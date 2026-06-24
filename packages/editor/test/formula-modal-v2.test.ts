@@ -375,6 +375,9 @@ describe('mountFormulaXEditor runtime=v2', () => {
     expect(getComputedStyle(presetsPreview as HTMLElement).height).toBe('73px');
     expect(getComputedStyle(presetsPreview as HTMLElement).overflow).toBe('hidden');
     await expect.poll(() => presetsPreview?.querySelector('.fx-runtime-svg')).not.toBeNull();
+    await expect.poll(() => (
+      presetsPreview?.querySelector<SVGTextElement>('text')?.getAttribute('font-size')
+    )).toBe('24');
     const presetsSvgStyle = getComputedStyle(
       presetsPreview?.querySelector('.fx-runtime-svg') as HTMLElement,
     );

@@ -74,8 +74,8 @@ function syncSvg(
     svg.appendChild(lineGroup);
 
     line.fragments.forEach((fragment) => {
-      buildAbsoluteMap(fragment.box, fragment.x, line.y, absoluteMap, false);
-      appendBox(lineGroup, fragment.box, line, fragment.x, 0, null, false);
+      buildAbsoluteMap(fragment.box, fragment.x, line.y + fragment.y, absoluteMap, false);
+      appendBox(lineGroup, fragment.box, line, fragment.x, fragment.y, null, false);
     });
   });
 

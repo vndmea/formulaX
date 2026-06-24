@@ -232,6 +232,26 @@ describe('runtime commands and layout', () => {
     expect(equalsBox!.y + equalsBox!.height / 2).toBeCloseTo(fractionCenter, 0);
   });
 
+  it('adds horizontal spacing around relation and binary operators in tall formulas', () => {
+    const doc = createEmptyFormulaDoc('x=\\frac {-b\\pm\\sqrt {b^2-4ac}}{2a}');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+    });
+    const [xBox, equalsBox, fractionBox] = layout.root.children;
+    const numeratorRow = fractionBox?.children[0];
+    const [minusBox, bBox, pmBox, sqrtBox] = numeratorRow?.children ?? [];
+
+    expect(xBox?.text).toBe('x');
+    expect(equalsBox?.text).toBe('=');
+    expect(pmBox?.text).toBe('±');
+    expect(sqrtBox?.kind).toBe('sqrt');
+    expect(equalsBox!.x).toBeGreaterThan(xBox!.x + xBox!.width);
+    expect(fractionBox!.x).toBeGreaterThan(equalsBox!.x + equalsBox!.width);
+    expect(pmBox!.x).toBeGreaterThan(bBox!.x + bBox!.width);
+    expect(sqrtBox!.x).toBeGreaterThan(pmBox!.x + pmBox!.width);
+    expect(bBox!.x).toBeGreaterThan(minusBox!.x + minusBox!.width);
+  });
+
   it('returns a single line layout by default', () => {
     const doc = createEmptyFormulaDoc('a+b+c+d');
     const layout = layoutFormula(doc, testMetrics, {

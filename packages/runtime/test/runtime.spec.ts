@@ -153,16 +153,43 @@ test.describe('runtime v2 editor and renderer', () => {
         const presetPreview = node.querySelector<HTMLElement>(
           '.fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template',
         );
+        const presetText = presetPreview?.querySelector<SVGTextElement>('text');
+        const presetSvg = presetPreview?.querySelector<SVGSVGElement>('svg');
+        const lineGroup = presetSvg?.querySelector('g[data-formulax-line-index="0"]');
+        const rootChildren = lineGroup
+          ? Array.from(lineGroup.children)
+          : [];
+        const numeratorRow = presetSvg?.querySelector('g[data-formulax-box-kind="frac"] > g[data-formulax-box-kind="row"]');
+        const numeratorChildren = numeratorRow
+          ? Array.from(numeratorRow.children).filter((item) => item instanceof SVGGElement)
+          : [];
+        const measureGaps = (items: Element[]) => {
+          const sorted = items
+            .map((item) => ({
+              left: item.getBoundingClientRect().left,
+              right: item.getBoundingClientRect().right,
+            }))
+            .sort((a, b) => a.left - b.left);
+          return sorted.slice(1).map((item, index) => item.left - sorted[index].right);
+        };
 
         return {
           overflowY: getComputedStyle(body).overflowY,
           presetAlignItems: presetPreview ? getComputedStyle(presetPreview).alignItems : null,
+          presetTextBaseline: presetText?.getAttribute('dominant-baseline') ?? null,
+          presetRootMinGap: rootChildren.length > 1 ? Math.min(...measureGaps(rootChildren)) : null,
+          presetNumeratorMinGap: numeratorChildren.length > 1 ? Math.min(...measureGaps(numeratorChildren)) : null,
         };
       });
 
       expect(metrics.overflowY).not.toBe('auto');
       if (id === 'presets') {
         expect(metrics.presetAlignItems).toBe('flex-start');
+        expect(metrics.presetTextBaseline).toBe('middle');
+        expect(metrics.presetRootMinGap).not.toBeNull();
+        expect(metrics.presetNumeratorMinGap).not.toBeNull();
+        expect(metrics.presetRootMinGap!).toBeGreaterThanOrEqual(0);
+        expect(metrics.presetNumeratorMinGap!).toBeGreaterThanOrEqual(0);
       }
 
       await page.mouse.click(8, 8);

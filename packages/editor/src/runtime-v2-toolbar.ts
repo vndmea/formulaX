@@ -118,6 +118,8 @@ const TOOLBAR_BUTTON_ICON_PREVIEWS: Partial<Record<string, { latex: string; font
 };
 
 const TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE = 20;
+const TOOLBAR_TEMPLATE_PREVIEW_FONT_SIZE = 28;
+const TOOLBAR_PRESETS_PREVIEW_FONT_SIZE = 24;
 
 function createToolbarPreviewRenderer(
   doc: Document,
@@ -470,7 +472,7 @@ export function mountRuntimeV2Toolbar(
           content.appendChild(label);
         }
 
-        const preview = createPreviewElement(doc, item, previewRenderer, true);
+        const preview = createPreviewElement(doc, item, previewRenderer, layout, true);
         applyToolbarPreviewSize(preview, item, layout);
         content.appendChild(preview);
         itemButton.appendChild(content);
@@ -618,6 +620,7 @@ function createPreviewElement(
   doc: Document,
   item: RuntimeToolbarItem,
   previewRenderer: ToolbarPreviewRenderer,
+  layout: RuntimeToolbarPanel['layout'],
   priority = false,
 ): HTMLElement {
   const preview = doc.createElement('span');
@@ -633,10 +636,22 @@ function createPreviewElement(
   previewRenderer.render(
     preview,
     item.previewLatex,
-    item.kind === 'symbol' ? TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE : 28,
+    resolveToolbarPreviewFontSize(item, layout),
     priority,
   );
   return preview;
+}
+
+function resolveToolbarPreviewFontSize(
+  item: RuntimeToolbarItem,
+  layout: RuntimeToolbarPanel['layout'],
+): number {
+  if (item.kind === 'symbol') {
+    return TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE;
+  }
+  return layout === 'presets'
+    ? TOOLBAR_PRESETS_PREVIEW_FONT_SIZE
+    : TOOLBAR_TEMPLATE_PREVIEW_FONT_SIZE;
 }
 
 function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel[] {
@@ -677,10 +692,7 @@ function preloadToolbarPreviews(
   for (const panel of panels) {
     for (const group of panel.groups) {
       for (const item of group.items) {
-        previewRenderer.preload(
-          item.previewLatex,
-          item.kind === 'symbol' ? TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE : 28,
-        );
+        previewRenderer.preload(item.previewLatex, resolveToolbarPreviewFontSize(item, panel.layout));
       }
     }
   }
@@ -917,7 +929,7 @@ function createSymbolArea(
       button.title = item.title;
       const inner = doc.createElement('span');
       inner.className = 'fx-runtime-toolbar__area-item-inner';
-      inner.appendChild(createPreviewElement(doc, item, previewRenderer));
+      inner.appendChild(createPreviewElement(doc, item, previewRenderer, 'symbols'));
       button.appendChild(inner);
       button.addEventListener('click', () => handlers.insert(item));
       viewport.appendChild(button);

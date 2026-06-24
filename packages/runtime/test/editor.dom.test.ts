@@ -41,4 +41,27 @@ describe('FormulaRuntimeEditor', () => {
     expect(handle.editor.canUndo()).toBe(false);
     expect(handle.getRenderHtml()).toContain('data-formulax-line-index="1"');
   });
+
+  it('preserves top-level vertical offsets when rendering tall inline formulas', async () => {
+    document.body.innerHTML = '<div id="root"></div>';
+    const root = document.getElementById('root') as HTMLElement;
+    const handle = await createRuntimeEditor(root, {
+      initialLatex: 'x=\\frac {-b\\pm\\sqrt {b^2-4ac}}{2a}',
+      autofocus: false,
+    });
+
+    const svgDoc = new DOMParser().parseFromString(handle.getRenderHtml(), 'image/svg+xml');
+    const topLevelSymbols = Array.from(
+      svgDoc.querySelectorAll('svg > g[data-formulax-line-index="0"] > g[data-formulax-box-kind="symbol"]'),
+    );
+    const firstSymbol = topLevelSymbols[0];
+    const equalsSymbol = topLevelSymbols[1];
+
+    expect(firstSymbol?.textContent).toBe('x');
+    expect(equalsSymbol?.textContent).toBe('=');
+    expect(firstSymbol?.getAttribute('transform')).toMatch(/translate\([^,]+,\s*(?!0(?:[.)]|$))[^)]+\)/);
+    expect(equalsSymbol?.getAttribute('transform')).toMatch(/translate\([^,]+,\s*(?!0(?:[.)]|$))[^)]+\)/);
+
+    handle.destroy();
+  });
 });

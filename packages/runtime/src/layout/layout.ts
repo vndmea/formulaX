@@ -118,7 +118,7 @@ function createSingleLine(root: LayoutBox): LayoutLine {
       lineIndex: 0,
       childIndex,
       x: child.x,
-      y: 0,
+      y: child.y,
       width: child.width,
       height: child.height,
       ascent: child.ascent,
@@ -146,7 +146,8 @@ function wrapRootRow(root: LayoutBox, options: FormulaLayoutOptions): LayoutLine
     const descent = Math.max(...lineBoxes.map(({ box }) => box.descent));
     const height = ascent + descent;
     let cursorX = lineIndex === 0 ? 0 : continuationIndent;
-    const fragments: LayoutFragment[] = lineBoxes.map(({ box, childIndex }) => {
+    const fragments: LayoutFragment[] = lineBoxes.map(({ box, childIndex }, fragmentIndex) => {
+      cursorX += getInlineGap(lineBoxes[fragmentIndex - 1]?.box, box, options);
       const fragment: LayoutFragment = {
         id: `${box.id}-fragment-${lineIndex}`,
         nodeId: box.nodeId,
@@ -154,7 +155,7 @@ function wrapRootRow(root: LayoutBox, options: FormulaLayoutOptions): LayoutLine
         lineIndex,
         childIndex,
         x: cursorX,
-        y: 0,
+        y: ascent - box.ascent,
         width: box.width,
         height: box.height,
         ascent: box.ascent,
@@ -189,9 +190,10 @@ function wrapRootRow(root: LayoutBox, options: FormulaLayoutOptions): LayoutLine
   };
 
   root.children.forEach((child, childIndex) => {
+    const inlineGap = getInlineGap(lineBoxes[lineBoxes.length - 1]?.box, child, options);
     const projectedWidth = lineBoxes.length === 0
       ? child.width + (lines.length > 0 ? continuationIndent : 0)
-      : lineWidth + child.width;
+      : lineWidth + inlineGap + child.width;
     const shouldBreak = lineBoxes.length > 0
       && projectedWidth > maxWidth
       && canBreakBeforeChild(lineBoxes, child, options);
@@ -201,8 +203,7 @@ function wrapRootRow(root: LayoutBox, options: FormulaLayoutOptions): LayoutLine
     }
 
     lineBoxes.push({ box: child, childIndex });
-    lineWidth = (lineBoxes.length === 1 && lines.length > 0 ? continuationIndent : 0)
-      + lineBoxes.reduce((sum, item) => sum + item.box.width, 0);
+    lineWidth = projectedWidth;
   });
 
   flush(lines.length);
@@ -248,6 +249,28 @@ function getBreakPriority(box: LayoutBox): number {
   return 0;
 }
 
+function getInlineGap(
+  previous: LayoutBox | undefined,
+  next: LayoutBox,
+  options: FormulaLayoutOptions,
+): number {
+  if (!previous) {
+    return 0;
+  }
+
+  const priority = Math.max(getBreakPriority(previous), getBreakPriority(next));
+  if (priority >= 3) {
+    return options.fontSize * 0.18;
+  }
+  if (priority === 2) {
+    return options.fontSize * 0.12;
+  }
+  if (priority === 1) {
+    return options.fontSize * 0.08;
+  }
+  return 0;
+}
+
 function layoutRow(
   row: FormulaRowNode,
   metrics: FormulaMetrics,
@@ -258,7 +281,8 @@ function layoutRow(
   const ascent = children.length ? Math.max(...children.map((child) => child.ascent)) : options.fontSize * 0.8;
   const descent = children.length ? Math.max(...children.map((child) => child.descent)) : options.fontSize * 0.3;
   let cursorX = 0;
-  const placedChildren = children.map((child) => {
+  const placedChildren = children.map((child, childIndex) => {
+    cursorX += getInlineGap(children[childIndex - 1], child, options);
     const nextChild = {
       ...child,
       x: cursorX,
