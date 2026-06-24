@@ -141,12 +141,33 @@ function appendBox(
     group.appendChild(placeholder);
   }
 
-  if (box.kind === 'symbol' || box.kind === 'unsupported' || box.kind === 'fence-delimiter' || box.kind === 'sqrt-radical') {
+  if (box.kind === 'sqrt-radical') {
+    const radical = document.createElementNS(SVG_NS, 'path');
+    const width = Math.max(1, box.width);
+    const height = Math.max(1, box.height);
+    const points = [
+      `M 0 ${height * 0.58}`,
+      `L ${width * 0.25} ${height * 0.58}`,
+      `L ${width * 0.42} ${height * 0.92}`,
+      `L ${width * 0.72} 1`,
+      `L ${width} 1`,
+    ];
+    radical.setAttribute('d', points.join(' '));
+    radical.setAttribute('fill', 'none');
+    radical.setAttribute('stroke', 'currentColor');
+    radical.setAttribute('stroke-width', '1.35');
+    radical.setAttribute('stroke-linecap', 'square');
+    radical.setAttribute('stroke-linejoin', 'miter');
+    group.appendChild(radical);
+  }
+
+  if (box.kind === 'symbol' || box.kind === 'unsupported' || box.kind === 'fence-delimiter') {
     const text = document.createElementNS(SVG_NS, 'text');
     text.textContent = box.text ?? '';
     text.setAttribute('x', '0');
     text.setAttribute('y', String(box.height / 2));
-    text.setAttribute('dominant-baseline', 'central');
+    text.setAttribute('dy', '0.12em');
+    text.setAttribute('dominant-baseline', 'middle');
     text.setAttribute('font-size', String(Math.max(12, Math.round(box.height))));
     if (box.fontFamily) {
       text.setAttribute('font-family', box.fontFamily);
@@ -171,7 +192,7 @@ function appendBox(
     if (value) {
       const radical = box.children.find((child) => child.kind === 'sqrt-radical');
       const ruleStart = radical
-        ? Math.max(value.x - value.height * 0.12, radical.x + radical.width * 0.72)
+        ? radical.x + radical.width * 0.72
         : value.x;
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('x1', String(ruleStart));

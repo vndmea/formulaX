@@ -42,7 +42,9 @@ describe('renderer-next', () => {
     const valueX = Number(valueTransform.match(/translate\(([^,]+)/)?.[1] ?? 0);
     const ruleX = Number(sqrtRule?.getAttribute('x1') ?? valueX);
 
-    expect(textNodes.every((node) => node.getAttribute('dominant-baseline') === 'central')).toBe(true);
+    expect(textNodes.every((node) => node.getAttribute('dominant-baseline') === 'middle')).toBe(true);
+    expect(textNodes.every((node) => node.getAttribute('dy') === '0.12em')).toBe(true);
+    expect(sqrt?.querySelector('[data-formulax-box-kind="sqrt-radical"] path')).not.toBeNull();
     expect(ruleX).toBeLessThan(valueX);
   });
 

@@ -416,25 +416,26 @@ function layoutSqrt(
   options: FormulaLayoutOptions,
   nodeMap: Map<string, LayoutBox>,
 ): LayoutBox {
-  const radical = metrics.measureText('√', {
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
-    fontSize: options.fontSize,
-  });
-  const radicalBox = layoutTextBox(
-    `${node.id}-radical`,
-    node.id,
-    'sqrt-radical',
-    '√',
-    radical,
-    nodeMap,
-    options.fontFamily ?? DEFAULT_FONT_FAMILY,
-  );
   const indexOptions = {
     ...options,
     fontSize: options.fontSize * options.scriptScale!,
   };
   const index = node.index ? layoutRow(node.index, metrics, indexOptions, nodeMap) : null;
   const value = layoutRow(node.value, metrics, options, nodeMap);
+  const radicalHeight = Math.max(value.height + options.fontSize * 0.2, options.fontSize);
+  const radicalBox: LayoutBox = {
+    id: `${node.id}-radical`,
+    nodeId: `${node.id}-radical`,
+    kind: 'sqrt-radical',
+    x: 0,
+    y: 0,
+    width: options.fontSize * 0.55,
+    height: radicalHeight,
+    ascent: value.ascent + options.fontSize * 0.1,
+    descent: radicalHeight - (value.ascent + options.fontSize * 0.1),
+    children: [],
+  };
+  nodeMap.set(radicalBox.nodeId, radicalBox);
   const radicalOffsetX = index ? index.width * 0.55 : 0;
   const ascent = Math.max(
     radicalBox.ascent,
