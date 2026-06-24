@@ -277,7 +277,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     ensureFormulaXModalStyles(document);
 
     const largeOps = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="large-ops"]');
-    expect(getComputedStyle(largeOps as HTMLElement).minWidth).toBe('62px');
+    expect(getComputedStyle(largeOps as HTMLElement).minWidth).toBe('74px');
 
     mounted.destroy();
   });

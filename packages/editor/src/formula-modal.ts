@@ -326,7 +326,7 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__button[data-formulax-toolbar-control="large-ops"],
 .fx-runtime-toolbar__button[data-formulax-toolbar-control="大型-运算符"] {
-  min-width: 62px;
+  min-width: 74px;
 }
 
 .fx-runtime-toolbar__button-icon .fx-runtime-svg,
