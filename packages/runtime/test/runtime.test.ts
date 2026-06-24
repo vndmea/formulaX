@@ -159,6 +159,16 @@ describe('runtime commands and layout', () => {
     expect(serializeFormulaDocToLatex(sub.doc)).toBe('x^{}_{}');
   });
 
+  it('parses detached scripts as empty-base scripts instead of literal caret symbols', () => {
+    const doc = createEmptyFormulaDoc('\\left(^n_k\\right)');
+    const fence = doc.root.children[0];
+
+    expect(containsSymbolValue(doc.root, '^')).toBe(false);
+    expect(fence?.type).toBe('fence');
+    expect(fence && fence.type === 'fence' ? fence.body.children[0]?.type : undefined).toBe('script');
+    expect(serializeFormulaDocToLatex(doc)).toBe('\\left({}^n_k\\right)');
+  });
+
   it('deletes backward from the active row', () => {
     const doc = createEmptyFormulaDoc('xy');
     const deleted = deleteBackwardAtSelection(doc, { rowId: doc.root.id, offset: 2 });
@@ -185,10 +195,26 @@ describe('runtime commands and layout', () => {
 
     expect(layout.root.children[0]?.kind).toBe('placeholder');
     expect(layout.root.children[0]?.width).toBeGreaterThan(0);
+    expect(layout.root.children[0]?.ascent).toBe(layout.root.children[0]?.descent);
 
     const symbolDoc = createEmptyFormulaDoc('x');
     const symbolLayout = layoutFormula(symbolDoc, testMetrics, { fontSize: 40 });
     expect(symbolLayout.root.children[0]?.fontFamily).toContain('KF AMS MAIN');
+    expect(symbolLayout.root.children[0]?.ascent).toBe(symbolLayout.root.children[0]?.descent);
+  });
+
+  it('centers trailing placeholders beside scripted operators', () => {
+    const doc = createEmptyFormulaDoc('\\int^\\placeholder_\\placeholder\\placeholder');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+    });
+    const scriptBox = layout.root.children[0];
+    const trailingPlaceholder = layout.root.children[1];
+
+    expect(scriptBox?.kind).toBe('script');
+    expect(trailingPlaceholder?.kind).toBe('placeholder');
+    expect(trailingPlaceholder?.y + trailingPlaceholder!.height / 2)
+      .toBeCloseTo(scriptBox!.y + scriptBox!.height / 2, 0);
   });
 
   it('returns a single line layout by default', () => {
@@ -302,6 +328,40 @@ function hasUnsupportedNode(node: FormulaNode): boolean {
 
   if (node.type === 'matrix') {
     return node.rows.some((row) => row.some((cell) => hasUnsupportedNode(cell)));
+  }
+
+  return false;
+}
+
+function containsSymbolValue(node: FormulaNode, value: string): boolean {
+  if (node.type === 'symbol') {
+    return node.value === value;
+  }
+
+  if (node.type === 'row') {
+    return node.children.some((child) => containsSymbolValue(child, value));
+  }
+
+  if (node.type === 'frac') {
+    return containsSymbolValue(node.numerator, value) || containsSymbolValue(node.denominator, value);
+  }
+
+  if (node.type === 'sqrt') {
+    return Boolean(node.index && containsSymbolValue(node.index, value)) || containsSymbolValue(node.value, value);
+  }
+
+  if (node.type === 'script') {
+    return containsSymbolValue(node.base, value)
+      || Boolean(node.sup && containsSymbolValue(node.sup, value))
+      || Boolean(node.sub && containsSymbolValue(node.sub, value));
+  }
+
+  if (node.type === 'fence') {
+    return containsSymbolValue(node.body, value);
+  }
+
+  if (node.type === 'matrix') {
+    return node.rows.some((row) => row.some((cell) => containsSymbolValue(cell, value)));
   }
 
   return false;

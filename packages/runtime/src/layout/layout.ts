@@ -327,6 +327,7 @@ function layoutPlaceholder(
 ): LayoutBox {
   const width = options.fontSize * 0.875;
   const height = options.fontSize * 1.25;
+  const ascent = height * 0.5;
   const box: LayoutBox = {
     id: nodeId,
     nodeId,
@@ -335,8 +336,8 @@ function layoutPlaceholder(
     y: 0,
     width,
     height,
-    ascent: height * 0.75,
-    descent: height * 0.25,
+    ascent,
+    descent: height - ascent,
     children: [],
   };
   nodeMap.set(nodeId, box);
@@ -352,6 +353,7 @@ function layoutTextBox(
   nodeMap: Map<string, LayoutBox>,
   fontFamily?: string,
 ): LayoutBox {
+  const ascent = metrics.height * 0.5;
   const box: LayoutBox = {
     id,
     nodeId,
@@ -360,8 +362,8 @@ function layoutTextBox(
     y: 0,
     width: Math.max(metrics.width, 2),
     height: metrics.height,
-    ascent: metrics.ascent,
-    descent: metrics.descent,
+    ascent,
+    descent: metrics.height - ascent,
     text,
     fontFamily,
     children: [],

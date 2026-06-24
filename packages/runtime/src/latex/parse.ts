@@ -145,6 +145,10 @@ class RuntimeLatexParser {
       return row;
     }
 
+    if (current === '^' || current === '_') {
+      return this.applyScripts(createRow([]));
+    }
+
     if (current === '\\') {
       return this.parseCommand();
     }

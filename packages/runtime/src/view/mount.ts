@@ -145,8 +145,8 @@ function appendBox(
     const text = document.createElementNS(SVG_NS, 'text');
     text.textContent = box.text ?? '';
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(box.ascent));
-    text.setAttribute('dominant-baseline', 'alphabetic');
+    text.setAttribute('y', String(box.height / 2));
+    text.setAttribute('dominant-baseline', 'central');
     text.setAttribute('font-size', String(Math.max(12, Math.round(box.height))));
     if (box.fontFamily) {
       text.setAttribute('font-family', box.fontFamily);
@@ -167,10 +167,14 @@ function appendBox(
   }
 
   if (box.kind === 'sqrt') {
-    const value = box.children[1];
+    const value = box.children[box.children.length - 1];
     if (value) {
+      const radical = box.children.find((child) => child.kind === 'sqrt-radical');
+      const ruleStart = radical
+        ? Math.max(value.x - value.height * 0.12, radical.x + radical.width * 0.72)
+        : value.x;
       const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('x1', String(value.x));
+      line.setAttribute('x1', String(ruleStart));
       line.setAttribute('x2', String(value.x + value.width));
       line.setAttribute('y1', '1');
       line.setAttribute('y2', '1');
