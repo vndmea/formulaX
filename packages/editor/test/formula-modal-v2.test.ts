@@ -172,6 +172,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
 
     await expect.poll(() => fractionIcon?.querySelector('svg')).not.toBeNull();
     expect(fractionIcon?.style.backgroundImage).toBe('');
+    expect(fractionIcon?.querySelector('[data-formulax-role="placeholder"]')).toBeNull();
     fractionButton?.click();
     const fractionPreview = host.querySelector<HTMLElement>(
       '[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"] '
@@ -259,8 +260,11 @@ describe('mountFormulaXEditor runtime=v2', () => {
     expect(getComputedStyle(presetsPreview as HTMLElement).height).toBe('73px');
     expect(getComputedStyle(presetsPreview as HTMLElement).overflow).toBe('hidden');
     await expect.poll(() => presetsPreview?.querySelector('.fx-runtime-svg')).not.toBeNull();
-    expect(getComputedStyle(presetsPreview?.querySelector('.fx-runtime-svg') as HTMLElement).maxWidth)
-      .toBe('100%');
+    const presetsSvgStyle = getComputedStyle(
+      presetsPreview?.querySelector('.fx-runtime-svg') as HTMLElement,
+    );
+    expect(presetsSvgStyle.maxWidth).toBe('100%');
+    expect(presetsSvgStyle.maxHeight).toBe('100%');
 
     mounted.destroy();
   });

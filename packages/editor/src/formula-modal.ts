@@ -566,7 +566,14 @@ export const formulaXModalStyles = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   transition: transform 0.1s linear, border-color 0.1s linear;
+}
+
+.fx-runtime-toolbar__item-preview--symbol .fx-runtime-svg {
+  max-width: 28px;
+  max-height: 28px;
+  overflow: hidden;
 }
 
 .fx-runtime-toolbar__item:hover .fx-runtime-toolbar__item-preview--symbol {
@@ -606,7 +613,7 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
   max-width: 100%;
-  max-height: none;
+  max-height: 100%;
   margin: auto;
 }
 

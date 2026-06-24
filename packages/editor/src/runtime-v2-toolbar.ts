@@ -43,6 +43,7 @@ type RuntimeToolbarMountOptions = {
 
 type ToolbarPreviewRenderer = {
   render(host: HTMLElement, latex: string, fontSize?: number, priority?: boolean): void;
+  preload(latex: string, fontSize?: number): void;
   destroy(): void;
 };
 
@@ -95,11 +96,48 @@ const REDO_LABELS: Record<FormulaXLocale, string> = {
 };
 
 function createToolbarPreviewRenderer(
+  doc: Document,
   runtimeAssets?: Partial<RuntimeEditorAssets>,
 ): ToolbarPreviewRenderer {
   const queue: Array<{ host: HTMLElement; latex: string; fontSize: number }> = [];
+  const markupCache = new Map<string, string>();
+  const pendingCache = new Map<string, Promise<string>>();
   let activeCount = 0;
   let destroyed = false;
+
+  const cacheKey = (latex: string, fontSize: number): string => `${fontSize}\u0000${latex}`;
+
+  const renderCached = (latex: string, fontSize: number): Promise<string> => {
+    const key = cacheKey(latex, fontSize);
+    const cached = markupCache.get(key);
+    if (cached !== undefined) {
+      return Promise.resolve(cached);
+    }
+
+    const pending = pendingCache.get(key);
+    if (pending) {
+      return pending;
+    }
+
+    const promise = renderLatexToSvgMarkup(latex, {
+      fontSize,
+      cache: !runtimeAssets?.fontFamily,
+      runtime: {
+        assets: runtimeAssets,
+      },
+    })
+      .then((result) => {
+        markupCache.set(key, result.html);
+        pendingCache.delete(key);
+        return result.html;
+      })
+      .catch((error) => {
+        pendingCache.delete(key);
+        throw error;
+      });
+    pendingCache.set(key, promise);
+    return promise;
+  };
 
   const pump = (): void => {
     while (!destroyed && activeCount < 4 && queue.length > 0) {
@@ -114,18 +152,12 @@ function createToolbarPreviewRenderer(
       activeCount += 1;
       const fontsReady = task.host.ownerDocument.fonts?.ready ?? Promise.resolve();
       void fontsReady
-        .then(() => renderLatexToSvgMarkup(task.latex, {
-          fontSize: task.fontSize,
-          cache: !runtimeAssets?.fontFamily,
-          runtime: {
-            assets: runtimeAssets,
-          },
-        }))
-        .then((result) => {
+        .then(() => renderCached(task.latex, task.fontSize))
+        .then((html) => {
           if (destroyed || !task.host.isConnected) {
             return;
           }
-          task.host.innerHTML = result.html;
+          task.host.innerHTML = html;
           task.host.removeAttribute('aria-busy');
         })
         .catch(() => {
@@ -143,6 +175,13 @@ function createToolbarPreviewRenderer(
 
   return {
     render(host, latex, fontSize = 28, priority = false) {
+      const cached = markupCache.get(cacheKey(latex, fontSize));
+      if (cached !== undefined) {
+        host.innerHTML = cached;
+        host.removeAttribute('aria-busy');
+        return;
+      }
+
       host.setAttribute('aria-busy', 'true');
       const task = { host, latex, fontSize };
       if (priority) {
@@ -152,9 +191,14 @@ function createToolbarPreviewRenderer(
       }
       queueMicrotask(pump);
     },
+    preload(latex, fontSize = 28) {
+      const fontsReady = doc.fonts?.ready ?? Promise.resolve();
+      void fontsReady.then(() => renderCached(latex, fontSize)).catch(() => undefined);
+    },
     destroy() {
       destroyed = true;
       queue.length = 0;
+      pendingCache.clear();
     },
   };
 }
@@ -167,7 +211,7 @@ export function mountRuntimeV2Toolbar(
   const locale = normalizeFormulaXLocale(options.locale);
   const panels = createRuntimeToolbarPanels(locale);
   const doc = host.ownerDocument ?? document;
-  const previewRenderer = createToolbarPreviewRenderer(options.runtimeAssets);
+  const previewRenderer = createToolbarPreviewRenderer(doc, options.runtimeAssets);
 
   const shell = doc.createElement('div');
   shell.className = 'fx-runtime-toolbar kf-editor-toolbar';
@@ -240,6 +284,7 @@ export function mountRuntimeV2Toolbar(
   if (!historyInserted) {
     buttonRow.appendChild(historyGroup);
   }
+  preloadToolbarPreviews(panels, previewRenderer);
 
   shell.append(buttonRow, popover);
   host.innerHTML = '';
@@ -423,8 +468,10 @@ function createPanelButton(
   const iconHost = button.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
   const previewItem = panel.groups[0]?.items[0];
   if (iconHost && previewItem && panel.layout !== 'presets') {
-    iconHost.dataset.formulaxToolbarPreview = previewItem.previewLatex;
-    previewRenderer.render(iconHost, previewItem.previewLatex, 22, true);
+    iconHost.classList.add(`fx-runtime-toolbar__button-icon--${previewItem.kind}`);
+    const iconLatex = createToolbarButtonIconLatex(previewItem.previewLatex);
+    iconHost.dataset.formulaxToolbarPreview = iconLatex;
+    previewRenderer.render(iconHost, iconLatex, 22, true);
   }
   return button;
 }
@@ -509,6 +556,19 @@ function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel
   }
 
   return panels;
+}
+
+function preloadToolbarPreviews(
+  panels: RuntimeToolbarPanel[],
+  previewRenderer: ToolbarPreviewRenderer,
+): void {
+  for (const panel of panels) {
+    for (const group of panel.groups) {
+      for (const item of group.items) {
+        previewRenderer.preload(item.previewLatex, panel.layout === 'symbols' ? 28 : 28);
+      }
+    }
+  }
 }
 
 function extractToolbarGroups(
@@ -627,6 +687,13 @@ function applyToolbarPreviewSize(
 
 function createPreviewLatex(latex: string): string {
   return latex
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function createToolbarButtonIconLatex(latex: string): string {
+  return createPreviewLatex(latex)
+    .replace(/\\placeholder/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
