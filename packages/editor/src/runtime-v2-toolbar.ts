@@ -26,6 +26,7 @@ type RuntimeToolbarGroup = {
 type RuntimeToolbarPanel = {
   id: string;
   kind: 'dropdown' | 'area';
+  layout: 'templates' | 'symbols' | 'presets';
   label: string;
   width: number;
   groups: RuntimeToolbarGroup[];
@@ -55,6 +56,7 @@ type RawToolbarConfig = Array<{
   options?: {
     button?: {
       label?: string;
+      className?: string;
     };
     box?: {
       width?: number;
@@ -192,7 +194,7 @@ export function mountRuntimeV2Toolbar(
   const historyGroup = doc.createElement('span');
   historyGroup.className = 'fx-runtime-toolbar__history';
   historyGroup.append(undoButton, redoButton);
-  buttonRow.appendChild(historyGroup);
+  let historyInserted = false;
 
   for (const panel of panels) {
     if (panel.kind === 'area') {
@@ -210,6 +212,8 @@ export function mountRuntimeV2Toolbar(
       panelButtons.set(panel.id, area.button);
       buttonRow.appendChild(area.root);
       buttonRow.appendChild(createDelimiter(doc));
+      buttonRow.appendChild(historyGroup);
+      historyInserted = true;
       continue;
     }
 
@@ -221,9 +225,12 @@ export function mountRuntimeV2Toolbar(
     });
     panelButtons.set(panel.id, button);
     buttonRow.appendChild(button);
-    if (panel.id === 'presets') {
+    if (panel.layout === 'presets') {
       buttonRow.appendChild(createDelimiter(doc));
     }
+  }
+  if (!historyInserted) {
+    buttonRow.appendChild(historyGroup);
   }
 
   shell.append(buttonRow, popover);
@@ -306,18 +313,18 @@ export function mountRuntimeV2Toolbar(
       sectionTitle.textContent = stripHtml(group.title);
 
       const grid = doc.createElement('div');
-      grid.className = 'fx-runtime-toolbar__grid kf-editor-ui-box-container';
+      grid.className = `fx-runtime-toolbar__grid fx-runtime-toolbar__grid--${panel.layout} kf-editor-ui-box-container`;
 
       for (const item of group.items) {
         const itemButton = doc.createElement('button');
         itemButton.type = 'button';
-        itemButton.className = 'fx-runtime-toolbar__item kf-editor-ui-box-item';
+        itemButton.className = `fx-runtime-toolbar__item fx-runtime-toolbar__item--${panel.layout} kf-editor-ui-box-item`;
         itemButton.dataset.formulaxToolbarItem = item.id;
         itemButton.dataset.formulaxToolbarLatex = item.latex;
         itemButton.title = item.title || item.latex;
 
         const content = doc.createElement('span');
-        content.className = 'fx-runtime-toolbar__item-content kf-editor-ui-box-item-content';
+        content.className = `fx-runtime-toolbar__item-content fx-runtime-toolbar__item-content--${panel.layout} kf-editor-ui-box-item-content`;
 
         if (item.label) {
           const label = doc.createElement('span');
@@ -400,9 +407,10 @@ function createPanelButton(
   previewRenderer: ToolbarPreviewRenderer,
 ): HTMLButtonElement {
   const button = createToolbarButton(doc, panel.id, panel.label, '', true);
+  button.classList.add(`fx-runtime-toolbar__button--${panel.layout}`);
   const iconHost = button.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
   const previewItem = panel.groups[0]?.items[0];
-  if (iconHost && previewItem) {
+  if (iconHost && previewItem && panel.layout !== 'presets') {
     iconHost.dataset.formulaxToolbarPreview = previewItem.previewLatex;
     previewRenderer.render(iconHost, previewItem.previewLatex, 22, true);
   }
@@ -474,10 +482,14 @@ function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel
 
     const label = entry.options?.button?.label;
     const id = createPanelId(label ?? TOOLBAR_SYMBOL_LABELS[locale]);
+    const isPresets = entry.options?.button?.className === 'yushe-btn'
+      || id === 'presets'
+      || id === '预设';
 
     panels.push({
       id,
       kind: entry.type === 2 ? 'area' : 'dropdown',
+      layout: entry.type === 2 ? 'symbols' : (isPresets ? 'presets' : 'templates'),
       label: label ?? TOOLBAR_SYMBOL_LABELS[locale],
       width: entry.options?.box?.width ?? 332,
       groups,

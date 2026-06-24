@@ -316,6 +316,14 @@ export const formulaXModalStyles = `
   color: #000;
 }
 
+.fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-icon {
+  display: none;
+}
+
+.fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-label {
+  margin-top: 8px;
+}
+
 .fx-runtime-toolbar__button-icon .fx-runtime-svg,
 .fx-runtime-toolbar__item-preview .fx-runtime-svg {
   display: block;
@@ -466,10 +474,14 @@ export const formulaXModalStyles = `
   white-space: normal;
 }
 
+.fx-runtime-toolbar__grid--presets {
+  padding: 6px 10px;
+}
+
 .fx-runtime-toolbar__item {
   appearance: none;
   display: inline-block;
-  width: 80px;
+  width: 72px;
   height: 64px;
   margin: 4px;
   padding: 0;
@@ -479,10 +491,29 @@ export const formulaXModalStyles = `
   cursor: pointer;
 }
 
+.fx-runtime-toolbar__item--symbols {
+  width: 40px;
+  height: 40px;
+  margin: 2px;
+}
+
+.fx-runtime-toolbar__item--presets {
+  display: block;
+  width: calc(100% - 8px);
+  height: auto;
+  min-height: 0;
+  margin: 0 0 12px;
+  text-align: left;
+}
+
+.fx-runtime-toolbar__item--presets:last-child {
+  margin-bottom: 0;
+}
+
 .fx-runtime-toolbar__item-content {
   box-sizing: border-box;
   display: flex;
-  width: 78px;
+  width: 70px;
   height: 56px;
   flex-direction: column;
   align-items: center;
@@ -490,6 +521,20 @@ export const formulaXModalStyles = `
   background: #fff;
   border: 1px solid #fff;
   padding: 0;
+}
+
+.fx-runtime-toolbar__item-content--symbols {
+  width: 34px;
+  height: 34px;
+}
+
+.fx-runtime-toolbar__item-content--presets {
+  width: 100%;
+  height: auto;
+  min-height: 54px;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 5px;
 }
 
 .fx-runtime-toolbar__item-content:hover {
@@ -529,7 +574,7 @@ export const formulaXModalStyles = `
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 68px;
+  width: 60px;
   height: 42px;
   padding: 4px;
   line-height: 1.15;
@@ -539,9 +584,25 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
-  max-width: 58px;
+  max-width: 50px;
   max-height: 32px;
   margin: auto;
+}
+
+.fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template {
+  width: 100%;
+  height: auto;
+  min-height: 42px;
+  justify-content: flex-start;
+  padding: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
+  max-width: none;
+  max-height: none;
+  margin: 0;
 }
 
 .fx-runtime-toolbar__item:hover .fx-runtime-toolbar__item-preview--template {

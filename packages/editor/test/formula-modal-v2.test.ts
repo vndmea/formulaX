@@ -148,7 +148,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
-  it('renders toolbar previews through renderer-next and keeps history controls beside the symbol area', async () => {
+  it('renders toolbar previews through renderer-next and keeps history controls before Fraction', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
     const mounted = mountFormulaXEditor(host, {
@@ -189,22 +189,71 @@ describe('mountFormulaXEditor runtime=v2', () => {
     );
     expect(areaItemStyle.display).toBe('flex');
     expect(areaItemStyle.alignItems).toBe('center');
-    expect(controls[0]?.dataset.formulaxToolbarAction).toBe('undo');
-    expect(controls[1]?.dataset.formulaxToolbarAction).toBe('redo');
+    const undoIndex = controls.findIndex((item) => item.dataset.formulaxToolbarAction === 'undo');
+    const redoIndex = controls.findIndex((item) => item.dataset.formulaxToolbarAction === 'redo');
+    const fractionIndex = controls.findIndex((item) => item.dataset.formulaxToolbarButton === 'fraction');
+    expect(undoIndex).toBeGreaterThan(0);
+    expect(redoIndex).toBe(undoIndex + 1);
+    expect(fractionIndex).toBe(redoIndex + 1);
     expect(
-      controls[1]
+      controls[redoIndex]
         ?.closest('.fx-runtime-toolbar__history')
         ?.nextElementSibling
-        ?.classList.contains('fx-runtime-toolbar__area'),
+        ?.getAttribute('data-formulax-toolbar-button'),
+    ).toBe('fraction');
+    expect(
+      controls[undoIndex]
+        ?.closest('.fx-runtime-toolbar__history')
+        ?.previousElementSibling
+        ?.classList.contains('fx-runtime-toolbar__delimiter'),
     ).toBe(true);
 
     const itemButton = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item');
     const itemContent = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item-content');
-    expect(getComputedStyle(itemButton as HTMLElement).width).toBe('80px');
+    expect(getComputedStyle(itemButton as HTMLElement).width).toBe('72px');
     expect(getComputedStyle(itemButton as HTMLElement).height).toBe('64px');
-    expect(getComputedStyle(itemContent as HTMLElement).width).toBe('78px');
+    expect(getComputedStyle(itemContent as HTMLElement).width).toBe('70px');
     expect(getComputedStyle(itemContent as HTMLElement).height).toBe('56px');
     expect(getComputedStyle(fractionPreview as HTMLElement).height).toBe('42px');
+
+    mounted.destroy();
+  });
+
+  it('uses kity-style popover grids for symbols and vertical presets', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
+    const symbolGrid = host.querySelector<HTMLElement>('.fx-runtime-toolbar__grid--symbols');
+    const symbolItem = host.querySelector<HTMLElement>('.fx-runtime-toolbar__item--symbols');
+    expect(symbolGrid).not.toBeNull();
+    expect(getComputedStyle(symbolItem as HTMLElement).width).toBe('40px');
+    expect(getComputedStyle(symbolItem as HTMLElement).height).toBe('40px');
+
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+
+    const presetsButton = host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__button');
+    const presetsIcon = presetsButton?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
+    expect(presetsIcon?.dataset.formulaxToolbarPreview).toBeUndefined();
+    expect(presetsIcon?.querySelector('svg')).toBeNull();
+    presetsButton?.click();
+
+    const presetsGrid = host.querySelector<HTMLElement>('.fx-runtime-toolbar__grid--presets');
+    const presetsItem = host.querySelector<HTMLElement>('.fx-runtime-toolbar__item--presets');
+    const presetsPreview = host.querySelector<HTMLElement>(
+      '.fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template',
+    );
+    expect(presetsGrid).not.toBeNull();
+    expect(getComputedStyle(presetsItem as HTMLElement).display).toBe('block');
+    expect(getComputedStyle(presetsPreview as HTMLElement).width).toBe('100%');
+    expect(getComputedStyle(presetsPreview as HTMLElement).overflowX).toBe('auto');
 
     mounted.destroy();
   });
