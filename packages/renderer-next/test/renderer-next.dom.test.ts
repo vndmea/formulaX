@@ -12,6 +12,8 @@ describe('renderer-next', () => {
     expect(result.output).toBe('svg');
     expect(result.html).toContain('<svg');
     expect(result.html).toContain('data-formulax-runtime="solid-svg"');
+    expect(result.html.toLowerCase()).not.toContain('kf-');
+    expect(result.html.toLowerCase()).not.toContain('kity');
   });
 
   it('renders native dashed placeholders with the KF AMS default font', async () => {

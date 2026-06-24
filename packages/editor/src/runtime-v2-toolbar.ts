@@ -86,6 +86,16 @@ const TOOLBAR_SYMBOL_LABELS: Record<FormulaXLocale, string> = {
   zh_CN: '符号',
 };
 
+const TOOLBAR_SYMBOL_PREVIOUS_LABELS: Record<FormulaXLocale, string> = {
+  en_US: 'Previous symbols',
+  zh_CN: '上一页符号',
+};
+
+const TOOLBAR_SYMBOL_NEXT_LABELS: Record<FormulaXLocale, string> = {
+  en_US: 'Next symbols',
+  zh_CN: '下一页符号',
+};
+
 const UNDO_LABELS: Record<FormulaXLocale, string> = {
   en_US: 'Undo',
   zh_CN: '撤销',
@@ -106,6 +116,8 @@ const TOOLBAR_BUTTON_ICON_PREVIEWS: Partial<Record<string, { latex: string; font
   functions: { latex: '\\sin x', fontSize: 18 },
 };
 
+const TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE = 20;
+
 function createToolbarPreviewRenderer(
   doc: Document,
   runtimeAssets?: Partial<RuntimeEditorAssets>,
@@ -117,6 +129,40 @@ function createToolbarPreviewRenderer(
   let destroyed = false;
 
   const cacheKey = (latex: string, fontSize: number): string => `${fontSize}\u0000${latex}`;
+
+  const resolveSvgTextCenterX = (svg: SVGSVGElement): number | null => {
+    const viewBox = svg.getAttribute('viewBox');
+    if (viewBox) {
+      const [minX, , width] = viewBox
+        .trim()
+        .split(/\s+/u)
+        .slice(0, 3)
+        .map((part) => Number.parseFloat(part));
+      if (Number.isFinite(minX) && Number.isFinite(width)) {
+        return minX + width / 2;
+      }
+    }
+
+    const width = Number.parseFloat(svg.getAttribute('width') ?? '');
+    return Number.isFinite(width) ? width / 2 : null;
+  };
+
+  const normalizeRenderedPreview = (host: HTMLElement): void => {
+    if (host.dataset.formulaxToolbarPreviewKind !== 'symbol') {
+      return;
+    }
+
+    host.querySelectorAll<SVGSVGElement>('svg').forEach((svg) => {
+      const centerX = resolveSvgTextCenterX(svg);
+      svg.querySelectorAll<SVGTextElement>('text').forEach((node) => {
+        node.setAttribute('font-size', String(TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE));
+        if (centerX !== null) {
+          node.setAttribute('x', String(centerX));
+          node.setAttribute('text-anchor', 'middle');
+        }
+      });
+    });
+  };
 
   const renderCached = (latex: string, fontSize: number): Promise<string> => {
     const key = cacheKey(latex, fontSize);
@@ -169,6 +215,7 @@ function createToolbarPreviewRenderer(
             return;
           }
           task.host.innerHTML = html;
+          normalizeRenderedPreview(task.host);
           task.host.removeAttribute('aria-busy');
         })
         .catch(() => {
@@ -189,6 +236,7 @@ function createToolbarPreviewRenderer(
       const cached = markupCache.get(cacheKey(latex, fontSize));
       if (cached !== undefined) {
         host.innerHTML = cached;
+        normalizeRenderedPreview(host);
         host.removeAttribute('aria-busy');
         return;
       }
@@ -225,13 +273,13 @@ export function mountRuntimeV2Toolbar(
   const previewRenderer = createToolbarPreviewRenderer(doc, options.runtimeAssets);
 
   const shell = doc.createElement('div');
-  shell.className = 'fx-runtime-toolbar kf-editor-toolbar';
+  shell.className = 'fx-runtime-toolbar';
 
   const buttonRow = doc.createElement('div');
-  buttonRow.className = 'fx-runtime-toolbar__row kf-editor-inner-toolbar';
+  buttonRow.className = 'fx-runtime-toolbar__row';
 
   const popover = doc.createElement('div');
-  popover.className = 'fx-runtime-toolbar__popover kf-editor-ui-box is-hidden';
+  popover.className = 'fx-runtime-toolbar__popover is-hidden';
   popover.setAttribute('role', 'dialog');
   popover.setAttribute('aria-modal', 'false');
 
@@ -262,7 +310,7 @@ export function mountRuntimeV2Toolbar(
 
   for (const panel of panels) {
     if (panel.kind === 'area') {
-      const area = createSymbolArea(doc, panel, previewRenderer, {
+      const area = createSymbolArea(doc, panel, previewRenderer, locale, {
         insert(item) {
           applyToolbarItem(runtimeHandle, item.latex);
           runtimeHandle.focus();
@@ -392,31 +440,31 @@ export function mountRuntimeV2Toolbar(
   ): void {
     for (const group of groups) {
       const section = doc.createElement('section');
-      section.className = 'fx-runtime-toolbar__section kf-editor-ui-box-group';
+      section.className = 'fx-runtime-toolbar__section';
 
       const sectionTitle = doc.createElement('div');
-      sectionTitle.className = 'fx-runtime-toolbar__section-title kf-editor-ui-box-group-title';
+      sectionTitle.className = 'fx-runtime-toolbar__section-title';
       sectionTitle.textContent = stripHtml(group.title);
 
       const grid = doc.createElement('div');
-      grid.className = `fx-runtime-toolbar__grid fx-runtime-toolbar__grid--${layout} kf-editor-ui-box-container`;
+      grid.className = `fx-runtime-toolbar__grid fx-runtime-toolbar__grid--${layout}`;
 
       for (const item of group.items) {
         const itemButton = doc.createElement('button');
         itemButton.type = 'button';
-        itemButton.className = `fx-runtime-toolbar__item fx-runtime-toolbar__item--${layout} kf-editor-ui-box-item`;
+        itemButton.className = `fx-runtime-toolbar__item fx-runtime-toolbar__item--${layout}`;
         itemButton.dataset.formulaxToolbarItem = item.id;
         itemButton.dataset.formulaxToolbarLatex = item.latex;
         itemButton.title = item.title || item.latex;
         applyToolbarItemSize(itemButton, item, layout);
 
         const content = doc.createElement('span');
-        content.className = `fx-runtime-toolbar__item-content fx-runtime-toolbar__item-content--${layout} kf-editor-ui-box-item-content`;
+        content.className = `fx-runtime-toolbar__item-content fx-runtime-toolbar__item-content--${layout}`;
         applyToolbarItemSize(content, item, layout);
 
         if (item.label) {
           const label = doc.createElement('span');
-          label.className = 'fx-runtime-toolbar__item-label kf-editor-ui-box-item-label';
+          label.className = 'fx-runtime-toolbar__item-label';
           label.textContent = item.label;
           content.appendChild(label);
         }
@@ -513,11 +561,6 @@ function createPanelButton(
 ): HTMLButtonElement {
   const button = createToolbarButton(doc, panel.id, panel.label, '', true);
   button.classList.add(`fx-runtime-toolbar__button--${panel.layout}`);
-  if (panel.buttonClassName) {
-    for (const className of panel.buttonClassName.split(/\s+/).filter(Boolean)) {
-      button.classList.add(`kf-editor-ui-${className}`);
-    }
-  }
   const iconHost = button.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
   const previewItem = panel.groups[0]?.items[0];
   if (iconHost && previewItem && panel.layout !== 'presets') {
@@ -541,25 +584,25 @@ function createToolbarButton(
   const normalizedLabel = normalizeToolbarButtonLabel(label);
   const button = doc.createElement('button');
   button.type = 'button';
-  button.className = 'fx-runtime-toolbar__button kf-editor-ui-button kf-editor-ui-enabled';
+  button.className = 'fx-runtime-toolbar__button';
   button.dataset.formulaxToolbarControl = id;
   button.title = stripHtml(normalizedLabel);
 
   const buttonInner = doc.createElement('span');
-  buttonInner.className = 'fx-runtime-toolbar__button-in kf-editor-ui-button-in';
+  buttonInner.className = 'fx-runtime-toolbar__button-in';
 
   const iconElement = doc.createElement('span');
-  iconElement.className = 'fx-runtime-toolbar__button-icon kf-editor-ui-button-icon';
+  iconElement.className = 'fx-runtime-toolbar__button-icon';
   iconElement.textContent = fallbackIcon;
 
   const labelElement = doc.createElement('span');
-  labelElement.className = 'fx-runtime-toolbar__button-label kf-editor-ui-button-label';
+  labelElement.className = 'fx-runtime-toolbar__button-label';
   labelElement.innerHTML = normalizedLabel;
 
   buttonInner.append(iconElement, labelElement);
   if (showSign) {
     const sign = doc.createElement('span');
-    sign.className = 'fx-runtime-toolbar__button-sign kf-editor-ui-button-sign';
+    sign.className = 'fx-runtime-toolbar__button-sign';
     buttonInner.appendChild(sign);
   }
 
@@ -576,13 +619,19 @@ function createPreviewElement(
   const preview = doc.createElement('span');
 
   if (item.kind === 'symbol') {
-    preview.className = 'fx-runtime-toolbar__item-preview fx-runtime-toolbar__item-preview--symbol kf-editor-ui-box-item-text';
+    preview.className = 'fx-runtime-toolbar__item-preview fx-runtime-toolbar__item-preview--symbol';
+    preview.dataset.formulaxToolbarPreviewKind = 'symbol';
   } else {
-    preview.className = 'fx-runtime-toolbar__item-preview fx-runtime-toolbar__item-preview--template kf-editor-ui-box-item-val';
+    preview.className = 'fx-runtime-toolbar__item-preview fx-runtime-toolbar__item-preview--template';
   }
 
   preview.dataset.formulaxToolbarPreview = item.previewLatex;
-  previewRenderer.render(preview, item.previewLatex, 28, priority);
+  previewRenderer.render(
+    preview,
+    item.previewLatex,
+    item.kind === 'symbol' ? TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE : 28,
+    priority,
+  );
   return preview;
 }
 
@@ -624,7 +673,10 @@ function preloadToolbarPreviews(
   for (const panel of panels) {
     for (const group of panel.groups) {
       for (const item of group.items) {
-        previewRenderer.preload(item.previewLatex, panel.layout === 'symbols' ? 28 : 28);
+        previewRenderer.preload(
+          item.previewLatex,
+          item.kind === 'symbol' ? TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE : 28,
+        );
       }
     }
   }
@@ -798,9 +850,9 @@ function applyToolbarItem(runtimeHandle: RuntimeEditorHandle, latex: string): vo
 
 function createDelimiter(doc: Document): HTMLElement {
   const delimiter = doc.createElement('span');
-  delimiter.className = 'fx-runtime-toolbar__delimiter kf-editor-ui-delimiter';
+  delimiter.className = 'fx-runtime-toolbar__delimiter';
   const line = doc.createElement('span');
-  line.className = 'fx-runtime-toolbar__delimiter-line kf-editor-ui-delimiter-line';
+  line.className = 'fx-runtime-toolbar__delimiter-line';
   delimiter.appendChild(line);
   return delimiter;
 }
@@ -809,38 +861,89 @@ function createSymbolArea(
   doc: Document,
   panel: RuntimeToolbarPanel,
   previewRenderer: ToolbarPreviewRenderer,
+  locale: FormulaXLocale,
   handlers: {
     insert(item: RuntimeToolbarItem): void;
     open(button: HTMLButtonElement): void;
   },
 ): { root: HTMLElement; button: HTMLButtonElement } {
+  const pageSize = 18;
+  const symbols = panel.groups.flatMap((group) => group.items);
+  const pageCount = Math.max(1, Math.ceil(symbols.length / pageSize));
+  let pageIndex = 0;
+
   const root = doc.createElement('div');
-  root.className = 'fx-runtime-toolbar__area kf-editor-ui-area kf-editor-ui-enabled';
+  root.className = 'fx-runtime-toolbar__area';
 
   const viewport = doc.createElement('div');
-  viewport.className = 'fx-runtime-toolbar__area-container kf-editor-ui-area-container';
+  viewport.className = 'fx-runtime-toolbar__area-container';
 
-  const symbols = panel.groups.flatMap((group) => group.items).slice(0, 18);
-  for (const item of symbols) {
-    const button = doc.createElement('button');
-    button.type = 'button';
-    button.className = 'fx-runtime-toolbar__area-item kf-editor-ui-area-item';
-    button.dataset.formulaxToolbarLatex = item.latex;
-    button.title = item.title;
-    button.appendChild(createPreviewElement(doc, item, previewRenderer));
-    button.addEventListener('click', () => handlers.insert(item));
-    viewport.appendChild(button);
-  }
+  const buttonContainer = doc.createElement('div');
+  buttonContainer.className = 'fx-runtime-toolbar__area-button-container';
+
+  const moveUpButton = doc.createElement('button');
+  moveUpButton.type = 'button';
+  moveUpButton.className = 'fx-runtime-toolbar__area-page fx-runtime-toolbar__area-page--up';
+  moveUpButton.dataset.formulaxToolbarAreaAction = 'prev';
+  moveUpButton.setAttribute('aria-label', TOOLBAR_SYMBOL_PREVIOUS_LABELS[locale]);
+  moveUpButton.title = TOOLBAR_SYMBOL_PREVIOUS_LABELS[locale];
+
+  const moveDownButton = doc.createElement('button');
+  moveDownButton.type = 'button';
+  moveDownButton.className = 'fx-runtime-toolbar__area-page fx-runtime-toolbar__area-page--down';
+  moveDownButton.dataset.formulaxToolbarAreaAction = 'next';
+  moveDownButton.setAttribute('aria-label', TOOLBAR_SYMBOL_NEXT_LABELS[locale]);
+  moveDownButton.title = TOOLBAR_SYMBOL_NEXT_LABELS[locale];
 
   const openButton = doc.createElement('button');
   openButton.type = 'button';
-  openButton.className = 'fx-runtime-toolbar__area-open kf-editor-ui-area-button';
+  openButton.className = 'fx-runtime-toolbar__area-open';
   openButton.dataset.formulaxToolbarButton = panel.id;
   openButton.setAttribute('aria-label', panel.label);
   openButton.title = panel.label;
+
+  const renderPage = (): void => {
+    viewport.innerHTML = '';
+    const visibleItems = symbols.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+    for (const item of visibleItems) {
+      const button = doc.createElement('button');
+      button.type = 'button';
+      button.className = 'fx-runtime-toolbar__area-item';
+      button.dataset.formulaxToolbarLatex = item.latex;
+      button.title = item.title;
+      const inner = doc.createElement('span');
+      inner.className = 'fx-runtime-toolbar__area-item-inner';
+      inner.appendChild(createPreviewElement(doc, item, previewRenderer));
+      button.appendChild(inner);
+      button.addEventListener('click', () => handlers.insert(item));
+      viewport.appendChild(button);
+    }
+
+    moveUpButton.disabled = pageIndex === 0;
+    moveDownButton.disabled = pageIndex + 1 >= pageCount;
+  };
+
+  moveUpButton.addEventListener('click', () => {
+    if (pageIndex === 0) {
+      return;
+    }
+    pageIndex -= 1;
+    renderPage();
+  });
+
+  moveDownButton.addEventListener('click', () => {
+    if (pageIndex + 1 >= pageCount) {
+      return;
+    }
+    pageIndex += 1;
+    renderPage();
+  });
+
   openButton.addEventListener('click', () => handlers.open(openButton));
 
-  root.append(viewport, openButton);
+  renderPage();
+  buttonContainer.append(moveUpButton, moveDownButton, openButton);
+  root.append(viewport, buttonContainer);
   return { root, button: openButton };
 }
 

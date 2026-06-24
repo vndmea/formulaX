@@ -416,44 +416,114 @@ export const formulaXModalStyles = `
   overflow: hidden;
 }
 
-.fx-runtime-toolbar__area-item {
-  appearance: none;
-  padding: 0;
-  border: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  cursor: pointer;
-}
-
-.fx-runtime-toolbar__area-open {
-  appearance: none;
+.fx-runtime-toolbar__area-button-container {
   width: 18px;
   min-width: 18px;
   height: 79px;
-  padding: 0;
-  border: 0;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
   border-left: 1px solid #d3d3d3;
-  background:
-    linear-gradient(135deg, transparent 45%, #fff 46% 54%, transparent 55%) center 38px / 8px 8px no-repeat,
-    #53b856;
-  cursor: pointer;
-}
-
-.fx-runtime-toolbar__area-open:hover,
-.fx-runtime-toolbar__area-open.is-open {
-  background-color: #45a949;
+  background: #f2f0e6;
 }
 
 .fx-runtime-toolbar__area-item {
-  width: 32px;
-  height: 32px;
+  appearance: none;
+  padding: 0;
+  border: 0;
+  display: block;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.fx-runtime-toolbar__area-page,
+.fx-runtime-toolbar__area-open {
+  appearance: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.fx-runtime-toolbar__area-page--down {
+  border-top: 1px solid #d3d3d3;
+  border-bottom: 1px solid #d3d3d3;
+}
+
+.fx-runtime-toolbar__area-page::before,
+.fx-runtime-toolbar__area-open::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.fx-runtime-toolbar__area-page--up::before {
+  border-bottom: 5px solid #6b6b6b;
+}
+
+.fx-runtime-toolbar__area-page--down::before {
+  border-top: 5px solid #6b6b6b;
+}
+
+.fx-runtime-toolbar__area-open::before {
+  top: calc(50% + 3px);
+  border-top: 5px solid #6b6b6b;
+}
+
+.fx-runtime-toolbar__area-open::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 2px);
+  left: 50%;
+  width: 7px;
+  height: 1px;
+  background: #6b6b6b;
+  transform: translate(-50%, -50%);
+}
+
+.fx-runtime-toolbar__area-page:hover,
+.fx-runtime-toolbar__area-open:hover,
+.fx-runtime-toolbar__area-open.is-open {
+  background-color: #e5e4e1;
+}
+
+.fx-runtime-toolbar__area-page:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.fx-runtime-toolbar__area-item {
+  width: 26px;
+  height: 26px;
+}
+
+.fx-runtime-toolbar__area-item-inner {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #fff;
+  transition: transform 0.1s linear, border-color 0.1s linear;
+  transform: scale(0.76);
 }
 
 .fx-runtime-toolbar__area-item .fx-runtime-toolbar__item-preview {
   box-sizing: border-box;
-  transform: none;
+  transition: border-color 0.1s linear;
+}
+
+.fx-runtime-toolbar__area-item:hover .fx-runtime-toolbar__area-item-inner {
+  border-color: #dff3df;
+  transform: scale(1);
 }
 
 .fx-runtime-toolbar__area-item:hover .fx-runtime-toolbar__item-preview--symbol {
@@ -539,9 +609,11 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__item--symbols {
-  width: 40px;
-  height: 40px;
-  margin: 2px;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  margin: 3px;
+  padding: 0;
 }
 
 .fx-runtime-toolbar__item--presets {
@@ -571,8 +643,15 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__item-content--symbols {
-  width: 34px;
-  height: 34px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.fx-runtime-toolbar__item-content--symbols:hover {
+  border-color: #dff3df;
 }
 
 .fx-runtime-toolbar__item-content--presets {
@@ -990,13 +1069,13 @@ async function mountRuntimeV2Handle(
   root.innerHTML = '';
 
   const shell = doc.createElement('div');
-  shell.className = 'fx-formula-runtime-shell kf-editor';
+  shell.className = 'fx-formula-runtime-shell';
 
   const toolbarHost = doc.createElement('div');
   toolbarHost.className = 'fx-formula-runtime-toolbar-host';
 
   const surfaceHost = doc.createElement('div');
-  surfaceHost.className = 'fx-formula-runtime-surface kf-editor-edit-area';
+  surfaceHost.className = 'fx-formula-runtime-surface';
 
   shell.append(toolbarHost, surfaceHost);
   root.appendChild(shell);
@@ -1015,7 +1094,7 @@ async function mountRuntimeV2Handle(
       fontSize: options.render?.fontSize ?? options.render?.fontsize ?? 40,
     },
   });
-  surfaceHost.querySelector('.fx-runtime-editor__surface')?.classList.add('kf-editor-canvas-container');
+  surfaceHost.querySelector('.fx-runtime-editor__surface')?.classList.add('fx-formula-runtime-canvas');
 
   const toolbar = mountRuntimeV2Toolbar(toolbarHost, handle, {
     locale: options.locale,

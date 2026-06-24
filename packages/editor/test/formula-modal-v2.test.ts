@@ -151,6 +151,53 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
+  it('uses kity-style area paging buttons without opening the popover', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    const prevButton = host.querySelector<HTMLButtonElement>(
+      '[data-formulax-toolbar-area-action="prev"]',
+    );
+    const nextButton = host.querySelector<HTMLButtonElement>(
+      '[data-formulax-toolbar-area-action="next"]',
+    );
+    const openButton = host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open');
+    const popover = host.querySelector<HTMLElement>('.fx-runtime-toolbar__popover');
+    const before = Array.from(
+      host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__area-item'),
+      (item) => item.dataset.formulaxToolbarLatex,
+    );
+
+    expect(prevButton).not.toBeNull();
+    expect(nextButton).not.toBeNull();
+    expect(openButton).not.toBeNull();
+    expect(prevButton?.disabled).toBe(true);
+    expect(nextButton?.disabled).toBe(false);
+
+    nextButton?.click();
+
+    const after = Array.from(
+      host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__area-item'),
+      (item) => item.dataset.formulaxToolbarLatex,
+    );
+    expect(popover?.classList.contains('is-hidden')).toBe(true);
+    expect(after).not.toEqual(before);
+    expect(prevButton?.disabled).toBe(false);
+
+    openButton?.click();
+
+    expect(popover?.classList.contains('is-hidden')).toBe(false);
+
+    mounted.destroy();
+  });
+
   it('renders toolbar previews through renderer-next without mounting history controls', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
@@ -194,11 +241,32 @@ describe('mountFormulaXEditor runtime=v2', () => {
       host.querySelector<SVGTextElement>('.fx-runtime-toolbar__area-item text')
         ?.getAttribute('font-family')
     )).toContain('KF AMS MAIN');
+    await expect.poll(() => (
+      host.querySelector<SVGTextElement>('.fx-runtime-toolbar__area-item text')
+        ?.getAttribute('font-size')
+    )).toBe('20');
+    await expect.poll(() => (
+      host.querySelector<SVGTextElement>('.fx-runtime-toolbar__area-item text')
+        ?.getAttribute('text-anchor')
+    )).toBe('middle');
+    await expect.poll(() => Number.parseFloat(
+      host.querySelector<SVGTextElement>('.fx-runtime-toolbar__area-item text')
+        ?.getAttribute('x') ?? '0',
+    )).toBeGreaterThan(0);
     const areaItemStyle = getComputedStyle(
       host.querySelector<HTMLElement>('.fx-runtime-toolbar__area-item') as HTMLElement,
     );
-    expect(areaItemStyle.display).toBe('flex');
-    expect(areaItemStyle.alignItems).toBe('center');
+    const areaInnerStyle = getComputedStyle(
+      host.querySelector<HTMLElement>('.fx-runtime-toolbar__area-item .fx-runtime-toolbar__area-item-inner') as HTMLElement,
+    );
+    expect(areaItemStyle.width).toBe('26px');
+    expect(areaItemStyle.height).toBe('26px');
+    expect(areaInnerStyle.width).toBe('34px');
+    expect(areaInnerStyle.height).toBe('34px');
+    expect(areaInnerStyle.transform).toContain('0.76');
+    expect(
+      host.querySelectorAll('.fx-runtime-toolbar__area-button-container > button').length,
+    ).toBe(3);
     // TODO: Restore these layout assertions when toolbar-level undo/redo is redesigned and remounted.
     // const controls = Array.from(
     //   host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__button'),
@@ -237,6 +305,24 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
+  it('does not emit kf or kity class names in the runtime-v2 DOM', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
+
+    expect(host.innerHTML.toLowerCase()).not.toContain('kf-');
+    expect(host.innerHTML.toLowerCase()).not.toContain('kity');
+
+    mounted.destroy();
+  });
+
   it('uses kity-style popover grids for symbols and vertical presets', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
@@ -253,8 +339,8 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const symbolGrid = host.querySelector<HTMLElement>('.fx-runtime-toolbar__grid--symbols');
     const symbolItem = host.querySelector<HTMLElement>('.fx-runtime-toolbar__item--symbols');
     expect(symbolGrid).not.toBeNull();
-    expect(getComputedStyle(symbolItem as HTMLElement).width).toBe('40px');
-    expect(getComputedStyle(symbolItem as HTMLElement).height).toBe('40px');
+    expect(getComputedStyle(symbolItem as HTMLElement).width).toBe('32px');
+    expect(getComputedStyle(symbolItem as HTMLElement).height).toBe('32px');
 
     document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
 
@@ -326,6 +412,13 @@ describe('mountFormulaXEditor runtime=v2', () => {
 
     await expect.poll(() => scriptPreview?.querySelector('text')?.getAttribute('font-family'))
       .toContain('KF AMS CAL');
+    await expect.poll(() => scriptPreview?.querySelector('text')?.getAttribute('font-size'))
+      .toBe('20');
+    await expect.poll(() => scriptPreview?.querySelector('text')?.getAttribute('text-anchor'))
+      .toBe('middle');
+    await expect.poll(() => Number.parseFloat(
+      scriptPreview?.querySelector('text')?.getAttribute('x') ?? '0',
+    )).toBeGreaterThan(0);
 
     mounted.destroy();
   });
@@ -366,8 +459,8 @@ describe('mountFormulaXEditor runtime=v2', () => {
 
     await mounted.getLatex();
 
-    expect(host.querySelector('.fx-formula-runtime-surface.kf-editor-edit-area')).not.toBeNull();
-    expect(host.querySelector('.fx-runtime-editor__surface.kf-editor-canvas-container')).not.toBeNull();
+    expect(host.querySelector('.fx-formula-runtime-surface')).not.toBeNull();
+    expect(host.querySelector('.fx-runtime-editor__surface.fx-formula-runtime-canvas')).not.toBeNull();
 
     mounted.destroy();
   });
