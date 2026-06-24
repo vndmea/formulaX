@@ -211,11 +211,12 @@ describe('mountFormulaXEditor runtime=v2', () => {
 
     const itemButton = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item');
     const itemContent = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item-content');
-    expect(getComputedStyle(itemButton as HTMLElement).width).toBe('72px');
-    expect(getComputedStyle(itemButton as HTMLElement).height).toBe('64px');
-    expect(getComputedStyle(itemContent as HTMLElement).width).toBe('70px');
-    expect(getComputedStyle(itemContent as HTMLElement).height).toBe('56px');
-    expect(getComputedStyle(fractionPreview as HTMLElement).height).toBe('42px');
+    expect(getComputedStyle(itemButton as HTMLElement).width).toBe('68px');
+    expect(getComputedStyle(itemButton as HTMLElement).height).toBe('87px');
+    expect(getComputedStyle(itemContent as HTMLElement).width).toBe('68px');
+    expect(getComputedStyle(itemContent as HTMLElement).height).toBe('87px');
+    expect(getComputedStyle(fractionPreview as HTMLElement).width).toBe('56px');
+    expect(getComputedStyle(fractionPreview as HTMLElement).height).toBe('75px');
 
     mounted.destroy();
   });
@@ -255,6 +256,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     expect(presetsGrid).not.toBeNull();
     expect(getComputedStyle(presetsItem as HTMLElement).display).toBe('block');
     expect(getComputedStyle(presetsPreview as HTMLElement).width).toBe('100%');
+    expect(getComputedStyle(presetsPreview as HTMLElement).height).toBe('73px');
     expect(getComputedStyle(presetsPreview as HTMLElement).overflow).toBe('hidden');
     await expect.poll(() => presetsPreview?.querySelector('.fx-runtime-svg')).not.toBeNull();
     expect(getComputedStyle(presetsPreview?.querySelector('.fx-runtime-svg') as HTMLElement).maxWidth)

@@ -15,6 +15,10 @@ type RuntimeToolbarItem = {
   label?: string;
   latex: string;
   previewLatex: string;
+  previewSize?: {
+    width: number;
+    height: number;
+  };
 };
 
 type RuntimeToolbarGroup = {
@@ -48,6 +52,10 @@ type RawToolbarContentItem = {
   unicode?: string;
   item?: {
     val?: string;
+    size?: {
+      width?: number;
+      height?: number;
+    };
   };
 };
 
@@ -322,9 +330,11 @@ export function mountRuntimeV2Toolbar(
         itemButton.dataset.formulaxToolbarItem = item.id;
         itemButton.dataset.formulaxToolbarLatex = item.latex;
         itemButton.title = item.title || item.latex;
+        applyToolbarItemSize(itemButton, item, panel.layout);
 
         const content = doc.createElement('span');
         content.className = `fx-runtime-toolbar__item-content fx-runtime-toolbar__item-content--${panel.layout} kf-editor-ui-box-item-content`;
+        applyToolbarItemSize(content, item, panel.layout);
 
         if (item.label) {
           const label = doc.createElement('span');
@@ -333,7 +343,9 @@ export function mountRuntimeV2Toolbar(
           content.appendChild(label);
         }
 
-        content.appendChild(createPreviewElement(doc, item, previewRenderer, true));
+        const preview = createPreviewElement(doc, item, previewRenderer, true);
+        applyToolbarPreviewSize(preview, item, panel.layout);
+        content.appendChild(preview);
         itemButton.appendChild(content);
         itemButton.addEventListener('click', () => {
           applyToolbarItem(runtimeHandle, item.latex);
@@ -529,6 +541,7 @@ function normalizeToolbarItem(item: RawToolbarContentItem): RuntimeToolbarItem |
   if (typeof item.item?.val === 'string' && item.item.val.trim()) {
     const latex = item.item.val.trim();
     const label = stripHtml(item.label ?? '');
+    const previewSize = normalizePreviewSize(item.item.size);
     return {
       id: createPanelId(`${item.label ?? latex}-${latex}`),
       kind: 'template',
@@ -536,6 +549,7 @@ function normalizeToolbarItem(item: RawToolbarContentItem): RuntimeToolbarItem |
       label: label || undefined,
       latex,
       previewLatex: createPreviewLatex(latex),
+      previewSize,
     };
   }
 
@@ -551,6 +565,64 @@ function normalizeToolbarItem(item: RawToolbarContentItem): RuntimeToolbarItem |
   }
 
   return null;
+}
+
+function normalizePreviewSize(size?: { width?: number; height?: number }): RuntimeToolbarItem['previewSize'] {
+  if (
+    !size
+    || typeof size.width !== 'number'
+    || typeof size.height !== 'number'
+    || !Number.isFinite(size.width)
+    || !Number.isFinite(size.height)
+  ) {
+    return undefined;
+  }
+
+  return {
+    width: Math.max(1, Number(size.width)),
+    height: Math.max(1, Number(size.height)),
+  };
+}
+
+function applyToolbarItemSize(
+  element: HTMLElement,
+  item: RuntimeToolbarItem,
+  layout: RuntimeToolbarPanel['layout'],
+): void {
+  if (!item.previewSize || layout === 'symbols') {
+    return;
+  }
+
+  element.style.setProperty('--fx-runtime-toolbar-preview-width', `${item.previewSize.width}px`);
+  element.style.setProperty('--fx-runtime-toolbar-preview-height', `${item.previewSize.height}px`);
+
+  if (layout !== 'presets') {
+    const width = `${item.previewSize.width + 12}px`;
+    const height = `${item.previewSize.height + 12}px`;
+    element.style.setProperty('--fx-runtime-toolbar-item-width', width);
+    element.style.setProperty('--fx-runtime-toolbar-item-height', height);
+    element.style.width = width;
+    element.style.height = height;
+  }
+}
+
+function applyToolbarPreviewSize(
+  element: HTMLElement,
+  item: RuntimeToolbarItem,
+  layout: RuntimeToolbarPanel['layout'],
+): void {
+  if (!item.previewSize || layout === 'symbols') {
+    return;
+  }
+
+  const width = `${item.previewSize.width}px`;
+  const height = `${item.previewSize.height}px`;
+  element.style.setProperty('--fx-runtime-toolbar-preview-width', width);
+  element.style.setProperty('--fx-runtime-toolbar-preview-height', height);
+  element.style.height = height;
+  if (layout !== 'presets') {
+    element.style.width = width;
+  }
 }
 
 function createPreviewLatex(latex: string): string {

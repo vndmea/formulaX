@@ -486,8 +486,8 @@ export const formulaXModalStyles = `
 .fx-runtime-toolbar__item {
   appearance: none;
   display: inline-block;
-  width: 72px;
-  height: 64px;
+  width: var(--fx-runtime-toolbar-item-width, 72px);
+  height: var(--fx-runtime-toolbar-item-height, 64px);
   margin: 4px;
   padding: 0;
   border: 0;
@@ -518,8 +518,8 @@ export const formulaXModalStyles = `
 .fx-runtime-toolbar__item-content {
   box-sizing: border-box;
   display: flex;
-  width: 70px;
-  height: 56px;
+  width: var(--fx-runtime-toolbar-item-width, 70px);
+  height: var(--fx-runtime-toolbar-item-height, 56px);
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -579,8 +579,8 @@ export const formulaXModalStyles = `
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 60px;
-  height: 42px;
+  width: var(--fx-runtime-toolbar-preview-width, 60px);
+  height: var(--fx-runtime-toolbar-preview-height, 42px);
   padding: 4px;
   line-height: 1.15;
   border: 1px solid #808080;
@@ -589,15 +589,15 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
-  max-width: 50px;
-  max-height: 32px;
+  max-width: calc(var(--fx-runtime-toolbar-preview-width, 60px) - 10px);
+  max-height: calc(var(--fx-runtime-toolbar-preview-height, 42px) - 10px);
   margin: auto;
 }
 
 .fx-runtime-toolbar__item--presets .fx-runtime-toolbar__item-preview--template {
   width: 100%;
-  height: auto;
-  min-height: 42px;
+  height: var(--fx-runtime-toolbar-preview-height, auto);
+  min-height: var(--fx-runtime-toolbar-preview-height, 42px);
   align-items: center;
   justify-content: center;
   padding: 5px;
