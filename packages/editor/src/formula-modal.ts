@@ -308,12 +308,9 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__button-in {
-  display: flex;
   height: 100%;
   width: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  display: block;
   overflow: visible;
 }
 
@@ -329,12 +326,18 @@ export const formulaXModalStyles = `
   color: #000;
 }
 
-.fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-icon {
-  display: none;
+.fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-label {
+  margin-top: 2px;
 }
 
-.fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-label {
-  margin-top: 10px;
+.fx-runtime-toolbar__button-icon--presets {
+  color: #53b856;
+}
+
+.fx-runtime-toolbar__button-icon--presets svg {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .fx-runtime-toolbar__button-icon .fx-runtime-svg,
@@ -545,7 +548,7 @@ export const formulaXModalStyles = `
   width: 0;
   height: 0;
   display: inline-block;
-  margin: 8px auto;
+  margin: 8px 0 0 3px;
   vertical-align: top;
 }
 

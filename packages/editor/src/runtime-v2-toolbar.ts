@@ -5,6 +5,7 @@ import {
 } from '@formulaxjs/kity-runtime';
 import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
 import type { RuntimeEditorAssets, RuntimeEditorHandle } from '@formulaxjs/runtime';
+import { FORMULAX_DEFAULT_ICON_SVG } from './icons';
 
 type RuntimeToolbarItemKind = 'symbol' | 'template';
 
@@ -563,7 +564,10 @@ function createPanelButton(
   button.classList.add(`fx-runtime-toolbar__button--${panel.layout}`);
   const iconHost = button.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
   const previewItem = panel.groups[0]?.items[0];
-  if (iconHost && previewItem && panel.layout !== 'presets') {
+  if (iconHost && panel.layout === 'presets') {
+    iconHost.classList.add('fx-runtime-toolbar__button-icon--presets');
+    iconHost.innerHTML = FORMULAX_DEFAULT_ICON_SVG;
+  } else if (iconHost && previewItem) {
     iconHost.classList.add(`fx-runtime-toolbar__button-icon--${previewItem.kind}`);
     iconHost.dataset.formulaxToolbarIcon = panel.id;
     const iconPreview = resolveToolbarButtonIconPreview(panel.id, previewItem.previewLatex);
@@ -603,7 +607,7 @@ function createToolbarButton(
   if (showSign) {
     const sign = doc.createElement('span');
     sign.className = 'fx-runtime-toolbar__button-sign';
-    buttonInner.appendChild(sign);
+    labelElement.appendChild(sign);
   }
 
   button.appendChild(buttonInner);

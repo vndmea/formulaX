@@ -222,12 +222,20 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const scriptsIcon = scriptsButton?.querySelector<HTMLElement>(
       '.fx-runtime-toolbar__button-icon',
     );
+    const largeOpsButton = host.querySelector<HTMLButtonElement>(
+      '[data-formulax-toolbar-button="large-ops"]',
+    ) ?? host.querySelector<HTMLButtonElement>(
+      '[data-formulax-toolbar-button="大型-运算符"]',
+    );
     await expect.poll(() => fractionIcon?.querySelector('svg')).not.toBeNull();
     await expect.poll(() => scriptsIcon?.querySelector('svg')).not.toBeNull();
     expect(fractionIcon?.style.backgroundImage).toBe('');
     expect(fractionIcon?.querySelector('[data-formulax-role="placeholder"]')).toBeNull();
     expect(scriptsIcon?.style.backgroundImage).toBe('');
     expect(scriptsIcon?.querySelector('[data-formulax-role="placeholder"]')).toBeNull();
+    expect(
+      largeOpsButton?.querySelector('.fx-runtime-toolbar__button-label > .fx-runtime-toolbar__button-sign'),
+    ).not.toBeNull();
     fractionButton?.click();
     const fractionPreview = host.querySelector<HTMLElement>(
       '[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"] '
@@ -335,6 +343,12 @@ describe('mountFormulaXEditor runtime=v2', () => {
     await mounted.getLatex();
     ensureFormulaXModalStyles(document);
 
+    const presetsBadge = host.querySelector<HTMLElement>(
+      '.fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-icon',
+    );
+    expect(presetsBadge?.querySelector('svg')).not.toBeNull();
+    expect(getComputedStyle(presetsBadge as HTMLElement).color).toBe('rgb(83, 184, 86)');
+
     host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
     const symbolGrid = host.querySelector<HTMLElement>('.fx-runtime-toolbar__grid--symbols');
     const symbolItem = host.querySelector<HTMLElement>('.fx-runtime-toolbar__item--symbols');
@@ -347,7 +361,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const presetsButton = host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__button');
     const presetsIcon = presetsButton?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-icon');
     expect(presetsIcon?.dataset.formulaxToolbarPreview).toBeUndefined();
-    expect(presetsIcon?.querySelector('svg')).toBeNull();
+    expect(presetsIcon?.querySelector('svg')).not.toBeNull();
     presetsButton?.click();
 
     const presetsGrid = host.querySelector<HTMLElement>('.fx-runtime-toolbar__grid--presets');
@@ -440,10 +454,12 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const largeOps = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="large-ops"]');
     const largeOpsLabel = largeOps?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-label');
     const largeOpsSign = largeOps?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-sign');
-    expect(fraction?.innerHTML).toBe('Fraction<br>');
-    expect(largeOpsLabel?.innerHTML).toBe('Large<br>ops');
-    expect(getComputedStyle(largeOpsSign as HTMLElement).marginLeft).toBe('auto');
-    expect(getComputedStyle(largeOpsSign as HTMLElement).marginRight).toBe('auto');
+    expect(fraction?.innerHTML.startsWith('Fraction<br>')).toBe(true);
+    expect(fraction?.querySelector('.fx-runtime-toolbar__button-sign')).not.toBeNull();
+    expect(largeOpsLabel?.innerHTML.startsWith('Large<br>ops')).toBe(true);
+    expect(largeOpsLabel?.querySelector('.fx-runtime-toolbar__button-sign')).toBe(largeOpsSign);
+    expect(getComputedStyle(largeOpsSign as HTMLElement).marginLeft).toBe('3px');
+    expect(getComputedStyle(largeOpsSign as HTMLElement).marginRight).toBe('0px');
 
     mounted.destroy();
   });
