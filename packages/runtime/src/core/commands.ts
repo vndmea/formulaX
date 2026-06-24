@@ -20,8 +20,6 @@ export interface FormulaEditResult {
   dispatchOptions?: FormulaDispatchOptions;
 }
 
-const TOOLBAR_PLACEHOLDER_MARKER = '\uFFF0';
-
 export function createRow(children: FormulaNode[] = []): FormulaRowNode {
   return {
     type: 'row',
@@ -264,7 +262,6 @@ function insertStructureAtSelection(
 
 function normalizeToolbarLatex(latex: string): string {
   return latex
-    .replace(/\\placeholder/g, TOOLBAR_PLACEHOLDER_MARKER)
     .replace(/\\([a-zA-Z]+)\s+\{/g, '\\$1{')
     .replace(/\s+/g, ' ')
     .trim();
@@ -299,7 +296,7 @@ function stripToolbarPlaceholderMarkers(row: FormulaRowNode): FormulaSelection |
   const nextChildren: FormulaNode[] = [];
 
   for (const child of row.children) {
-    if (isToolbarPlaceholderSymbol(child)) {
+    if (child.type === 'placeholder') {
       selection ??= createSelection(row.id, nextChildren.length);
       continue;
     }
@@ -329,7 +326,7 @@ function stripToolbarPlaceholderFromNode(node: FormulaNode): FormulaSelection | 
     case 'script': {
       let selection: FormulaSelection | null = null;
 
-      if (isToolbarPlaceholderSymbol(node.base)) {
+      if (node.base.type === 'placeholder') {
         const baseRow = createRow([]);
         node.base = baseRow;
         selection = createSelection(baseRow.id, 0);
@@ -355,13 +352,10 @@ function stripToolbarPlaceholderFromNode(node: FormulaNode): FormulaSelection | 
       }
       return null;
     case 'symbol':
+    case 'placeholder':
     case 'unsupported':
       return null;
   }
-}
-
-function isToolbarPlaceholderSymbol(node: FormulaNode): boolean {
-  return node.type === 'symbol' && node.value === TOOLBAR_PLACEHOLDER_MARKER;
 }
 
 function findFirstEditableRowId(node: FormulaNode): string | null {

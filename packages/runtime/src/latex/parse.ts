@@ -6,6 +6,7 @@ import type {
   FormulaFenceNode,
   FormulaMatrixNode,
   FormulaNode,
+  FormulaPlaceholderNode,
   FormulaRowNode,
   FormulaScriptNode,
   FormulaSqrtNode,
@@ -35,6 +36,13 @@ function createSymbol(value: string, latex?: string, fontFamily?: string): Formu
     value,
     latex,
     fontFamily,
+  };
+}
+
+function createPlaceholder(): FormulaPlaceholderNode {
+  return {
+    type: 'placeholder',
+    id: createFormulaNodeId('placeholder'),
   };
 }
 
@@ -213,6 +221,10 @@ class RuntimeLatexParser {
       if (styled) {
         return styled;
       }
+    }
+
+    if (command === 'placeholder') {
+      return createPlaceholder();
     }
 
     const resolved = resolveRuntimeSymbol(`\\${command}`);
@@ -438,6 +450,8 @@ function serializeRawRow(row: FormulaRowNode): string {
         return `{${serializeRawRow(child)}}`;
       case 'symbol':
         return child.latex ?? child.value;
+      case 'placeholder':
+        return '\\placeholder';
       case 'unsupported':
         return child.rawLatex;
       default:

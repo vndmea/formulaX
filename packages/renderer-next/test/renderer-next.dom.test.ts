@@ -14,6 +14,18 @@ describe('renderer-next', () => {
     expect(result.html).toContain('data-formulax-runtime="solid-svg"');
   });
 
+  it('renders native dashed placeholders with the KF AMS default font', async () => {
+    const result = await renderLatexToSvgMarkup('\\frac{\\placeholder}{x}', {
+      fontSize: 40,
+      cache: false,
+    });
+
+    expect(result.html).toContain('data-formulax-role="placeholder"');
+    expect(result.html).toContain('stroke-dasharray="5 5"');
+    expect(result.html).toContain('KF AMS MAIN');
+    expect(result.html).not.toContain('□');
+  });
+
   it('reuses cached render promises for identical requests', async () => {
     const renderer = createFormulaRendererV2({
       fontSize: 32,

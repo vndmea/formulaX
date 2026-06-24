@@ -28,6 +28,11 @@ export interface FormulaSymbolNode {
   fontFamily?: string;
 }
 
+export interface FormulaPlaceholderNode {
+  type: 'placeholder';
+  id: string;
+}
+
 export interface FormulaFractionNode {
   type: 'frac';
   id: string;
@@ -76,6 +81,7 @@ export interface FormulaUnsupportedNode {
 export type FormulaNode =
   | FormulaRowNode
   | FormulaSymbolNode
+  | FormulaPlaceholderNode
   | FormulaFractionNode
   | FormulaSqrtNode
   | FormulaScriptNode

@@ -127,6 +127,20 @@ function appendBox(
   group.setAttribute('transform', `translate(${absoluteX}, ${absoluteY})`);
   parent.appendChild(group);
 
+  if (box.kind === 'placeholder') {
+    const placeholder = document.createElementNS(SVG_NS, 'rect');
+    placeholder.setAttribute('data-formulax-role', 'placeholder');
+    placeholder.setAttribute('x', '1');
+    placeholder.setAttribute('y', '1');
+    placeholder.setAttribute('width', String(Math.max(0, box.width - 2)));
+    placeholder.setAttribute('height', String(Math.max(0, box.height - 2)));
+    placeholder.setAttribute('fill', 'none');
+    placeholder.setAttribute('stroke', '#000');
+    placeholder.setAttribute('stroke-width', '1');
+    placeholder.setAttribute('stroke-dasharray', '5 5');
+    group.appendChild(placeholder);
+  }
+
   if (box.kind === 'symbol' || box.kind === 'unsupported' || box.kind === 'fence-delimiter' || box.kind === 'sqrt-radical') {
     const text = document.createElementNS(SVG_NS, 'text');
     text.textContent = box.text ?? '';

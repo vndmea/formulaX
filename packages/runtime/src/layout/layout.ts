@@ -11,7 +11,7 @@ import type {
 } from './types';
 import { resolveRuntimeSymbol } from '../latex/symbols';
 
-const DEFAULT_FONT_FAMILY = '"Cambria Math", "Times New Roman", serif';
+const DEFAULT_FONT_FAMILY = '"KF AMS MAIN", "Cambria Math", "Times New Roman", serif';
 const RELATION_SYMBOLS = new Set(['=', '<', '>', '≤', '≥', '≈']);
 const BINARY_SYMBOLS = new Set(['+', '-', '±', '·', '×', '÷']);
 const PUNCTUATION_SYMBOLS = new Set([',', ';', ':']);
@@ -293,16 +293,20 @@ function layoutNode(
   switch (node.type) {
     case 'row':
       return layoutRow(node, metrics, options, nodeMap);
-    case 'symbol':
+    case 'symbol': {
+      const fontFamily = node.fontFamily ?? options.fontFamily ?? DEFAULT_FONT_FAMILY;
       return layoutTextBox(node.id, node.id, 'symbol', node.value, metrics.measureText(node.value, {
-        fontFamily: node.fontFamily ?? options.fontFamily ?? DEFAULT_FONT_FAMILY,
+        fontFamily,
         fontSize: options.fontSize,
-      }), nodeMap, node.fontFamily);
+      }), nodeMap, fontFamily);
+    }
+    case 'placeholder':
+      return layoutPlaceholder(node.id, options, nodeMap);
     case 'unsupported':
       return layoutTextBox(node.id, node.id, 'unsupported', node.rawLatex, metrics.measureText(node.rawLatex, {
         fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
         fontSize: options.fontSize * 0.8,
-      }), nodeMap);
+      }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
     case 'frac':
       return layoutFraction(node, metrics, options, nodeMap);
     case 'sqrt':
@@ -314,6 +318,29 @@ function layoutNode(
     case 'matrix':
       return layoutMatrix(node, metrics, options, nodeMap);
   }
+}
+
+function layoutPlaceholder(
+  nodeId: string,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const width = options.fontSize * 0.875;
+  const height = options.fontSize * 1.25;
+  const box: LayoutBox = {
+    id: nodeId,
+    nodeId,
+    kind: 'placeholder',
+    x: 0,
+    y: 0,
+    width,
+    height,
+    ascent: height * 0.75,
+    descent: height * 0.25,
+    children: [],
+  };
+  nodeMap.set(nodeId, box);
+  return box;
 }
 
 function layoutTextBox(
@@ -391,7 +418,15 @@ function layoutSqrt(
     fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
     fontSize: options.fontSize,
   });
-  const radicalBox = layoutTextBox(`${node.id}-radical`, node.id, 'sqrt-radical', '√', radical, nodeMap);
+  const radicalBox = layoutTextBox(
+    `${node.id}-radical`,
+    node.id,
+    'sqrt-radical',
+    '√',
+    radical,
+    nodeMap,
+    options.fontFamily ?? DEFAULT_FONT_FAMILY,
+  );
   const indexOptions = {
     ...options,
     fontSize: options.fontSize * options.scriptScale!,
@@ -496,11 +531,11 @@ function layoutFence(
   const left = layoutTextBox(`${node.id}-left`, `${node.id}-left`, 'fence-delimiter', leftDelimiter, metrics.measureText(leftDelimiter, {
     fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
     fontSize: options.fontSize,
-  }), nodeMap);
+  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
   const right = layoutTextBox(`${node.id}-right`, `${node.id}-right`, 'fence-delimiter', rightDelimiter, metrics.measureText(rightDelimiter, {
     fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
     fontSize: options.fontSize,
-  }), nodeMap);
+  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
   const body = layoutRow(node.body, metrics, options, nodeMap);
   const ascent = Math.max(left.ascent, body.ascent, right.ascent);
   const descent = Math.max(left.descent, body.descent, right.descent);

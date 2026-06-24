@@ -111,6 +111,16 @@ describe('runtime latex parser and serializer', () => {
     expect(serializeFormulaDocToLatex(parsed)).toBe('\\mathcal{A}');
   });
 
+  it('parses toolbar placeholders as native placeholder nodes', () => {
+    const parsed = parseLatexToFormulaDoc('\\frac{\\placeholder}{\\placeholder}');
+    const fraction = parsed.root.children[0];
+
+    expect(fraction?.type).toBe('frac');
+    expect(fraction && 'numerator' in fraction ? fraction.numerator.children[0]?.type : undefined)
+      .toBe('placeholder');
+    expect(serializeFormulaDocToLatex(parsed)).toBe('\\frac{\\placeholder}{\\placeholder}');
+  });
+
   it('parses the legacy kity toolbar template catalog without unsupported nodes', () => {
     for (const sample of LEGACY_TOOLBAR_LATEX_SAMPLES) {
       const doc = createEmptyFormulaDoc('');
@@ -165,6 +175,20 @@ describe('runtime commands and layout', () => {
     expect(layout.height).toBeGreaterThan(0);
     expect(layout.root.kind).toBe('row');
     expect(layout.root.children[0]?.kind).toBe('frac');
+  });
+
+  it('lays out placeholders as virtual boxes using the KF AMS default font', () => {
+    const doc = createEmptyFormulaDoc('\\placeholder');
+    const layout = layoutFormula(doc, testMetrics, {
+      fontSize: 40,
+    });
+
+    expect(layout.root.children[0]?.kind).toBe('placeholder');
+    expect(layout.root.children[0]?.width).toBeGreaterThan(0);
+
+    const symbolDoc = createEmptyFormulaDoc('x');
+    const symbolLayout = layoutFormula(symbolDoc, testMetrics, { fontSize: 40 });
+    expect(symbolLayout.root.children[0]?.fontFamily).toContain('KF AMS MAIN');
   });
 
   it('returns a single line layout by default', () => {

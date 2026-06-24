@@ -28,6 +28,8 @@ export function serializeFormulaNode(node: FormulaNode): string {
       const command = SYMBOL_TO_LATEX[node.value];
       return command ? `\\${command}` : node.value;
       }
+    case 'placeholder':
+      return '\\placeholder';
     case 'frac':
       return `\\frac{${serializeRow(node.numerator)}}{${serializeRow(node.denominator)}}`;
     case 'sqrt':
