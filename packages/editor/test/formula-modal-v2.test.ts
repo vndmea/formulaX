@@ -89,4 +89,63 @@ describe('mountFormulaXEditor runtime=v2', () => {
 
     mounted.destroy();
   });
+
+  it('renders toolbar previews through renderer-next and keeps history controls separated', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    const fractionButton = host.querySelector<HTMLButtonElement>(
+      '[data-formulax-toolbar-button="fraction"]',
+    );
+    const fractionIcon = fractionButton?.querySelector<HTMLElement>(
+      '.fx-runtime-toolbar__button-icon',
+    );
+    const controls = Array.from(
+      host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__button'),
+    );
+
+    await expect.poll(() => fractionIcon?.querySelector('svg')).not.toBeNull();
+    expect(fractionIcon?.style.backgroundImage).toBe('');
+    fractionButton?.click();
+    const fractionPreview = host.querySelector<HTMLElement>(
+      '[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"] '
+      + '.fx-runtime-toolbar__item-preview',
+    );
+    await expect.poll(() => fractionPreview?.querySelector('svg')).not.toBeNull();
+    expect(fractionPreview?.style.backgroundImage).toBe('');
+    expect(fractionPreview?.querySelector('[data-formulax-role="placeholder"]')).not.toBeNull();
+    expect(fractionPreview?.textContent).not.toContain('□');
+    await expect.poll(() => (
+      host.querySelector<SVGTextElement>('.fx-runtime-toolbar__area-item text')
+        ?.getAttribute('font-family')
+    )).toContain('KF AMS MAIN');
+    expect(controls[controls.length - 2]?.dataset.formulaxToolbarAction).toBe('undo');
+    expect(controls[controls.length - 1]?.dataset.formulaxToolbarAction).toBe('redo');
+
+    mounted.destroy();
+  });
+
+  it('mounts the runtime surface as a kity-style editing area', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    expect(host.querySelector('.fx-formula-runtime-surface.kf-editor-edit-area')).not.toBeNull();
+    expect(host.querySelector('.fx-runtime-editor__surface.kf-editor-canvas-container')).not.toBeNull();
+
+    mounted.destroy();
+  });
 });

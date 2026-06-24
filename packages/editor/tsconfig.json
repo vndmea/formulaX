@@ -8,6 +8,7 @@
       "@formulaxjs/core": ["../core/src/index.ts"],
       "@formulaxjs/renderer": ["../renderer/src/index.ts"],
       "@formulaxjs/renderer-kity": ["../renderer-kity/src/index.ts"],
+      "@formulaxjs/renderer-next": ["../renderer-next/src/index.ts"],
       "@formulaxjs/kity-runtime": ["../kity-runtime/src/index.ts"],
       "@formulaxjs/runtime": ["../runtime/src/index.ts"]
     }

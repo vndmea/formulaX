@@ -44,6 +44,7 @@
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/renderer": "workspace:*",
     "@formulaxjs/renderer-kity": "workspace:*",
+    "@formulaxjs/renderer-next": "workspace:*",
     "@formulaxjs/kity-runtime": "workspace:*",
     "@formulaxjs/runtime": "workspace:*"
   }

@@ -225,6 +225,9 @@ importers:
       '@formulaxjs/renderer-kity':
         specifier: workspace:*
         version: link:../renderer-kity
+      '@formulaxjs/renderer-next':
+        specifier: workspace:*
+        version: link:../renderer-next
       '@formulaxjs/runtime':
         specifier: workspace:*
         version: link:../runtime
