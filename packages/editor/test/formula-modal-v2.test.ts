@@ -306,7 +306,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
-  it('keeps the Large Ops toolbar button wide enough for the two-line label', async () => {
+  it('preserves styled symbol preview font families', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
     const mounted = mountFormulaXEditor(host, {
@@ -319,8 +319,38 @@ describe('mountFormulaXEditor runtime=v2', () => {
     await mounted.getLatex();
     ensureFormulaXModalStyles(document);
 
+    host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
+    const scriptPreview = host.querySelector<HTMLElement>(
+      '[data-formulax-toolbar-latex="\\\\mathcal{A}"] .fx-runtime-toolbar__item-preview--symbol',
+    );
+
+    await expect.poll(() => scriptPreview?.querySelector('text')?.getAttribute('font-family'))
+      .toContain('KF AMS CAL');
+
+    mounted.destroy();
+  });
+
+  it('preserves the kity toolbar line breaks for English labels', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+      locale: 'en_US',
+    });
+
+    await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
+
+    const fraction = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="fraction"] .fx-runtime-toolbar__button-label');
     const largeOps = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="large-ops"]');
-    expect(parseInt(getComputedStyle(largeOps as HTMLElement).minWidth, 10)).toBeGreaterThanOrEqual(74);
+    const largeOpsLabel = largeOps?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-label');
+    const largeOpsSign = largeOps?.querySelector<HTMLElement>('.fx-runtime-toolbar__button-sign');
+    expect(fraction?.innerHTML).toBe('Fraction<br>');
+    expect(largeOpsLabel?.innerHTML).toBe('Large<br>ops');
+    expect(getComputedStyle(largeOpsSign as HTMLElement).marginLeft).toBe('auto');
+    expect(getComputedStyle(largeOpsSign as HTMLElement).marginRight).toBe('auto');
 
     mounted.destroy();
   });

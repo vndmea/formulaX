@@ -226,7 +226,6 @@ export const formulaXModalStyles = `
   box-sizing: border-box;
   flex: 0 0 auto;
   padding: 8px 6px 6px;
-  min-width: 52px;
   height: 79px;
   font-size: 12px;
   display: inline-block;
@@ -322,7 +321,7 @@ export const formulaXModalStyles = `
   width: 32px;
   height: 32px;
   flex: 0 0 auto;
-  margin: 2px auto 3px;
+  margin: 2px auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,29 +335,6 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__button--presets .fx-runtime-toolbar__button-label {
   margin-top: 10px;
-}
-
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="presets"] {
-  min-width: 58px;
-}
-
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="fraction"],
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="brackets"] {
-  min-width: 54px;
-}
-
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="radicals"],
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="functions"] {
-  min-width: 56px;
-}
-
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="integrals"] {
-  min-width: 58px;
-}
-
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="large-ops"],
-.fx-runtime-toolbar__button[data-formulax-toolbar-control="大型-运算符"] {
-  min-width: 76px;
 }
 
 .fx-runtime-toolbar__button-icon .fx-runtime-svg,
@@ -488,16 +464,9 @@ export const formulaXModalStyles = `
   color: #666;
   text-align: center;
   display: block;
-  min-height: 26px;
   font-size: 12px;
-  line-height: 12px;
-  max-height: none;
-  overflow: visible;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  max-width: 100%;
-  padding: 0 1px;
+  line-height: 20px;
+  white-space: nowrap;
 }
 
 .fx-runtime-toolbar__button-sign {
@@ -506,8 +475,8 @@ export const formulaXModalStyles = `
   width: 0;
   height: 0;
   display: inline-block;
-  margin-left: 4px;
-  vertical-align: middle;
+  margin: 8px auto;
+  vertical-align: top;
 }
 
 .fx-runtime-toolbar__popover {
@@ -773,10 +742,7 @@ export const formulaXModalStyles = `
 }
 
 .fx-formula-kity-host .kf-editor,
-.fx-formula-kity-host .kf-editor svg text,
-.fx-formula-kity-host .kf-editor-ui-area-item-text,
-.fx-formula-kity-host .kf-editor-ui-box-item-text,
-.fx-formula-kity-host .kf-editor-ui-box-item-val {
+.fx-formula-kity-host .kf-editor svg text {
   font-family: "KF AMS MAIN", "Cambria Math", "Latin Modern Math", "Times New Roman", serif !important;
 }
 

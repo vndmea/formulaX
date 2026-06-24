@@ -560,7 +560,7 @@ function createToolbarButton(
   if (showSign) {
     const sign = doc.createElement('span');
     sign.className = 'fx-runtime-toolbar__button-sign kf-editor-ui-button-sign';
-    labelElement.appendChild(sign);
+    buttonInner.appendChild(sign);
   }
 
   button.appendChild(buttonInner);
@@ -857,7 +857,5 @@ function stripHtml(value: string): string {
 }
 
 function normalizeToolbarButtonLabel(value: string): string {
-  return value
-    .replace(/(?:<br\s*\/?>\s*)+$/gi, '')
-    .trim();
+  return value.trim();
 }
