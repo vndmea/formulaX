@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mountFormulaXEditor } from '../src/formula-modal';
+import { ensureFormulaXModalStyles, mountFormulaXEditor } from '../src/formula-modal';
 
 describe('mountFormulaXEditor runtime=v2', () => {
   it('mounts the new runtime editor and exposes latex and svg html', async () => {
@@ -105,13 +105,13 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const areaContainer = host.querySelector<HTMLElement>('.fx-runtime-toolbar__area-container');
     const areaOpen = host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open');
     const popover = host.querySelector<HTMLElement>('.fx-runtime-toolbar__popover');
-    Object.defineProperty(shell, 'clientWidth', { configurable: true, value: 600 });
+    Object.defineProperty(shell, 'clientWidth', { configurable: true, value: 700 });
     shell!.getBoundingClientRect = () => ({
       left: 20,
       top: 10,
-      right: 620,
+      right: 720,
       bottom: 90,
-      width: 600,
+      width: 700,
       height: 80,
       x: 20,
       y: 10,
@@ -158,6 +158,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     });
 
     await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
 
     const fractionButton = host.querySelector<HTMLButtonElement>(
       '[data-formulax-toolbar-button="fraction"]',
@@ -229,6 +230,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     });
 
     await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
 
     host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
     const symbolGrid = host.querySelector<HTMLElement>('.fx-runtime-toolbar__grid--symbols');
@@ -253,7 +255,8 @@ describe('mountFormulaXEditor runtime=v2', () => {
     expect(presetsGrid).not.toBeNull();
     expect(getComputedStyle(presetsItem as HTMLElement).display).toBe('block');
     expect(getComputedStyle(presetsPreview as HTMLElement).width).toBe('100%');
-    expect(getComputedStyle(presetsPreview as HTMLElement).overflowX).toBe('hidden');
+    expect(getComputedStyle(presetsPreview as HTMLElement).overflow).toBe('hidden');
+    await expect.poll(() => presetsPreview?.querySelector('.fx-runtime-svg')).not.toBeNull();
     expect(getComputedStyle(presetsPreview?.querySelector('.fx-runtime-svg') as HTMLElement).maxWidth)
       .toBe('100%');
 
@@ -271,6 +274,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     });
 
     await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
 
     const largeOps = host.querySelector<HTMLElement>('[data-formulax-toolbar-control="large-ops"]');
     expect(getComputedStyle(largeOps as HTMLElement).minWidth).toBe('62px');
