@@ -90,7 +90,65 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
-  it('renders toolbar previews through renderer-next and keeps history controls separated', async () => {
+  it('aligns the symbol area popover with the left edge of the kity area container', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'v2',
+      initialLatex: 'x',
+      autofocus: false,
+    });
+
+    await mounted.getLatex();
+
+    const shell = host.querySelector<HTMLElement>('.fx-runtime-toolbar');
+    const areaContainer = host.querySelector<HTMLElement>('.fx-runtime-toolbar__area-container');
+    const areaOpen = host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open');
+    const popover = host.querySelector<HTMLElement>('.fx-runtime-toolbar__popover');
+    Object.defineProperty(shell, 'clientWidth', { configurable: true, value: 600 });
+    shell!.getBoundingClientRect = () => ({
+      left: 20,
+      top: 10,
+      right: 620,
+      bottom: 90,
+      width: 600,
+      height: 80,
+      x: 20,
+      y: 10,
+      toJSON: () => ({}),
+    } as DOMRect);
+    areaContainer!.getBoundingClientRect = () => ({
+      left: 120,
+      top: 18,
+      right: 413,
+      bottom: 88,
+      width: 293,
+      height: 70,
+      x: 120,
+      y: 18,
+      toJSON: () => ({}),
+    } as DOMRect);
+    areaOpen!.getBoundingClientRect = () => ({
+      left: 414,
+      top: 10,
+      right: 432,
+      bottom: 89,
+      width: 18,
+      height: 79,
+      x: 414,
+      y: 10,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    areaOpen?.click();
+
+    expect(popover?.classList.contains('is-hidden')).toBe(false);
+    expect(popover?.style.left).toBe('99px');
+
+    mounted.destroy();
+  });
+
+  it('renders toolbar previews through renderer-next and keeps history controls beside the symbol area', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
     const mounted = mountFormulaXEditor(host, {
@@ -126,8 +184,27 @@ describe('mountFormulaXEditor runtime=v2', () => {
       host.querySelector<SVGTextElement>('.fx-runtime-toolbar__area-item text')
         ?.getAttribute('font-family')
     )).toContain('KF AMS MAIN');
-    expect(controls[controls.length - 2]?.dataset.formulaxToolbarAction).toBe('undo');
-    expect(controls[controls.length - 1]?.dataset.formulaxToolbarAction).toBe('redo');
+    const areaItemStyle = getComputedStyle(
+      host.querySelector<HTMLElement>('.fx-runtime-toolbar__area-item') as HTMLElement,
+    );
+    expect(areaItemStyle.display).toBe('flex');
+    expect(areaItemStyle.alignItems).toBe('center');
+    expect(controls[0]?.dataset.formulaxToolbarAction).toBe('undo');
+    expect(controls[1]?.dataset.formulaxToolbarAction).toBe('redo');
+    expect(
+      controls[1]
+        ?.closest('.fx-runtime-toolbar__history')
+        ?.nextElementSibling
+        ?.classList.contains('fx-runtime-toolbar__area'),
+    ).toBe(true);
+
+    const itemButton = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item');
+    const itemContent = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item-content');
+    expect(getComputedStyle(itemButton as HTMLElement).width).toBe('80px');
+    expect(getComputedStyle(itemButton as HTMLElement).height).toBe('64px');
+    expect(getComputedStyle(itemContent as HTMLElement).width).toBe('78px');
+    expect(getComputedStyle(itemContent as HTMLElement).height).toBe('56px');
+    expect(getComputedStyle(fractionPreview as HTMLElement).height).toBe('42px');
 
     mounted.destroy();
   });

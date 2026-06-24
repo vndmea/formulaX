@@ -189,6 +189,11 @@ export function mountRuntimeV2Toolbar(
   const panelButtons = new Map<string, HTMLButtonElement>();
   let activePanelId: string | null = null;
 
+  const historyGroup = doc.createElement('span');
+  historyGroup.className = 'fx-runtime-toolbar__history';
+  historyGroup.append(undoButton, redoButton);
+  buttonRow.appendChild(historyGroup);
+
   for (const panel of panels) {
     if (panel.kind === 'area') {
       const area = createSymbolArea(doc, panel, previewRenderer, {
@@ -220,11 +225,6 @@ export function mountRuntimeV2Toolbar(
       buttonRow.appendChild(createDelimiter(doc));
     }
   }
-
-  const historyGroup = doc.createElement('span');
-  historyGroup.className = 'fx-runtime-toolbar__history';
-  historyGroup.append(undoButton, redoButton);
-  buttonRow.appendChild(historyGroup);
 
   shell.append(buttonRow, popover);
   host.innerHTML = '';
@@ -354,9 +354,14 @@ export function mountRuntimeV2Toolbar(
     const width = Math.min(requestedWidth, Math.max(220, shellWidth - 8));
     const shellRect = shell.getBoundingClientRect();
     const anchorRect = anchor.getBoundingClientRect();
-    const measuredLeft = anchorRect.left - shellRect.left;
+    const areaContainer = anchor.classList.contains('fx-runtime-toolbar__area-open')
+      ? anchor.closest('.fx-runtime-toolbar__area')?.querySelector<HTMLElement>('.fx-runtime-toolbar__area-container')
+      : null;
+    const leftAnchor = areaContainer ?? anchor;
+    const leftAnchorRect = leftAnchor.getBoundingClientRect();
+    const measuredLeft = leftAnchorRect.left - shellRect.left;
     const measuredTop = anchorRect.bottom - shellRect.top;
-    const preferredLeft = (anchorRect.width > 0 ? measuredLeft : anchor.offsetLeft) - 1;
+    const preferredLeft = (leftAnchorRect.width > 0 ? measuredLeft : leftAnchor.offsetLeft) - 1;
     const left = Math.max(0, Math.min(preferredLeft, shellWidth - width - 1));
 
     popover.style.width = `${width}px`;

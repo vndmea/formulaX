@@ -212,6 +212,7 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__button {
   appearance: none;
+  box-sizing: border-box;
   padding: 8px 6px;
   min-width: 46px;
   height: 79px;
@@ -231,7 +232,30 @@ export const formulaXModalStyles = `
 
 .fx-runtime-toolbar__history {
   display: inline-flex;
-  margin-left: auto;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 2px;
+  margin: 8px 8px 0 0;
+}
+
+.fx-runtime-toolbar__history .fx-runtime-toolbar__button {
+  min-width: 34px;
+  height: 32px;
+  padding: 0;
+}
+
+.fx-runtime-toolbar__history .fx-runtime-toolbar__button-in {
+  height: 30px;
+}
+
+.fx-runtime-toolbar__history .fx-runtime-toolbar__button-icon {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto;
+}
+
+.fx-runtime-toolbar__history .fx-runtime-toolbar__button-label {
+  display: none;
 }
 
 .fx-runtime-toolbar__delimiter {
@@ -272,14 +296,19 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__button-in {
-  display: block;
+  display: flex;
+  height: 100%;
   width: 100%;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
 }
 
 .fx-runtime-toolbar__button-icon {
   width: 32px;
-  height: 32px;
-  margin: 2px auto;
+  height: 30px;
+  flex: 0 0 30px;
+  margin: 0 auto 2px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,6 +371,9 @@ export const formulaXModalStyles = `
   height: 32px;
   padding: 0;
   border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   cursor: pointer;
 }
@@ -375,7 +407,9 @@ export const formulaXModalStyles = `
   text-align: center;
   display: block;
   font-size: 12px;
-  line-height: 20px;
+  line-height: 14px;
+  max-height: 28px;
+  overflow: hidden;
   white-space: nowrap;
 }
 
@@ -384,8 +418,9 @@ export const formulaXModalStyles = `
   border-top-color: #2d2d2d;
   width: 0;
   height: 0;
-  display: inline-block;
-  margin: 8px auto 0;
+  display: block;
+  flex: 0 0 auto;
+  margin: 2px auto 0;
   vertical-align: top;
 }
 
@@ -434,6 +469,8 @@ export const formulaXModalStyles = `
 .fx-runtime-toolbar__item {
   appearance: none;
   display: inline-block;
+  width: 80px;
+  height: 64px;
   margin: 4px;
   padding: 0;
   border: 0;
@@ -443,7 +480,13 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__item-content {
-  display: block;
+  box-sizing: border-box;
+  display: flex;
+  width: 78px;
+  height: 56px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: #fff;
   border: 1px solid #fff;
   padding: 0;
@@ -462,6 +505,7 @@ export const formulaXModalStyles = `
 }
 
 .fx-runtime-toolbar__item-preview--symbol {
+  box-sizing: border-box;
   width: 32px;
   height: 32px;
   line-height: 32px;
@@ -484,12 +528,20 @@ export const formulaXModalStyles = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  min-height: 42px;
-  padding: 5px;
+  box-sizing: border-box;
+  width: 68px;
+  height: 42px;
+  padding: 4px;
   line-height: 1.15;
   border: 1px solid #808080;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.fx-runtime-toolbar__item-preview--template .fx-runtime-svg {
+  max-width: 58px;
+  max-height: 32px;
+  margin: auto;
 }
 
 .fx-runtime-toolbar__item:hover .fx-runtime-toolbar__item-preview--template {
