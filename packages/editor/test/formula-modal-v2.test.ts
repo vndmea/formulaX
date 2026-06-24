@@ -42,7 +42,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
-  it('supports undo and redo from the runtime toolbar', async () => {
+  it('does not mount undo and redo controls in the runtime toolbar', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
     const mounted = mountFormulaXEditor(host, {
@@ -57,11 +57,14 @@ describe('mountFormulaXEditor runtime=v2', () => {
     host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"]')?.click();
     expect(await mounted.getLatex()).toBe('x\\frac{}{}');
 
-    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-action="undo"]')?.click();
-    expect(await mounted.getLatex()).toBe('x');
-
-    host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-action="redo"]')?.click();
-    expect(await mounted.getLatex()).toBe('x\\frac{}{}');
+    // TODO: Restore these expectations when toolbar-level undo/redo is redesigned and remounted.
+    // host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-action="undo"]')?.click();
+    // expect(await mounted.getLatex()).toBe('x');
+    // host.querySelector<HTMLButtonElement>('[data-formulax-toolbar-action="redo"]')?.click();
+    // expect(await mounted.getLatex()).toBe('x\\frac{}{}');
+    expect(host.querySelector('[data-formulax-toolbar-action="undo"]')).toBeNull();
+    expect(host.querySelector('[data-formulax-toolbar-action="redo"]')).toBeNull();
+    expect(host.querySelector('.fx-runtime-toolbar__history')).toBeNull();
 
     mounted.destroy();
   });
@@ -148,7 +151,7 @@ describe('mountFormulaXEditor runtime=v2', () => {
     mounted.destroy();
   });
 
-  it('renders toolbar previews through renderer-next and keeps history controls before Fraction', async () => {
+  it('renders toolbar previews through renderer-next without mounting history controls', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
     const mounted = mountFormulaXEditor(host, {
@@ -172,10 +175,6 @@ describe('mountFormulaXEditor runtime=v2', () => {
     const scriptsIcon = scriptsButton?.querySelector<HTMLElement>(
       '.fx-runtime-toolbar__button-icon',
     );
-    const controls = Array.from(
-      host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__button'),
-    );
-
     await expect.poll(() => fractionIcon?.querySelector('svg')).not.toBeNull();
     await expect.poll(() => scriptsIcon?.querySelector('svg')).not.toBeNull();
     expect(fractionIcon?.style.backgroundImage).toBe('');
@@ -200,24 +199,31 @@ describe('mountFormulaXEditor runtime=v2', () => {
     );
     expect(areaItemStyle.display).toBe('flex');
     expect(areaItemStyle.alignItems).toBe('center');
-    const undoIndex = controls.findIndex((item) => item.dataset.formulaxToolbarAction === 'undo');
-    const redoIndex = controls.findIndex((item) => item.dataset.formulaxToolbarAction === 'redo');
-    const fractionIndex = controls.findIndex((item) => item.dataset.formulaxToolbarButton === 'fraction');
-    expect(undoIndex).toBeGreaterThan(0);
-    expect(redoIndex).toBe(undoIndex + 1);
-    expect(fractionIndex).toBe(redoIndex + 1);
-    expect(
-      controls[redoIndex]
-        ?.closest('.fx-runtime-toolbar__history')
-        ?.nextElementSibling
-        ?.getAttribute('data-formulax-toolbar-button'),
-    ).toBe('fraction');
-    expect(
-      controls[undoIndex]
-        ?.closest('.fx-runtime-toolbar__history')
-        ?.previousElementSibling
-        ?.classList.contains('fx-runtime-toolbar__delimiter'),
-    ).toBe(true);
+    // TODO: Restore these layout assertions when toolbar-level undo/redo is redesigned and remounted.
+    // const controls = Array.from(
+    //   host.querySelectorAll<HTMLElement>('.fx-runtime-toolbar__button'),
+    // );
+    // const undoIndex = controls.findIndex((item) => item.dataset.formulaxToolbarAction === 'undo');
+    // const redoIndex = controls.findIndex((item) => item.dataset.formulaxToolbarAction === 'redo');
+    // const fractionIndex = controls.findIndex((item) => item.dataset.formulaxToolbarButton === 'fraction');
+    // expect(undoIndex).toBeGreaterThan(0);
+    // expect(redoIndex).toBe(undoIndex + 1);
+    // expect(fractionIndex).toBe(redoIndex + 1);
+    // expect(
+    //   controls[redoIndex]
+    //     ?.closest('.fx-runtime-toolbar__history')
+    //     ?.nextElementSibling
+    //     ?.getAttribute('data-formulax-toolbar-button'),
+    // ).toBe('fraction');
+    // expect(
+    //   controls[undoIndex]
+    //     ?.closest('.fx-runtime-toolbar__history')
+    //     ?.previousElementSibling
+    //     ?.classList.contains('fx-runtime-toolbar__delimiter'),
+    // ).toBe(true);
+    expect(host.querySelector('[data-formulax-toolbar-action="undo"]')).toBeNull();
+    expect(host.querySelector('[data-formulax-toolbar-action="redo"]')).toBeNull();
+    expect(host.querySelector('.fx-runtime-toolbar__history')).toBeNull();
 
     const itemButton = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item');
     const itemContent = fractionPreview?.closest<HTMLElement>('.fx-runtime-toolbar__item-content');

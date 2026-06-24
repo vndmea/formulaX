@@ -254,10 +254,11 @@ export function mountRuntimeV2Toolbar(
   const panelButtons = new Map<string, HTMLButtonElement>();
   let activePanelId: string | null = null;
 
-  const historyGroup = doc.createElement('span');
-  historyGroup.className = 'fx-runtime-toolbar__history';
-  historyGroup.append(undoButton, redoButton);
-  let historyInserted = false;
+  // TODO: Restore toolbar-level undo/redo after the runtime-v2 history UX is redesigned
+  // to match the Kity interaction model.
+  // const historyGroup = doc.createElement('span');
+  // historyGroup.className = 'fx-runtime-toolbar__history';
+  // historyGroup.append(undoButton, redoButton);
 
   for (const panel of panels) {
     if (panel.kind === 'area') {
@@ -275,8 +276,8 @@ export function mountRuntimeV2Toolbar(
       panelButtons.set(panel.id, area.button);
       buttonRow.appendChild(area.root);
       buttonRow.appendChild(createDelimiter(doc));
-      buttonRow.appendChild(historyGroup);
-      historyInserted = true;
+      // TODO: Re-enable once runtime-v2 history controls are redesigned.
+      // buttonRow.appendChild(historyGroup);
       continue;
     }
 
@@ -292,9 +293,8 @@ export function mountRuntimeV2Toolbar(
       buttonRow.appendChild(createDelimiter(doc));
     }
   }
-  if (!historyInserted) {
-    buttonRow.appendChild(historyGroup);
-  }
+  // TODO: Re-enable once runtime-v2 history controls are redesigned.
+  // buttonRow.appendChild(historyGroup);
   preloadToolbarPreviews(panels, previewRenderer);
 
   shell.append(buttonRow, popover);
