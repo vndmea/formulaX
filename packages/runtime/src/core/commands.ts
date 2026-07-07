@@ -1,17 +1,27 @@
+import { parseLatexToFormulaDoc } from '../latex/parse';
 import { createFormulaNodeId } from './ids';
-import { clampSelection, createSelection, findRowById, getInitialSelection, updateRowById } from './selection';
+import {
+  clampSelection,
+  collectPlaceholderTargets,
+  createSelection,
+  findAdjacentPlaceholderTarget,
+  findRowById,
+  findRowOwner,
+  getInitialSelection,
+  updateRowById,
+} from './selection';
 import type {
   FormulaCommand,
   FormulaDispatchOptions,
   FormulaDoc,
   FormulaFractionNode,
   FormulaNode,
+  FormulaPlaceholderNode,
   FormulaRowNode,
   FormulaScriptNode,
   FormulaSelection,
   FormulaSqrtNode,
 } from './types';
-import { parseLatexToFormulaDoc } from '../latex/parse';
 
 export interface FormulaEditResult {
   doc: FormulaDoc;
@@ -20,20 +30,73 @@ export interface FormulaEditResult {
   dispatchOptions?: FormulaDispatchOptions;
 }
 
-export function createRow(children: FormulaNode[] = []): FormulaRowNode {
+export const DEFAULT_ROOT_PLACEHOLDER_LABEL = 'Type formula here';
+
+export function createPlaceholderNode(
+  options: Omit<FormulaPlaceholderNode, 'type' | 'id'> = {},
+): FormulaPlaceholderNode {
+  return {
+    type: 'placeholder',
+    id: createFormulaNodeId('placeholder'),
+    role: options.role,
+    label: options.label,
+    required: options.required ?? true,
+    isRoot: options.isRoot,
+  };
+}
+
+export function createRow(
+  children: FormulaNode[] = [],
+  placeholder?: FormulaPlaceholderNode,
+): FormulaRowNode {
   return {
     type: 'row',
     id: createFormulaNodeId('row'),
     children,
+    placeholder,
+  };
+}
+
+export function createPlaceholderRow(
+  role: string,
+  options: Omit<FormulaPlaceholderNode, 'type' | 'id' | 'role'> = {},
+): FormulaRowNode {
+  return createRow([], createPlaceholderNode({
+    ...options,
+    role,
+  }));
+}
+
+export function ensureRuntimeEditableDoc(
+  doc: FormulaDoc,
+  options: { rootPlaceholderLabel?: string } = {},
+): FormulaDoc {
+  const rootPlaceholderLabel = options.rootPlaceholderLabel ?? DEFAULT_ROOT_PLACEHOLDER_LABEL;
+  const hasContent = doc.root.children.length > 0;
+  const placeholder = hasContent
+    ? undefined
+    : (doc.root.placeholder ?? createPlaceholderNode({
+      role: 'root',
+      label: rootPlaceholderLabel,
+      required: false,
+      isRoot: true,
+    }));
+
+  if (doc.root.placeholder === placeholder) {
+    return doc;
+  }
+
+  return {
+    ...doc,
+    root: {
+      ...doc.root,
+      placeholder,
+    },
   };
 }
 
 export function createEmptyFormulaDoc(latex = ''): FormulaDoc {
-  const doc = parseLatexToFormulaDoc(latex);
-  return {
-    ...doc,
-    sourceLatex: latex,
-  };
+  return ensureRuntimeEditableDoc(parseLatexToFormulaDoc(latex));
 }
 
 export function insertTextAtSelection(
@@ -64,7 +127,7 @@ export function insertTextAtSelection(
   }));
 
   return {
-    doc: nextDoc,
+    doc: ensureRuntimeEditableDoc(nextDoc),
     selection: createSelection(row.id, safeSelection.offset + nodes.length),
     changed: nextDoc !== doc,
     dispatchOptions: {
@@ -96,8 +159,10 @@ export function insertLatexAtSelection(
     return { doc, selection: safeSelection, changed: false };
   }
 
-  const fragment = parseLatexToFormulaDoc(normalizedLatex);
-  const placeholderSelection = stripToolbarPlaceholderMarkers(fragment.root);
+  const fragment = ensureRuntimeEditableDoc(parseLatexToFormulaDoc(normalizedLatex), {
+    rootPlaceholderLabel: '',
+  });
+  const cursorSelection = stripToolbarCursorMarkers(fragment.root);
   const insertedChildren = fragment.root.children;
 
   if (insertedChildren.length === 0) {
@@ -114,12 +179,12 @@ export function insertLatexAtSelection(
   }));
 
   return {
-    doc: nextDoc,
+    doc: ensureRuntimeEditableDoc(nextDoc),
     selection: resolveInsertedSelection(
       insertedChildren,
       row.id,
       safeSelection.offset,
-      placeholderSelection,
+      cursorSelection,
       fragment.root.id,
     ),
     changed: nextDoc !== doc,
@@ -137,8 +202,12 @@ export function deleteBackwardAtSelection(
   const safeSelection = clampSelection(doc, selection);
   const row = findRowById(doc, safeSelection.rowId);
 
-  if (!row || safeSelection.offset === 0) {
+  if (!row) {
     return { doc, selection: safeSelection, changed: false };
+  }
+
+  if (safeSelection.offset === 0) {
+    return moveSelectionLeft(doc, safeSelection);
   }
 
   const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
@@ -149,9 +218,12 @@ export function deleteBackwardAtSelection(
     ],
   }));
 
+  const nextRow = findRowById(nextDoc, row.id) ?? row;
+  const nextSelection = createSelection(nextRow.id, Math.max(0, Math.min(safeSelection.offset - 1, nextRow.children.length)));
+
   return {
-    doc: nextDoc,
-    selection: createSelection(row.id, safeSelection.offset - 1),
+    doc: ensureRuntimeEditableDoc(nextDoc),
+    selection: nextSelection,
     changed: nextDoc !== doc,
     dispatchOptions: {
       addToHistory: true,
@@ -162,26 +234,64 @@ export function deleteBackwardAtSelection(
 
 export function moveSelectionLeft(doc: FormulaDoc, selection: FormulaSelection): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
+  const row = findRowById(doc, safeSelection.rowId) ?? doc.root;
+
+  if (safeSelection.offset > 0) {
+    const previous = row.children[safeSelection.offset - 1];
+    const target = previous ? findLastEditableSelection(previous) : null;
+    return {
+      doc,
+      selection: target ?? createSelection(safeSelection.rowId, Math.max(0, safeSelection.offset - 1)),
+      changed: false,
+      dispatchOptions: { addToHistory: false },
+    };
+  }
+
+  const boundarySelection = resolveBoundarySelection(doc, safeSelection, -1);
   return {
     doc,
-    selection: createSelection(safeSelection.rowId, Math.max(0, safeSelection.offset - 1)),
+    selection: boundarySelection ?? safeSelection,
     changed: false,
-    dispatchOptions: {
-      addToHistory: false,
-    },
+    dispatchOptions: { addToHistory: false },
   };
 }
 
 export function moveSelectionRight(doc: FormulaDoc, selection: FormulaSelection): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
   const row = findRowById(doc, safeSelection.rowId) ?? doc.root;
+
+  if (safeSelection.offset < row.children.length) {
+    const next = row.children[safeSelection.offset];
+    const target = next ? findFirstEditableSelection(next) : null;
+    return {
+      doc,
+      selection: target ?? createSelection(safeSelection.rowId, Math.min(row.children.length, safeSelection.offset + 1)),
+      changed: false,
+      dispatchOptions: { addToHistory: false },
+    };
+  }
+
+  const boundarySelection = resolveBoundarySelection(doc, safeSelection, 1);
   return {
     doc,
-    selection: createSelection(safeSelection.rowId, Math.min(row.children.length, safeSelection.offset + 1)),
+    selection: boundarySelection ?? safeSelection,
     changed: false,
-    dispatchOptions: {
-      addToHistory: false,
-    },
+    dispatchOptions: { addToHistory: false },
+  };
+}
+
+export function moveSelectionToAdjacentPlaceholder(
+  doc: FormulaDoc,
+  selection: FormulaSelection,
+  direction: 1 | -1,
+): FormulaEditResult {
+  const safeSelection = clampSelection(doc, selection);
+  const nextSelection = findAdjacentPlaceholderTarget(doc, safeSelection, direction);
+  return {
+    doc,
+    selection: nextSelection ?? safeSelection,
+    changed: false,
+    dispatchOptions: { addToHistory: false },
   };
 }
 
@@ -189,8 +299,8 @@ export function insertFractionAtSelection(
   doc: FormulaDoc,
   selection: FormulaSelection,
 ): FormulaEditResult {
-  const numerator = createRow([]);
-  const denominator = createRow([]);
+  const numerator = createPlaceholderRow('numerator');
+  const denominator = createPlaceholderRow('denominator');
   const node: FormulaFractionNode = {
     type: 'frac',
     id: createFormulaNodeId('frac'),
@@ -204,7 +314,7 @@ export function insertSqrtAtSelection(
   doc: FormulaDoc,
   selection: FormulaSelection,
 ): FormulaEditResult {
-  const value = createRow([]);
+  const value = createPlaceholderRow('radicand');
   const node: FormulaSqrtNode = {
     type: 'sqrt',
     id: createFormulaNodeId('sqrt'),
@@ -250,7 +360,7 @@ function insertStructureAtSelection(
   }));
 
   return {
-    doc: nextDoc,
+    doc: ensureRuntimeEditableDoc(nextDoc),
     selection: createSelection(nextRowId, 0),
     changed: nextDoc !== doc,
     dispatchOptions: {
@@ -271,28 +381,35 @@ function resolveInsertedSelection(
   insertedChildren: FormulaNode[],
   fallbackRowId: string,
   fallbackOffset: number,
-  placeholderSelection?: FormulaSelection | null,
+  cursorSelection?: FormulaSelection | null,
   fragmentRootId?: string,
 ): FormulaSelection {
-  if (placeholderSelection) {
-    if (placeholderSelection.rowId === fragmentRootId) {
-      return createSelection(fallbackRowId, fallbackOffset + placeholderSelection.offset);
+  if (cursorSelection) {
+    if (cursorSelection.rowId === fragmentRootId) {
+      return createSelection(fallbackRowId, fallbackOffset + cursorSelection.offset);
     }
-    return placeholderSelection;
+    return cursorSelection;
+  }
+
+  const firstPlaceholder = findFirstPlaceholderSelectionInNodes(insertedChildren);
+  if (firstPlaceholder) {
+    return firstPlaceholder;
   }
 
   for (const child of insertedChildren) {
-    const rowId = findFirstEditableRowId(child);
-    if (rowId) {
-      return createSelection(rowId, 0);
+    const rowSelection = findFirstEditableSelection(child);
+    if (rowSelection) {
+      return rowSelection;
     }
   }
 
   return createSelection(fallbackRowId, fallbackOffset + insertedChildren.length);
 }
 
-function stripToolbarPlaceholderMarkers(row: FormulaRowNode): FormulaSelection | null {
-  let selection: FormulaSelection | null = null;
+function stripToolbarCursorMarkers(row: FormulaRowNode): FormulaSelection | null {
+  let selection: FormulaSelection | null = row.placeholder && row.children.length === 0
+    ? createSelection(row.id, 0)
+    : null;
   const nextChildren: FormulaNode[] = [];
 
   for (const child of row.children) {
@@ -301,7 +418,7 @@ function stripToolbarPlaceholderMarkers(row: FormulaRowNode): FormulaSelection |
       continue;
     }
 
-    selection ??= stripToolbarPlaceholderFromNode(child);
+    selection ??= stripToolbarCursorMarkerFromNode(child);
     nextChildren.push(child);
   }
 
@@ -309,69 +426,209 @@ function stripToolbarPlaceholderMarkers(row: FormulaRowNode): FormulaSelection |
   return selection;
 }
 
-function stripToolbarPlaceholderFromNode(node: FormulaNode): FormulaSelection | null {
+function stripToolbarCursorMarkerFromNode(node: FormulaNode): FormulaSelection | null {
   switch (node.type) {
     case 'row':
-      return stripToolbarPlaceholderMarkers(node);
+      return stripToolbarCursorMarkers(node);
     case 'frac': {
-      const numeratorSelection = stripToolbarPlaceholderMarkers(node.numerator);
-      const denominatorSelection = stripToolbarPlaceholderMarkers(node.denominator);
+      const numeratorSelection = stripToolbarCursorMarkers(node.numerator);
+      const denominatorSelection = stripToolbarCursorMarkers(node.denominator);
       return numeratorSelection ?? denominatorSelection;
     }
     case 'sqrt': {
-      const indexSelection = node.index ? stripToolbarPlaceholderMarkers(node.index) : null;
-      const valueSelection = stripToolbarPlaceholderMarkers(node.value);
+      const indexSelection = node.index ? stripToolbarCursorMarkers(node.index) : null;
+      const valueSelection = stripToolbarCursorMarkers(node.value);
       return indexSelection ?? valueSelection;
     }
     case 'script': {
       let selection: FormulaSelection | null = null;
 
       if (node.base.type === 'placeholder') {
-        const baseRow = createRow([]);
+        const baseRow = createPlaceholderRow('script-base');
         node.base = baseRow;
         selection = createSelection(baseRow.id, 0);
       } else {
-        selection = stripToolbarPlaceholderFromNode(node.base);
+        selection = stripToolbarCursorMarkerFromNode(node.base);
       }
 
-      const supSelection = node.sup ? stripToolbarPlaceholderMarkers(node.sup) : null;
-      const subSelection = node.sub ? stripToolbarPlaceholderMarkers(node.sub) : null;
+      const supSelection = node.sup ? stripToolbarCursorMarkers(node.sup) : null;
+      const subSelection = node.sub ? stripToolbarCursorMarkers(node.sub) : null;
 
       return selection ?? supSelection ?? subSelection;
     }
     case 'fence':
-      return stripToolbarPlaceholderMarkers(node.body);
+      return stripToolbarCursorMarkers(node.body);
     case 'matrix':
       for (const matrixRow of node.rows) {
         for (const cell of matrixRow) {
-          const selection = stripToolbarPlaceholderMarkers(cell);
+          const selection = stripToolbarCursorMarkers(cell);
           if (selection) {
             return selection;
           }
         }
       }
       return null;
-    case 'symbol':
-    case 'placeholder':
-    case 'unsupported':
+    default:
       return null;
   }
 }
 
-function findFirstEditableRowId(node: FormulaNode): string | null {
+function findFirstPlaceholderSelectionInNodes(nodes: FormulaNode[]): FormulaSelection | null {
+  const docLike: FormulaDoc = {
+    type: 'doc',
+    id: 'virtual-doc',
+    root: createRow(nodes),
+    sourceLatex: '',
+    version: 0,
+    diagnostics: [],
+  };
+  const first = collectPlaceholderTargets(docLike)[0];
+  return first ? createSelection(first.rowId, first.offset) : null;
+}
+
+function findFirstEditableSelection(node: FormulaNode): FormulaSelection | null {
   switch (node.type) {
     case 'row':
-      return node.id;
+      return getInitialSelection({
+        type: 'doc',
+        id: 'virtual-doc',
+        root: node,
+        sourceLatex: '',
+        version: 0,
+        diagnostics: [],
+      });
     case 'frac':
-      return node.numerator.id;
+      return createSelection(node.numerator.id, 0);
     case 'sqrt':
-      return node.value.id;
+      return createSelection((node.index ?? node.value).id, 0);
     case 'script':
-      return node.sup?.id ?? node.sub?.id ?? findFirstEditableRowId(node.base);
+      return node.sup
+        ? createSelection(node.sup.id, 0)
+        : node.sub
+          ? createSelection(node.sub.id, 0)
+          : findFirstEditableSelection(node.base);
     case 'fence':
-      return node.body.id;
+      return createSelection(node.body.id, 0);
     case 'matrix':
-      return node.rows[0]?.[0]?.id ?? null;
+      return node.rows[0]?.[0] ? createSelection(node.rows[0][0].id, 0) : null;
+    default:
+      return null;
+  }
+}
+
+function findLastEditableSelection(node: FormulaNode): FormulaSelection | null {
+  switch (node.type) {
+    case 'row':
+      return createSelection(node.id, node.children.length);
+    case 'frac':
+      return createSelection(node.denominator.id, node.denominator.children.length);
+    case 'sqrt':
+      return createSelection(node.value.id, node.value.children.length);
+    case 'script':
+      return node.sub
+        ? createSelection(node.sub.id, node.sub.children.length)
+        : node.sup
+          ? createSelection(node.sup.id, node.sup.children.length)
+          : findLastEditableSelection(node.base);
+    case 'fence':
+      return createSelection(node.body.id, node.body.children.length);
+    case 'matrix': {
+      const row = node.rows[node.rows.length - 1];
+      const cell = row?.[row.length - 1];
+      return cell ? createSelection(cell.id, cell.children.length) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+function resolveBoundarySelection(
+  doc: FormulaDoc,
+  selection: FormulaSelection,
+  direction: 1 | -1,
+): FormulaSelection | null {
+  const owner = findRowOwner(doc, selection.rowId);
+  if (!owner) {
+    return null;
+  }
+
+  const parentNode = owner.parentNodeId ? findNodeById(doc.root, owner.parentNodeId) : null;
+
+  if (direction === 1) {
+    if (owner.field === 'frac-numerator' && parentNode?.type === 'frac') {
+      return createSelection(parentNode.denominator.id, 0);
+    }
+    if (owner.field === 'sqrt-index' && parentNode?.type === 'sqrt') {
+      return createSelection(parentNode.value.id, 0);
+    }
+    if (owner.field === 'script-sup' && parentNode?.type === 'script' && parentNode.sub) {
+      return createSelection(parentNode.sub.id, 0);
+    }
+  }
+
+  if (direction === -1) {
+    if (owner.field === 'frac-denominator' && parentNode?.type === 'frac') {
+      return createSelection(parentNode.numerator.id, parentNode.numerator.children.length);
+    }
+    if (owner.field === 'sqrt-value' && parentNode?.type === 'sqrt' && parentNode.index) {
+      return createSelection(parentNode.index.id, parentNode.index.children.length);
+    }
+    if (owner.field === 'script-sub' && parentNode?.type === 'script' && parentNode.sup) {
+      return createSelection(parentNode.sup.id, parentNode.sup.children.length);
+    }
+  }
+
+  if (!owner.parentRowId || !owner.parentNodeId) {
+    return null;
+  }
+
+  const parentRow = findRowById(doc, owner.parentRowId);
+  if (!parentRow) {
+    return null;
+  }
+
+  const childIndex = parentRow.children.findIndex((child) => child.id === owner.parentNodeId);
+  if (childIndex === -1) {
+    return null;
+  }
+
+  return createSelection(owner.parentRowId, direction === 1 ? childIndex + 1 : childIndex);
+}
+
+function findNodeById(node: FormulaNode, nodeId: string): FormulaNode | null {
+  if (node.id === nodeId) {
+    return node;
+  }
+
+  switch (node.type) {
+    case 'row':
+      for (const child of node.children) {
+        const found = findNodeById(child, nodeId);
+        if (found) {
+          return found;
+        }
+      }
+      return null;
+    case 'frac':
+      return findNodeById(node.numerator, nodeId) ?? findNodeById(node.denominator, nodeId);
+    case 'sqrt':
+      return (node.index ? findNodeById(node.index, nodeId) : null) ?? findNodeById(node.value, nodeId);
+    case 'script':
+      return findNodeById(node.base, nodeId)
+        ?? (node.sup ? findNodeById(node.sup, nodeId) : null)
+        ?? (node.sub ? findNodeById(node.sub, nodeId) : null);
+    case 'fence':
+      return findNodeById(node.body, nodeId);
+    case 'matrix':
+      for (const row of node.rows) {
+        for (const cell of row) {
+          const found = findNodeById(cell, nodeId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
     default:
       return null;
   }
@@ -408,7 +665,7 @@ function insertScriptAtSelection(
   });
 
   return {
-    doc: nextDoc,
+    doc: ensureRuntimeEditableDoc(nextDoc),
     selection: nextSelection,
     changed: nextDoc !== doc,
     dispatchOptions: {
@@ -426,8 +683,8 @@ function createScriptFromTarget(target: FormulaNode, part: 'sup' | 'sub'): Formu
     }
     return {
       ...target,
-      sup: part === 'sup' ? (target.sup ?? createRow([])) : target.sup,
-      sub: part === 'sub' ? (target.sub ?? createRow([])) : target.sub,
+      sup: part === 'sup' ? (target.sup ?? createPlaceholderRow('superscript')) : target.sup,
+      sub: part === 'sub' ? (target.sub ?? createPlaceholderRow('subscript')) : target.sub,
       order,
     };
   }
@@ -436,8 +693,8 @@ function createScriptFromTarget(target: FormulaNode, part: 'sup' | 'sub'): Formu
     type: 'script',
     id: createFormulaNodeId('script'),
     base: target,
-    sup: part === 'sup' ? createRow([]) : undefined,
-    sub: part === 'sub' ? createRow([]) : undefined,
+    sup: part === 'sup' ? createPlaceholderRow('superscript') : undefined,
+    sub: part === 'sub' ? createPlaceholderRow('subscript') : undefined,
     order: [part],
   };
 }
@@ -474,6 +731,10 @@ export function applyFormulaCommand(
           addToHistory: false,
         },
       };
+    case 'moveToNextPlaceholder':
+      return moveSelectionToAdjacentPlaceholder(doc, currentSelection, 1);
+    case 'moveToPreviousPlaceholder':
+      return moveSelectionToAdjacentPlaceholder(doc, currentSelection, -1);
     case 'insertFraction':
       return insertFractionAtSelection(doc, currentSelection);
     case 'insertSqrt':

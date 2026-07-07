@@ -18,6 +18,7 @@ export interface FormulaRowNode {
   type: 'row';
   id: string;
   children: FormulaNode[];
+  placeholder?: FormulaPlaceholderNode;
 }
 
 export interface FormulaSymbolNode {
@@ -31,6 +32,10 @@ export interface FormulaSymbolNode {
 export interface FormulaPlaceholderNode {
   type: 'placeholder';
   id: string;
+  role?: string;
+  label?: string;
+  required?: boolean;
+  isRoot?: boolean;
 }
 
 export interface FormulaFractionNode {
@@ -174,6 +179,8 @@ export type FormulaCommandName =
   | 'moveRight'
   | 'moveUp'
   | 'moveDown'
+  | 'moveToNextPlaceholder'
+  | 'moveToPreviousPlaceholder'
   | 'insertFraction'
   | 'insertSqrt'
   | 'insertSuperscript'
@@ -189,6 +196,8 @@ export interface FormulaCommandPayloadMap {
   moveRight: undefined;
   moveUp: undefined;
   moveDown: undefined;
+  moveToNextPlaceholder: undefined;
+  moveToPreviousPlaceholder: undefined;
   insertFraction: undefined;
   insertSqrt: undefined;
   insertSuperscript: undefined;

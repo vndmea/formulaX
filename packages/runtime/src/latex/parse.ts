@@ -62,7 +62,9 @@ class RuntimeLatexParser {
   constructor(private readonly input: string) {}
 
   parse(): FormulaDoc {
-    const root = this.parseRow();
+    const root = normalizeParsedRow(this.parseRow(), {
+      allowRootPlaceholder: true,
+    });
     return {
       type: 'doc',
       id: createFormulaNodeId('doc'),
@@ -113,8 +115,12 @@ class RuntimeLatexParser {
       return {
         type: 'frac',
         id: createFormulaNodeId('frac'),
-        numerator: this.parseRequiredGroup('\\frac numerator'),
-        denominator: this.parseRequiredGroup('\\frac denominator'),
+        numerator: normalizeParsedRow(this.parseRequiredGroup('\\frac numerator'), {
+          role: 'numerator',
+        }),
+        denominator: normalizeParsedRow(this.parseRequiredGroup('\\frac denominator'), {
+          role: 'denominator',
+        }),
       };
     }
 
@@ -123,8 +129,10 @@ class RuntimeLatexParser {
       return {
         type: 'sqrt',
         id: createFormulaNodeId('sqrt'),
-        index: this.parseOptionalBracketGroup(),
-        value: this.parseRequiredGroup('\\sqrt value'),
+        index: this.parseOptionalBracketGroup('index'),
+        value: normalizeParsedRow(this.parseRequiredGroup('\\sqrt value'), {
+          role: 'radicand',
+        }),
       } satisfies FormulaSqrtNode;
     }
 
@@ -142,7 +150,7 @@ class RuntimeLatexParser {
       this.index += 1;
       const row = this.parseRow(() => this.input[this.index] === '}');
       this.consume('}');
-      return row;
+      return normalizeParsedRow(row);
     }
 
     if (current === '^' || current === '_') {
@@ -272,10 +280,14 @@ class RuntimeLatexParser {
       this.index += 1;
       const row = this.parseRequiredGroup(current === '^' ? 'superscript' : 'subscript');
       if (current === '^') {
-        scriptTarget.sup = row;
+        scriptTarget.sup = normalizeParsedRow(row, {
+          role: 'superscript',
+        });
         scriptTarget.order.push('sup');
       } else {
-        scriptTarget.sub = row;
+        scriptTarget.sub = normalizeParsedRow(row, {
+          role: 'subscript',
+        });
         scriptTarget.order.push('sub');
       }
     }
@@ -316,14 +328,16 @@ class RuntimeLatexParser {
     return createRow([]);
   }
 
-  private parseOptionalBracketGroup(): FormulaRowNode | undefined {
+  private parseOptionalBracketGroup(role = 'index'): FormulaRowNode | undefined {
     this.skipWhitespace();
     const rawGroup = this.readBalancedGroup('[', ']');
     if (!rawGroup) {
       return undefined;
     }
 
-    return new RuntimeLatexParser(rawGroup.content).parse().root;
+    return normalizeParsedRow(new RuntimeLatexParser(rawGroup.content).parse().root, {
+      role,
+    });
   }
 
   private readGroupText(): string {
@@ -512,4 +526,67 @@ function splitMatrixRows(input: string): string[][] {
 
 export function parseLatexToFormulaDoc(input: string): FormulaDoc {
   return new RuntimeLatexParser(input).parse();
+}
+
+function normalizeParsedRow(
+  row: FormulaRowNode,
+  options: {
+    role?: string;
+    allowRootPlaceholder?: boolean;
+  } = {},
+): FormulaRowNode {
+  const children = row.children.map((child) => normalizeParsedNode(child));
+  const isSinglePlaceholder = children.length === 1 && children[0]?.type === 'placeholder';
+  const singlePlaceholder = isSinglePlaceholder ? children[0] as FormulaPlaceholderNode : row.placeholder;
+  const placeholder = singlePlaceholder
+    ? {
+      ...singlePlaceholder,
+      role: singlePlaceholder.role ?? options.role,
+      isRoot: options.allowRootPlaceholder ? true : singlePlaceholder.isRoot,
+    }
+    : undefined;
+
+  return {
+    ...row,
+    children: isSinglePlaceholder ? [] : children,
+    placeholder,
+  };
+}
+
+function normalizeParsedNode(node: FormulaNode): FormulaNode {
+  switch (node.type) {
+    case 'row':
+      return normalizeParsedRow(node);
+    case 'frac':
+      return {
+        ...node,
+        numerator: normalizeParsedRow(node.numerator, { role: 'numerator' }),
+        denominator: normalizeParsedRow(node.denominator, { role: 'denominator' }),
+      };
+    case 'sqrt':
+      return {
+        ...node,
+        index: node.index ? normalizeParsedRow(node.index, { role: 'index' }) : undefined,
+        value: normalizeParsedRow(node.value, { role: 'radicand' }),
+      };
+    case 'script':
+      return {
+        ...node,
+        base: normalizeParsedNode(node.base),
+        sup: node.sup ? normalizeParsedRow(node.sup, { role: 'superscript' }) : undefined,
+        sub: node.sub ? normalizeParsedRow(node.sub, { role: 'subscript' }) : undefined,
+      };
+    case 'fence':
+      return {
+        ...node,
+        body: normalizeParsedRow(node.body, { role: 'body' }),
+      };
+    case 'matrix':
+      return {
+        ...node,
+        rows: node.rows.map((row) => row.map((cell) => normalizeParsedRow(cell, { role: 'matrix-cell' }))),
+      };
+    default:
+      return node;
+  }
 }

@@ -116,9 +116,11 @@ describe('runtime latex parser and serializer', () => {
     const fraction = parsed.root.children[0];
 
     expect(fraction?.type).toBe('frac');
-    expect(fraction && 'numerator' in fraction ? fraction.numerator.children[0]?.type : undefined)
+    expect(fraction && 'numerator' in fraction ? fraction.numerator.placeholder?.type : undefined)
       .toBe('placeholder');
-    expect(serializeFormulaDocToLatex(parsed)).toBe('\\frac{\\placeholder}{\\placeholder}');
+    expect(fraction && 'denominator' in fraction ? fraction.denominator.placeholder?.type : undefined)
+      .toBe('placeholder');
+    expect(serializeFormulaDocToLatex(parsed)).toBe('\\frac{}{}');
   });
 
   it('parses the legacy kity toolbar template catalog without unsupported nodes', () => {
@@ -312,6 +314,27 @@ describe('runtime commands and layout', () => {
     expect(serializeFormulaDocToLatex(result.doc)).toBe('\\sin');
     expect(result.selection.rowId).toBe(result.doc.root.id);
     expect(result.selection.offset).toBe(1);
+  });
+
+  it('navigates semantic placeholders in document order with Tab semantics', () => {
+    const doc = createEmptyFormulaDoc('');
+    const inserted = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+      type: 'insertLatex',
+      payload: { latex: '\\frac \\placeholder\\placeholder' },
+    });
+    const moved = applyFormulaCommand(inserted.doc, inserted.selection, {
+      type: 'moveToNextPlaceholder',
+      payload: undefined,
+    });
+
+    const fraction = inserted.doc.root.children[0];
+    expect(fraction?.type).toBe('frac');
+    expect(inserted.selection.rowId).toBe(
+      fraction && 'numerator' in fraction ? fraction.numerator.id : undefined,
+    );
+    expect(moved.selection.rowId).toBe(
+      fraction && 'denominator' in fraction ? fraction.denominator.id : undefined,
+    );
   });
 
   it('keeps fence and nth-root toolbar placeholders editable without synthetic wrapper groups', () => {

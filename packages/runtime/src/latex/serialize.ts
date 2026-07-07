@@ -29,7 +29,7 @@ export function serializeFormulaNode(node: FormulaNode): string {
       return command ? `\\${command}` : node.value;
       }
     case 'placeholder':
-      return '\\placeholder';
+      return '';
     case 'frac':
       return `\\frac{${serializeRow(node.numerator)}}{${serializeRow(node.denominator)}}`;
     case 'sqrt':
