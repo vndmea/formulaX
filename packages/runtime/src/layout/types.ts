@@ -11,6 +11,11 @@ export interface LayoutBox {
   text?: string;
   fontFamily?: string;
   rowId?: string;
+  modelChildCount?: number;
+  placeholderRole?: string;
+  placeholderLabel?: string;
+  placeholderRequired?: boolean;
+  isRootPlaceholder?: boolean;
   children: LayoutBox[];
 }
 

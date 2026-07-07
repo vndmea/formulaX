@@ -13,11 +13,11 @@ test.describe('runtime v2 editor and renderer', () => {
     expect(html).toContain('data-formulax-runtime="solid-svg"');
   });
 
-  test('supports typing and undo/redo through keyboard input', async ({ page }) => {
+  test('supports click-to-edit typing and undo/redo through keyboard input', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount(''));
 
-    await page.locator('#runtime-editor .fx-runtime-editor__input').focus();
+    await page.locator('#runtime-editor .fx-runtime-editor__surface').click();
     await page.keyboard.type('x');
     await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex())).toBe('x');
 
@@ -26,6 +26,24 @@ test.describe('runtime v2 editor and renderer', () => {
 
     await page.keyboard.press('Control+Shift+Z');
     await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex())).toBe('x');
+  });
+
+  test('uses Tab to move across semantic placeholders after structure insertion', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount(''));
+
+    await page.locator('#runtime-editor .fx-runtime-editor__surface').click();
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.dispatch({
+      type: 'insertFraction',
+      payload: undefined,
+    }));
+
+    await page.keyboard.type('x');
+    await page.keyboard.press('Tab');
+    await page.keyboard.type('y');
+
+    await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex()))
+      .toBe('\\frac{x}{y}');
   });
 
   test('renders readonly svg through renderer-next', async ({ page }) => {

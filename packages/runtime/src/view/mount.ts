@@ -75,7 +75,7 @@ function syncSvg(
 
     line.fragments.forEach((fragment) => {
       buildAbsoluteMap(fragment.box, fragment.x, line.y + fragment.y, absoluteMap, false);
-      appendBox(lineGroup, fragment.box, line, fragment.x, fragment.y, null, false);
+      appendBox(lineGroup, fragment.box, line, fragment.x, fragment.y, null, selection?.rowId ?? null, false);
     });
   });
 
@@ -110,6 +110,7 @@ function appendBox(
   offsetX: number,
   offsetY: number,
   parentRowId: string | null,
+  activeRowId: string | null,
   includeOwnPosition = true,
 ): void {
   const absoluteX = offsetX + (includeOwnPosition ? box.x : 0);
@@ -120,6 +121,7 @@ function appendBox(
   group.setAttribute('data-formulax-line-index', String(line.index));
   if (box.rowId) {
     group.setAttribute('data-formulax-row-id', box.rowId);
+    group.setAttribute('data-formulax-model-child-count', String(box.modelChildCount ?? box.children.length));
   }
   if (parentRowId) {
     group.setAttribute('data-formulax-parent-row-id', parentRowId);
@@ -128,17 +130,37 @@ function appendBox(
   parent.appendChild(group);
 
   if (box.kind === 'placeholder') {
+    const isActive = parentRowId !== null && parentRowId === activeRowId;
     const placeholder = document.createElementNS(SVG_NS, 'rect');
     placeholder.setAttribute('data-formulax-role', 'placeholder');
-    placeholder.setAttribute('x', '1');
-    placeholder.setAttribute('y', '1');
-    placeholder.setAttribute('width', String(Math.max(0, box.width - 2)));
-    placeholder.setAttribute('height', String(Math.max(0, box.height - 2)));
-    placeholder.setAttribute('fill', 'none');
-    placeholder.setAttribute('stroke', '#000');
+    placeholder.setAttribute('x', box.isRootPlaceholder ? '0.5' : '1');
+    placeholder.setAttribute('y', box.isRootPlaceholder ? '0.5' : '1');
+    placeholder.setAttribute('rx', box.isRootPlaceholder ? '6' : '2');
+    placeholder.setAttribute('ry', box.isRootPlaceholder ? '6' : '2');
+    placeholder.setAttribute('width', String(Math.max(0, box.width - (box.isRootPlaceholder ? 1 : 2))));
+    placeholder.setAttribute('height', String(Math.max(0, box.height - (box.isRootPlaceholder ? 1 : 2))));
+    placeholder.setAttribute('fill', isActive ? 'rgba(37, 99, 235, 0.08)' : (box.isRootPlaceholder ? 'rgba(37, 99, 235, 0.03)' : 'none'));
+    placeholder.setAttribute('stroke', isActive ? '#2563eb' : '#4b5563');
     placeholder.setAttribute('stroke-width', '1');
-    placeholder.setAttribute('stroke-dasharray', '5 5');
+    placeholder.setAttribute('stroke-dasharray', box.isRootPlaceholder ? '6 4' : '5 5');
     group.appendChild(placeholder);
+
+    if (box.placeholderLabel) {
+      const text = document.createElementNS(SVG_NS, 'text');
+      text.textContent = box.placeholderLabel;
+      text.setAttribute('data-formulax-role', 'placeholder-label');
+      text.setAttribute('x', String(box.width / 2));
+      text.setAttribute('y', String(box.height / 2));
+      text.setAttribute('dy', '0.12em');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('font-size', String(Math.max(14, Math.round(box.height * 0.38))));
+      text.setAttribute('fill', isActive ? '#2563eb' : '#6b7280');
+      if (box.fontFamily) {
+        text.setAttribute('font-family', box.fontFamily);
+      }
+      group.appendChild(text);
+    }
   }
 
   if (box.kind === 'sqrt-radical') {
@@ -206,7 +228,7 @@ function appendBox(
   }
 
   const rowContext = box.kind === 'row' ? box.nodeId : parentRowId;
-  box.children.forEach((child) => appendBox(group, child, line, 0, 0, rowContext));
+  box.children.forEach((child) => appendBox(group, child, line, 0, 0, rowContext, activeRowId));
 }
 
 function createCaretElement(
@@ -216,6 +238,9 @@ function createCaretElement(
 ): SVGElement | null {
   const row = absoluteMap.get(selection.rowId);
   const line = findSelectionLine(layout, selection);
+  if (row?.placeholderRole && (row.modelChildCount ?? 0) === 0) {
+    return null;
+  }
   if (!row && !line) {
     return null;
   }

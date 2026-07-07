@@ -1,5 +1,5 @@
 import { batch, createSignal } from 'solid-js';
-import { applyFormulaCommand, createEmptyFormulaDoc } from '../core/commands';
+import { applyFormulaCommand, createEmptyFormulaDoc, ensureRuntimeEditableDoc } from '../core/commands';
 import { clampSelection, createSelection, getInitialSelection } from '../core/selection';
 import type {
   FormulaCommand,
@@ -40,7 +40,9 @@ export class FormulaRuntimeEditor {
     options: RuntimeEditorOptions = {},
   ) {
     this.options = options;
-    const initialDoc = createEmptyFormulaDoc(options.initialLatex ?? '');
+    const initialDoc = ensureRuntimeEditableDoc(createEmptyFormulaDoc(options.initialLatex ?? ''), {
+      rootPlaceholderLabel: this.getRootPlaceholderLabel(options.locale),
+    });
     const initialSelection = getInitialSelection(initialDoc);
     this.metrics = new BrowserFormulaMetrics(host.ownerDocument ?? document);
 
@@ -71,7 +73,7 @@ export class FormulaRuntimeEditor {
     this.rootHost.style.height = this.resolveCssSize(options.height, '100%');
     this.rootHost.style.minHeight = '120px';
     this.rootHost.style.outline = 'none';
-    this.rootHost.tabIndex = options.readOnly ? -1 : 0;
+    this.rootHost.tabIndex = options.readOnly ? 0 : -1;
 
     this.svgHost = document.createElement('div');
     this.svgHost.className = 'fx-runtime-editor__surface';
@@ -119,7 +121,9 @@ export class FormulaRuntimeEditor {
   }
 
   setLatex(latex: string, dispatchOptions: FormulaDispatchOptions = {}): void {
-    const nextDoc = parseLatexToFormulaDoc(latex);
+    const nextDoc = ensureRuntimeEditableDoc(parseLatexToFormulaDoc(latex), {
+      rootPlaceholderLabel: this.getRootPlaceholderLabel(this.options.locale),
+    });
     const nextSelection = getInitialSelection(nextDoc);
     if (dispatchOptions.preserveHistory) {
       this.history.push(
@@ -242,8 +246,11 @@ export class FormulaRuntimeEditor {
   }
 
   private applyState(doc: FormulaDoc, selection: FormulaSelection): void {
-    const safeSelection = clampSelection(doc, selection);
-    const nextLayout = layoutFormula(doc, this.metrics, {
+    const editableDoc = ensureRuntimeEditableDoc(doc, {
+      rootPlaceholderLabel: this.getRootPlaceholderLabel(this.options.locale),
+    });
+    const safeSelection = clampSelection(editableDoc, selection);
+    const nextLayout = layoutFormula(editableDoc, this.metrics, {
       fontSize: this.resolveFontSize(),
       fontFamily: this.options.assets?.fontFamily,
       wrap: this.options.wrap,
@@ -254,8 +261,8 @@ export class FormulaRuntimeEditor {
 
     batch(() => {
       this.docSignal.set({
-        ...doc,
-        sourceLatex: serializeFormulaDocToLatex(doc),
+        ...editableDoc,
+        sourceLatex: serializeFormulaDocToLatex(editableDoc),
       });
       this.selectionSignal.set(safeSelection);
       this.layoutSignal.set(nextLayout);
@@ -267,6 +274,16 @@ export class FormulaRuntimeEditor {
     if (this.options.readOnly) {
       return;
     }
+
+    this.rootHost.addEventListener('focus', () => {
+      if (this.destroyed || this.options.readOnly) {
+        return;
+      }
+
+      if (document.activeElement === this.rootHost) {
+        this.input.focus();
+      }
+    });
 
     this.rootHost.addEventListener('pointerdown', (event) => {
       const target = event.target;
@@ -288,7 +305,11 @@ export class FormulaRuntimeEditor {
       const offset = rowId === this.docSignal.get().root.id
         ? this.resolveWrappedPointerOffset(event.clientX, event.clientY)
         : this.resolvePointerOffset(rowElement, event.clientX);
-      this.selectionSignal.set(createSelection(rowId, offset));
+      const nextSelection = clampSelection(
+        this.docSignal.get(),
+        createSelection(rowId, offset),
+      );
+      this.selectionSignal.set(nextSelection);
       this.preferredCursorX = null;
       this.focus();
       event.preventDefault();
@@ -390,6 +411,14 @@ export class FormulaRuntimeEditor {
       return true;
     }
 
+    if (key === 'Tab') {
+      this.dispatch({
+        type: event.shiftKey ? 'moveToPreviousPlaceholder' : 'moveToNextPlaceholder',
+        payload: undefined,
+      }, { addToHistory: false });
+      return true;
+    }
+
     if (commandKey && key === '/') {
       this.dispatch({ type: 'insertFraction', payload: undefined });
       return true;
@@ -399,8 +428,18 @@ export class FormulaRuntimeEditor {
   }
 
   private resolvePointerOffset(rowElement: SVGGElement, clientX: number): number {
+    const rowId = rowElement.getAttribute('data-formulax-row-id');
+    if (!rowId) {
+      return 0;
+    }
+
+    const modelChildCount = Number(rowElement.getAttribute('data-formulax-model-child-count') ?? '0');
+    if (modelChildCount === 0) {
+      return 0;
+    }
+
     const children = Array.from(
-      this.svgHost.querySelectorAll<SVGGElement>(`[data-formulax-parent-row-id="${rowElement.getAttribute('data-formulax-row-id')}"]`),
+      this.svgHost.querySelectorAll<SVGGElement>(`[data-formulax-parent-row-id="${rowId}"]`),
     );
 
     if (children.length === 0) {
@@ -415,7 +454,7 @@ export class FormulaRuntimeEditor {
       }
     }
 
-    return children.length;
+    return Math.min(children.length, modelChildCount);
   }
 
   private resolveWrappedPointerOffset(clientX: number, clientY: number): number {
@@ -550,5 +589,9 @@ export class FormulaRuntimeEditor {
     }
 
     return this.options.maxWidth;
+  }
+
+  private getRootPlaceholderLabel(locale?: string): string {
+    return locale?.toLowerCase().startsWith('zh') ? '请输入公式' : 'Type formula here';
   }
 }

@@ -99,6 +99,7 @@ function resolveWrapMode(root: LayoutBox, options: FormulaLayoutOptions): Formul
 }
 
 function createSingleLine(root: LayoutBox): LayoutLine {
+  const endOffset = root.modelChildCount ?? root.children.length;
   return {
     id: `${root.id}-line-0`,
     index: 0,
@@ -110,7 +111,7 @@ function createSingleLine(root: LayoutBox): LayoutLine {
     descent: root.descent,
     baseline: root.ascent,
     startOffset: 0,
-    endOffset: root.children.length,
+    endOffset,
     fragments: root.children.map((child, childIndex) => ({
       id: `${child.id}-fragment-0`,
       nodeId: child.nodeId,
@@ -277,7 +278,10 @@ function layoutRow(
   options: FormulaLayoutOptions,
   nodeMap: Map<string, LayoutBox>,
 ): LayoutBox {
-  const children = row.children.map((child) => layoutNode(child, metrics, options, nodeMap));
+  const logicalChildren = row.children.map((child) => layoutNode(child, metrics, options, nodeMap));
+  const children = logicalChildren.length === 0 && row.placeholder
+    ? [layoutPlaceholder(row.placeholder, metrics, options, nodeMap)]
+    : logicalChildren;
   const ascent = children.length ? Math.max(...children.map((child) => child.ascent)) : options.fontSize * 0.8;
   const descent = children.length ? Math.max(...children.map((child) => child.descent)) : options.fontSize * 0.3;
   let cursorX = 0;
@@ -302,6 +306,11 @@ function layoutRow(
     height: ascent + descent,
     ascent,
     descent,
+    modelChildCount: row.children.length,
+    placeholderRole: row.placeholder?.role,
+    placeholderLabel: row.placeholder?.label,
+    placeholderRequired: row.placeholder?.required,
+    isRootPlaceholder: row.placeholder?.isRoot,
     children: placedChildren,
   };
   nodeMap.set(box.nodeId, box);
@@ -325,7 +334,7 @@ function layoutNode(
       }), nodeMap, fontFamily);
     }
     case 'placeholder':
-      return layoutPlaceholder(node.id, options, nodeMap);
+      return layoutPlaceholder(node, metrics, options, nodeMap);
     case 'unsupported':
       return layoutTextBox(node.id, node.id, 'unsupported', node.rawLatex, metrics.measureText(node.rawLatex, {
         fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
@@ -345,16 +354,26 @@ function layoutNode(
 }
 
 function layoutPlaceholder(
-  nodeId: string,
+  placeholder: Extract<FormulaNode, { type: 'placeholder' }>,
+  metrics: FormulaMetrics,
   options: FormulaLayoutOptions,
   nodeMap: Map<string, LayoutBox>,
 ): LayoutBox {
-  const width = options.fontSize * 0.875;
-  const height = options.fontSize * 1.25;
+  const hasLabel = Boolean(placeholder.label);
+  const measured = hasLabel
+    ? metrics.measureText(placeholder.label!, {
+      fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+      fontSize: Math.max(16, options.fontSize * 0.45),
+    })
+    : null;
+  const width = hasLabel
+    ? Math.max(options.fontSize * 3.2, (measured?.width ?? 0) + options.fontSize * 0.8)
+    : options.fontSize * 0.875;
+  const height = hasLabel ? options.fontSize * 1.15 : options.fontSize * 1.25;
   const ascent = height * 0.5;
   const box: LayoutBox = {
-    id: nodeId,
-    nodeId,
+    id: placeholder.id,
+    nodeId: placeholder.id,
     kind: 'placeholder',
     x: 0,
     y: 0,
@@ -362,9 +381,15 @@ function layoutPlaceholder(
     height,
     ascent,
     descent: height - ascent,
+    text: placeholder.label,
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    placeholderRole: placeholder.role,
+    placeholderLabel: placeholder.label,
+    placeholderRequired: placeholder.required,
+    isRootPlaceholder: placeholder.isRoot,
     children: [],
   };
-  nodeMap.set(nodeId, box);
+  nodeMap.set(placeholder.id, box);
   return box;
 }
 
