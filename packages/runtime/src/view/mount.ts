@@ -1,5 +1,15 @@
 import { createEffect, createRoot } from 'solid-js';
 import type { FormulaSelection } from '../core/types';
+import {
+  getSelectionAnchorOffset,
+  getSelectionEndOffset,
+  getSelectionFocusOffset,
+  getSelectionRowId,
+  getSelectionStartOffset,
+  isCollapsedSelection,
+  isNodeSelection,
+} from '../core/selection';
+import { buildAbsoluteLayoutState } from '../layout/absolute';
 import type { LayoutBox, LayoutLine, LayoutResult } from '../layout/types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -66,7 +76,7 @@ function syncSvg(
   svg.setAttribute('height', String(layout.height));
   svg.style.overflow = 'visible';
 
-  const absoluteMap = new Map<string, LayoutBox>();
+  const absoluteState = buildAbsoluteLayoutState(layout);
   layout.lines.forEach((line) => {
     const lineGroup = document.createElementNS(SVG_NS, 'g');
     lineGroup.setAttribute('data-formulax-line-index', String(line.index));
@@ -74,33 +84,21 @@ function syncSvg(
     svg.appendChild(lineGroup);
 
     line.fragments.forEach((fragment) => {
-      buildAbsoluteMap(fragment.box, fragment.x, line.y + fragment.y, absoluteMap, false);
       appendBox(lineGroup, fragment.box, line, fragment.x, fragment.y, null, selection?.rowId ?? null, false);
     });
   });
 
   if (selection) {
-    const caret = createCaretElement(layout, selection, absoluteMap);
+    const selectionOverlay = createSelectionOverlay(layout, selection, absoluteState.boxMap);
+    if (selectionOverlay) {
+      svg.appendChild(selectionOverlay);
+    }
+
+    const caret = createCaretElement(layout, selection, absoluteState.boxMap);
     if (caret) {
       svg.appendChild(caret);
     }
   }
-}
-
-function buildAbsoluteMap(
-  box: LayoutBox,
-  offsetX: number,
-  offsetY: number,
-  map: Map<string, LayoutBox>,
-  includeOwnPosition = true,
-): void {
-  const absolute = {
-    ...box,
-    x: offsetX + (includeOwnPosition ? box.x : 0),
-    y: offsetY + (includeOwnPosition ? box.y : 0),
-  };
-  map.set(box.nodeId, absolute);
-  box.children.forEach((child) => buildAbsoluteMap(child, absolute.x, absolute.y, map));
 }
 
 function appendBox(
@@ -236,12 +234,17 @@ function createCaretElement(
   selection: FormulaSelection,
   absoluteMap: Map<string, LayoutBox>,
 ): SVGElement | null {
-  const row = absoluteMap.get(selection.rowId);
+  const rowId = getSelectionRowId(selection);
+  const row = absoluteMap.get(rowId);
   const line = findSelectionLine(layout, selection);
   if (row?.placeholderRole && (row.modelChildCount ?? 0) === 0) {
     return null;
   }
   if (!row && !line) {
+    return null;
+  }
+
+  if (!isCollapsedSelection(selection)) {
     return null;
   }
 
@@ -259,51 +262,167 @@ function createCaretElement(
   return caret;
 }
 
+function createSelectionOverlay(
+  layout: LayoutResult,
+  selection: FormulaSelection,
+  absoluteMap: Map<string, LayoutBox>,
+): SVGElement | null {
+  if (isCollapsedSelection(selection)) {
+    return null;
+  }
+
+  const group = document.createElementNS(SVG_NS, 'g');
+  group.setAttribute('data-formulax-role', 'selection');
+  const rowId = getSelectionRowId(selection);
+  const anchorOffset = getSelectionAnchorOffset(selection);
+  const focusOffset = getSelectionFocusOffset(selection);
+  const startOffset = getSelectionStartOffset(selection);
+  const endOffset = getSelectionEndOffset(selection);
+
+  if (isNodeSelection(selection)) {
+    const target = absoluteMap.get(selection.nodeId);
+    if (!target) {
+      return null;
+    }
+
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('data-formulax-role', 'node-selection');
+    rect.setAttribute('x', String(target.x - 3));
+    rect.setAttribute('y', String(target.y - 3));
+    rect.setAttribute('width', String(target.width + 6));
+    rect.setAttribute('height', String(target.height + 6));
+    rect.setAttribute('rx', '4');
+    rect.setAttribute('ry', '4');
+    rect.setAttribute('fill', 'rgba(37, 99, 235, 0.10)');
+    rect.setAttribute('stroke', '#2563eb');
+    rect.setAttribute('stroke-width', '1.25');
+    group.appendChild(rect);
+    return group;
+  }
+
+  if (rowId !== layout.root.rowId) {
+    const row = absoluteMap.get(rowId);
+    if (!row) {
+      return null;
+    }
+
+    for (let index = startOffset; index < endOffset; index += 1) {
+      const child = row.children[index];
+      if (!child) {
+        continue;
+      }
+
+      const absoluteChild = absoluteMap.get(child.nodeId) ?? child;
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('data-formulax-role', 'range-selection');
+      rect.setAttribute('data-formulax-selection-direction', anchorOffset <= focusOffset ? 'forward' : 'backward');
+      rect.setAttribute('x', String(absoluteChild.x));
+      rect.setAttribute('y', String(absoluteChild.y));
+      rect.setAttribute('width', String(absoluteChild.width));
+      rect.setAttribute('height', String(absoluteChild.height));
+      rect.setAttribute('fill', 'rgba(37, 99, 235, 0.18)');
+      group.appendChild(rect);
+    }
+
+    return group.childNodes.length > 0 ? group : null;
+  }
+
+  const selectedLines = layout.lines.filter((line) => (
+    line.fragments.some((fragment) => fragment.box.rowId === rowId)
+    || (rowId === layout.root.rowId && startOffset <= line.endOffset && endOffset >= line.startOffset)
+  ));
+
+  if (selectedLines.length === 0) {
+    return null;
+  }
+
+  for (const line of selectedLines) {
+    const lineStartOffset = Math.max(startOffset, line.startOffset);
+    const lineEndOffset = Math.min(endOffset, line.endOffset);
+    if (lineEndOffset <= lineStartOffset) {
+      continue;
+    }
+
+    const startX = calculateLineBoundaryX(line, lineStartOffset);
+    const endX = calculateLineBoundaryX(line, lineEndOffset);
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('data-formulax-role', 'range-selection');
+    rect.setAttribute('data-formulax-selection-direction', anchorOffset <= focusOffset ? 'forward' : 'backward');
+    rect.setAttribute('x', String(startX));
+    rect.setAttribute('y', String(line.y));
+    rect.setAttribute('width', String(Math.max(0, endX - startX)));
+    rect.setAttribute('height', String(line.height));
+    rect.setAttribute('fill', 'rgba(37, 99, 235, 0.18)');
+    group.appendChild(rect);
+  }
+
+  return group.childNodes.length > 0 ? group : null;
+}
+
 function calculateCaretX(
   layout: LayoutResult,
   selection: FormulaSelection,
   absoluteMap: Map<string, LayoutBox>,
 ): number {
+  const rowId = getSelectionRowId(selection);
+  const offset = getSelectionEndOffset(selection);
   const line = findSelectionLine(layout, selection);
   if (line) {
-    if (selection.offset <= line.startOffset) {
+    if (offset <= line.startOffset) {
       return line.x + (line.fragments[0]?.x ?? 0);
     }
 
-    if (selection.offset >= line.endOffset) {
+    if (offset >= line.endOffset) {
       const last = line.fragments[line.fragments.length - 1];
       return line.x + (last ? last.x + last.width : 0);
     }
 
-    const fragment = line.fragments.find((item) => item.childIndex === selection.offset);
+    const fragment = line.fragments.find((item) => item.childIndex === offset);
     if (fragment) {
       return line.x + fragment.x;
     }
   }
 
-  const row = absoluteMap.get(selection.rowId);
+  const row = absoluteMap.get(rowId);
   if (!row) {
     return 0;
   }
 
-  if (selection.offset <= 0 || row.children.length === 0) {
+  if (offset <= 0 || row.children.length === 0) {
     return row.x;
   }
 
-  if (selection.offset >= row.children.length) {
+  if (offset >= row.children.length) {
     const lastChild = row.children[row.children.length - 1];
     const absoluteChild = absoluteMap.get(lastChild.nodeId);
     return absoluteChild ? absoluteChild.x + absoluteChild.width : row.x + row.width;
   }
 
-  const nextChild = row.children[selection.offset];
+  const nextChild = row.children[offset];
   const absoluteChild = absoluteMap.get(nextChild.nodeId);
   return absoluteChild ? absoluteChild.x : row.x;
 }
 
+function calculateLineBoundaryX(line: LayoutLine, offset: number): number {
+  if (offset <= line.startOffset) {
+    return line.x + (line.fragments[0]?.x ?? 0);
+  }
+
+  if (offset >= line.endOffset) {
+    const last = line.fragments[line.fragments.length - 1];
+    return line.x + (last ? last.x + last.width : 0);
+  }
+
+  const fragment = line.fragments.find((item) => item.childIndex === offset);
+  return line.x + (fragment?.x ?? 0);
+}
+
 function findSelectionLine(layout: LayoutResult, selection: FormulaSelection): LayoutLine | null {
+  const rowId = getSelectionRowId(selection);
+  const startOffset = getSelectionStartOffset(selection);
+  const endOffset = getSelectionEndOffset(selection);
   return layout.lines.find((line) => (
-    line.fragments.some((fragment) => fragment.box.rowId === selection.rowId)
-    || (selection.rowId === layout.root.rowId && selection.offset >= line.startOffset && selection.offset <= line.endOffset)
+    line.fragments.some((fragment) => fragment.box.rowId === rowId)
+    || (rowId === layout.root.rowId && startOffset <= line.endOffset && endOffset >= line.startOffset)
   )) ?? null;
 }

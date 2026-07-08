@@ -1,4 +1,5 @@
 import { createRuntimeEditor, type FormulaCommand } from '@formulaxjs/runtime';
+import type { FormulaSelection } from '@formulaxjs/runtime';
 import { ensureFormulaXModalStyles, mountFormulaXEditor } from '@formulaxjs/editor';
 import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
 
@@ -8,6 +9,7 @@ declare global {
       mount: (latex?: string, options?: { wrap?: 'none' | 'soft'; maxWidth?: number }) => Promise<void>;
       getLatex: () => string;
       getRenderHtml: () => string;
+      getSelection: () => FormulaSelection | null;
       dispatch: (command: FormulaCommand) => void;
       renderLatexToSvgMarkup: typeof renderLatexToSvgMarkup;
       mountModal: (latex?: string) => Promise<void>;
@@ -51,6 +53,12 @@ window.__FORMULAX_RUNTIME_TEST__ = {
       throw new Error('runtime test editor not mounted');
     }
     return handle.getRenderHtml();
+  },
+  getSelection() {
+    if (!handle) {
+      throw new Error('runtime test editor not mounted');
+    }
+    return handle.editor.getSelection();
   },
   dispatch(command) {
     if (!handle) {

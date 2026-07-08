@@ -1,6 +1,19 @@
 import { batch, createSignal } from 'solid-js';
 import { applyFormulaCommand, createEmptyFormulaDoc, ensureRuntimeEditableDoc } from '../core/commands';
-import { clampSelection, createSelection, getInitialSelection } from '../core/selection';
+import {
+  clampSelection,
+  createStructuralSelectionFromPoints,
+  createSelection,
+  createSelectionPoint,
+  findNodeById,
+  findNodeLocationById,
+  findRowOwner,
+  getInitialSelection,
+  getSelectionEndOffset,
+  getSelectionRowId,
+  getSelectionStartOffset,
+  isCollapsedSelection,
+} from '../core/selection';
 import type {
   FormulaCommand,
   FormulaDispatchOptions,
@@ -10,6 +23,7 @@ import type {
 } from '../core/types';
 import { layoutFormula } from '../layout/layout';
 import type { LayoutResult } from '../layout/types';
+import { buildAbsoluteLayoutState } from '../layout/absolute';
 import { parseLatexToFormulaDoc } from '../latex/parse';
 import { serializeFormulaDocToLatex } from '../latex/serialize';
 import { BrowserFormulaMetrics } from '../metrics/browser-metrics';
@@ -30,6 +44,8 @@ export class FormulaRuntimeEditor {
   private destroyed = false;
   private inComposition = false;
   private preferredCursorX: number | null = null;
+  private dragAnchor: ReturnType<typeof createSelectionPoint> | null = null;
+  private pointerDown = false;
 
   private readonly docSignal;
   private readonly selectionSignal;
@@ -156,6 +172,10 @@ export class FormulaRuntimeEditor {
   getRenderHtml(): string {
     const svg = this.svgHost.querySelector('svg');
     return svg?.outerHTML ?? '';
+  }
+
+  getSelection(): FormulaSelection | null {
+    return this.selectionSignal.get();
   }
 
   dispatch(command: FormulaCommand, options: FormulaDispatchOptions = {}): void {
@@ -286,30 +306,63 @@ export class FormulaRuntimeEditor {
     });
 
     this.rootHost.addEventListener('pointerdown', (event) => {
-      const target = event.target;
-      if (!(target instanceof Element)) {
-        return;
-      }
-
-      const rowElement = target.closest<SVGGElement>('[data-formulax-row-id]');
-      if (!rowElement) {
+      this.pointerDown = true;
+      const point = this.resolveSelectionPointFromPointer(event.clientX, event.clientY);
+      if (!point) {
         this.focus();
         return;
       }
 
-      const rowId = rowElement.getAttribute('data-formulax-row-id');
-      if (!rowId) {
+      const nextSelection = clampSelection(
+        this.docSignal.get(),
+        createSelection(point.rowId, point.offset),
+      );
+      this.dragAnchor = point;
+      this.selectionSignal.set(nextSelection);
+      this.preferredCursorX = null;
+      this.focus();
+      event.preventDefault();
+    });
+
+    this.rootHost.addEventListener('pointermove', (event) => {
+      if (!this.pointerDown || !this.dragAnchor) {
         return;
       }
 
-      const offset = rowId === this.docSignal.get().root.id
-        ? this.resolveWrappedPointerOffset(event.clientX, event.clientY)
-        : this.resolvePointerOffset(rowElement, event.clientX);
+      const point = this.resolveSelectionPointFromPointer(event.clientX, event.clientY);
+      if (!point) {
+        return;
+      }
+
       const nextSelection = clampSelection(
         this.docSignal.get(),
-        createSelection(rowId, offset),
+        createStructuralSelectionFromPoints(this.docSignal.get(), this.dragAnchor, point),
       );
       this.selectionSignal.set(nextSelection);
+      this.preferredCursorX = null;
+      event.preventDefault();
+    });
+
+    this.rootHost.addEventListener('pointerup', () => {
+      this.pointerDown = false;
+      this.dragAnchor = null;
+    });
+
+    this.rootHost.addEventListener('pointercancel', () => {
+      this.pointerDown = false;
+      this.dragAnchor = null;
+    });
+
+    this.rootHost.addEventListener('dblclick', (event) => {
+      const target = event.target;
+      const selection = target instanceof Element
+        ? this.resolveSelectionFromDoubleClickTarget(target) ?? this.resolveSelectionFromPoint(event.clientX, event.clientY)
+        : this.resolveSelectionFromPoint(event.clientX, event.clientY);
+      if (!selection) {
+        return;
+      }
+
+      this.selectionSignal.set(clampSelection(this.docSignal.get(), selection));
       this.preferredCursorX = null;
       this.focus();
       event.preventDefault();
@@ -384,6 +437,11 @@ export class FormulaRuntimeEditor {
       return this.redo();
     }
 
+    if (commandKey && key.toLowerCase() === 'a') {
+      this.dispatch({ type: 'selectAll', payload: undefined }, { addToHistory: false });
+      return true;
+    }
+
     if (key === 'Backspace') {
       this.dispatch({ type: 'deleteBackward', payload: undefined });
       return true;
@@ -427,36 +485,6 @@ export class FormulaRuntimeEditor {
     return false;
   }
 
-  private resolvePointerOffset(rowElement: SVGGElement, clientX: number): number {
-    const rowId = rowElement.getAttribute('data-formulax-row-id');
-    if (!rowId) {
-      return 0;
-    }
-
-    const modelChildCount = Number(rowElement.getAttribute('data-formulax-model-child-count') ?? '0');
-    if (modelChildCount === 0) {
-      return 0;
-    }
-
-    const children = Array.from(
-      this.svgHost.querySelectorAll<SVGGElement>(`[data-formulax-parent-row-id="${rowId}"]`),
-    );
-
-    if (children.length === 0) {
-      return 0;
-    }
-
-    for (let index = 0; index < children.length; index += 1) {
-      const rect = children[index].getBoundingClientRect();
-      const midpoint = rect.left + rect.width / 2;
-      if (clientX < midpoint) {
-        return index;
-      }
-    }
-
-    return Math.min(children.length, modelChildCount);
-  }
-
   private resolveWrappedPointerOffset(clientX: number, clientY: number): number {
     const svg = this.svgHost.querySelector('svg');
     const layout = this.layoutSignal.get();
@@ -498,12 +526,27 @@ export class FormulaRuntimeEditor {
     if (!selection) {
       return;
     }
+    if (!isCollapsedSelection(selection)) {
+      this.selectionSignal.set(direction < 0
+        ? createSelection(getSelectionRowId(selection), getSelectionStartOffset(selection))
+        : createSelection(getSelectionRowId(selection), getSelectionEndOffset(selection)));
+      return;
+    }
+
+    const structuralSelection = this.resolveStructuralVerticalSelection(selection, direction);
+    if (structuralSelection) {
+      this.selectionSignal.set(structuralSelection);
+      this.preferredCursorX = null;
+      return;
+    }
 
     const layout = this.layoutSignal.get();
+    const selectionRowId = getSelectionRowId(selection);
+    const selectionOffset = getSelectionEndOffset(selection);
     const currentLineIndex = layout.lines.findIndex((line) => (
-      selection.rowId === this.docSignal.get().root.id
-      && selection.offset >= line.startOffset
-      && selection.offset <= line.endOffset
+      selectionRowId === this.docSignal.get().root.id
+      && selectionOffset >= line.startOffset
+      && selectionOffset <= line.endOffset
     ));
 
     if (currentLineIndex === -1) {
@@ -518,7 +561,7 @@ export class FormulaRuntimeEditor {
     const currentX = this.preferredCursorX ?? this.getCaretXForSelection(layout, selection);
     this.preferredCursorX = currentX;
     const nextOffset = this.resolveOffsetInLine(nextLine, currentX);
-    this.selectionSignal.set(createSelection(selection.rowId, nextOffset));
+    this.selectionSignal.set(createSelection(selectionRowId, nextOffset));
   }
 
   private resolveOffsetInLine(line: LayoutResult['lines'][number], x: number): number {
@@ -537,25 +580,241 @@ export class FormulaRuntimeEditor {
   }
 
   private getCaretXForSelection(layout: LayoutResult, selection: FormulaSelection): number {
+    const offset = getSelectionEndOffset(selection);
     const line = layout.lines.find((candidate) => (
-      selection.offset >= candidate.startOffset && selection.offset <= candidate.endOffset
+      offset >= candidate.startOffset && offset <= candidate.endOffset
     ));
 
     if (!line) {
       return 0;
     }
 
-    if (selection.offset <= line.startOffset) {
+    if (offset <= line.startOffset) {
       return line.x + (line.fragments[0]?.x ?? 0);
     }
 
-    if (selection.offset >= line.endOffset) {
+    if (offset >= line.endOffset) {
       const last = line.fragments[line.fragments.length - 1];
       return line.x + (last ? last.x + last.width : 0);
     }
 
-    const fragment = line.fragments.find((item) => item.childIndex === selection.offset);
+    const fragment = line.fragments.find((item) => item.childIndex === offset);
     return line.x + (fragment?.x ?? 0);
+  }
+
+  private resolveSelectionPointFromPointer(clientX: number, clientY: number) {
+    const svg = this.svgHost.querySelector('svg');
+    const layout = this.layoutSignal.get();
+    if (!svg) {
+      return null;
+    }
+
+    const rect = svg.getBoundingClientRect();
+    const scaleX = rect.width > 0 ? layout.width / rect.width : 1;
+    const scaleY = rect.height > 0 ? layout.height / rect.height : 1;
+    const pointX = (clientX - rect.left) * scaleX;
+    const pointY = (clientY - rect.top) * scaleY;
+    const absoluteState = buildAbsoluteLayoutState(layout);
+    const rowCandidates = absoluteState.rowBoxes
+      .filter((row) => pointY >= row.y && pointY <= row.y + row.height)
+      .sort((left, right) => (left.width * left.height) - (right.width * right.height));
+    const row = rowCandidates[0] ?? this.findClosestRowBox(absoluteState.rowBoxes, pointX, pointY);
+    if (!row || !row.rowId) {
+      return createSelectionPoint(
+        this.docSignal.get().root.id,
+        this.resolveWrappedPointerOffset(clientX, clientY),
+      );
+    }
+
+    return createSelectionPoint(row.rowId, this.resolveOffsetForPointInRow(row, pointX, absoluteState.boxMap));
+  }
+
+  private findClosestRowBox(rowBoxes: LayoutResult['root']['children'], pointX: number, pointY: number) {
+    return rowBoxes.reduce<typeof rowBoxes[number] | null>((closest, row) => {
+      if (!closest) {
+        return row;
+      }
+
+      const rowCenterX = row.x + row.width / 2;
+      const rowCenterY = row.y + row.height / 2;
+      const closestCenterX = closest.x + closest.width / 2;
+      const closestCenterY = closest.y + closest.height / 2;
+      const distance = Math.abs(pointX - rowCenterX) + Math.abs(pointY - rowCenterY);
+      const closestDistance = Math.abs(pointX - closestCenterX) + Math.abs(pointY - closestCenterY);
+      return distance < closestDistance ? row : closest;
+    }, null);
+  }
+
+  private resolveOffsetForPointInRow(row: LayoutResult['root'], pointX: number, absoluteMap: Map<string, LayoutResult['root']>): number {
+    const childCount = row.modelChildCount ?? row.children.length;
+    if (childCount <= 0 || row.children.length === 0) {
+      return 0;
+    }
+
+    for (let index = 0; index < childCount; index += 1) {
+      const child = row.children[index];
+      const absoluteChild = absoluteMap.get(child.nodeId) ?? child;
+      const midpoint = absoluteChild.x + absoluteChild.width / 2;
+      if (pointX < midpoint) {
+        return index;
+      }
+    }
+
+    return childCount;
+  }
+
+  private resolveSelectionFromDoubleClickTarget(target: Element): FormulaSelection | null {
+    const nodeElement = target.closest<SVGGElement>('[data-formulax-node-id]');
+    const nodeId = nodeElement?.getAttribute('data-formulax-node-id');
+    if (nodeId) {
+      return this.resolveSelectionFromNodeId(nodeId);
+    }
+
+    return null;
+  }
+
+  private resolveSelectionFromPoint(clientX: number, clientY: number): FormulaSelection | null {
+    const svg = this.svgHost.querySelector('svg');
+    const layout = this.layoutSignal.get();
+    if (!svg) {
+      return null;
+    }
+
+    const rect = svg.getBoundingClientRect();
+    const scaleX = rect.width > 0 ? layout.width / rect.width : 1;
+    const scaleY = rect.height > 0 ? layout.height / rect.height : 1;
+    const pointX = (clientX - rect.left) * scaleX;
+    const pointY = (clientY - rect.top) * scaleY;
+    const { boxMap } = buildAbsoluteLayoutState(layout);
+    const target = Array.from(boxMap.values())
+      .filter((box) => (
+        box.kind !== 'row'
+        && box.kind !== 'sqrt-radical'
+        && pointX >= box.x
+        && pointX <= box.x + box.width
+        && pointY >= box.y
+        && pointY <= box.y + box.height
+      ))
+      .sort((left, right) => (left.width * left.height) - (right.width * right.height))[0];
+
+    if (!target) {
+      return null;
+    }
+
+    return this.resolveSelectionFromNodeId(target.nodeId);
+  }
+
+  private resolveSelectionFromNodeId(nodeId: string): FormulaSelection | null {
+    if (!nodeId) {
+      return null;
+    }
+
+    const doc = this.docSignal.get();
+    const node = findNodeById(doc, nodeId);
+    if (!node) {
+      return null;
+    }
+
+    if (node.type === 'row' && node.id === doc.root.id) {
+      return createSelection(doc.root.id, doc.root.children.length).kind === 'caret'
+        ? {
+          kind: 'range',
+          rowId: doc.root.id,
+          anchorOffset: 0,
+          focusOffset: doc.root.children.length,
+          startOffset: 0,
+          endOffset: doc.root.children.length,
+        }
+        : null;
+    }
+
+    const location = findNodeLocationById(doc, nodeId);
+    if (location) {
+      return {
+        kind: 'node',
+        rowId: location.rowId,
+        nodeId,
+        startOffset: location.index,
+        endOffset: location.index + 1,
+      };
+    }
+
+    if (node.type === 'row') {
+      return {
+        kind: 'range',
+        rowId: node.id,
+        anchorOffset: 0,
+        focusOffset: node.children.length,
+        startOffset: 0,
+        endOffset: node.children.length,
+      };
+    }
+
+    return null;
+  }
+
+  private resolveStructuralVerticalSelection(
+    selection: FormulaSelection,
+    direction: -1 | 1,
+  ): FormulaSelection | null {
+    const doc = this.docSignal.get();
+    const rowId = getSelectionRowId(selection);
+    const owner = findRowOwner(doc, rowId);
+    if (!owner?.parentNodeId) {
+      return null;
+    }
+
+    const parentNode = findNodeById(doc, owner.parentNodeId);
+    if (!parentNode) {
+      return null;
+    }
+
+    const caretOffset = getSelectionEndOffset(selection);
+    if (parentNode.type === 'frac') {
+      if (direction < 0 && owner.field === 'frac-denominator') {
+        return createSelection(parentNode.numerator.id, Math.min(caretOffset, parentNode.numerator.children.length));
+      }
+      if (direction > 0 && owner.field === 'frac-numerator') {
+        return createSelection(parentNode.denominator.id, Math.min(caretOffset, parentNode.denominator.children.length));
+      }
+      return null;
+    }
+
+    if (parentNode.type === 'script') {
+      if (direction < 0 && owner.field === 'script-sub' && parentNode.sup) {
+        return createSelection(parentNode.sup.id, Math.min(caretOffset, parentNode.sup.children.length));
+      }
+      if (direction > 0 && owner.field === 'script-sup' && parentNode.sub) {
+        return createSelection(parentNode.sub.id, Math.min(caretOffset, parentNode.sub.children.length));
+      }
+      if (direction < 0 && owner.field === 'script-base' && parentNode.sup) {
+        return createSelection(parentNode.sup.id, Math.min(caretOffset, parentNode.sup.children.length));
+      }
+      if (direction > 0 && owner.field === 'script-base' && parentNode.sub) {
+        return createSelection(parentNode.sub.id, Math.min(caretOffset, parentNode.sub.children.length));
+      }
+      return null;
+    }
+
+    if (parentNode.type === 'sqrt') {
+      if (direction < 0 && owner.field === 'sqrt-value' && parentNode.index) {
+        return createSelection(parentNode.index.id, Math.min(caretOffset, parentNode.index.children.length));
+      }
+      if (direction > 0 && owner.field === 'sqrt-index') {
+        return createSelection(parentNode.value.id, Math.min(caretOffset, parentNode.value.children.length));
+      }
+      return null;
+    }
+
+    if (parentNode.type === 'matrix' && owner.field === 'matrix-cell' && owner.matrixRowIndex !== undefined && owner.matrixColumnIndex !== undefined) {
+      const nextRowIndex = owner.matrixRowIndex + direction;
+      const nextCell = parentNode.rows[nextRowIndex]?.[owner.matrixColumnIndex];
+      if (nextCell) {
+        return createSelection(nextCell.id, Math.min(caretOffset, nextCell.children.length));
+      }
+    }
+
+    return null;
   }
 
   private bindResizeObserver(): void {

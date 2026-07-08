@@ -92,6 +92,93 @@ test.describe('runtime v2 editor and renderer', () => {
     expect(html).toContain('data-formulax-role="caret"');
   });
 
+  test('supports select-all replacement from the keyboard', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount('abc'));
+
+    await page.locator('#runtime-editor .fx-runtime-editor__input').focus();
+    await page.keyboard.press('Control+A');
+    await page.keyboard.type('z');
+
+    await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex())).toBe('z');
+    const html = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getRenderHtml());
+    expect(html).not.toContain('data-formulax-role="range-selection"');
+  });
+
+  test('supports drag range selection and replacement', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount('abcd'));
+
+    const symbols = page.locator(
+      '#runtime-editor g[data-formulax-line-index="0"] > g[data-formulax-box-kind="symbol"]',
+    );
+    const first = await symbols.nth(0).boundingBox();
+    const third = await symbols.nth(2).boundingBox();
+    if (!first || !third) {
+      throw new Error('failed to resolve symbol bounds');
+    }
+
+    await page.mouse.move(first.x + first.width * 0.35, first.y + first.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(third.x + third.width * 0.7, third.y + third.height / 2, { steps: 8 });
+    await page.mouse.up();
+
+    const selection = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getSelection());
+    expect(selection?.kind).toBe('range');
+    expect(selection && 'startOffset' in selection ? selection.startOffset : null).toBe(0);
+    expect(selection && 'endOffset' in selection ? selection.endOffset : null).toBe(3);
+
+    const htmlBeforeReplace = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getRenderHtml());
+    expect(htmlBeforeReplace).toContain('data-formulax-role="range-selection"');
+
+    await page.locator('#runtime-editor .fx-runtime-editor__input').focus();
+    await page.keyboard.type('x');
+    await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex())).toBe('xd');
+  });
+
+  test('supports double-click node selection for structures', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount('\\\u0066rac{a}{b}+x'));
+
+    const fraction = page.locator('#runtime-editor g[data-formulax-box-kind="frac"]').first();
+    const box = await fraction.boundingBox();
+    if (!box) {
+      throw new Error('failed to resolve fraction bounds');
+    }
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+
+    const selection = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getSelection());
+    expect(selection?.kind).toBe('node');
+    const html = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getRenderHtml());
+    expect(html).toContain('data-formulax-role="node-selection"');
+
+    await page.locator('#runtime-editor .fx-runtime-editor__input').focus();
+    await page.keyboard.press('Backspace');
+    await expect.poll(() => page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getLatex())).toBe('+x');
+  });
+
+  test('navigates structurally between fraction numerator and denominator', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mount('\\\u0066rac{ab}{cd}'));
+
+    const numeratorSecond = page.locator(
+      '#runtime-editor g[data-formulax-row-id] g[data-formulax-box-kind="symbol"]',
+    ).nth(1);
+    await numeratorSecond.click();
+
+    const before = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getSelection());
+    expect(before?.rowId).not.toBeNull();
+
+    await page.locator('#runtime-editor .fx-runtime-editor__input').focus();
+    await page.keyboard.press('ArrowDown');
+    const afterDown = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getSelection());
+    await page.keyboard.press('ArrowUp');
+    const afterUp = await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.getSelection());
+
+    expect(afterDown?.rowId).not.toBe(before?.rowId);
+    expect(afterUp?.rowId).toBe(before?.rowId);
+  });
+
   test('mounts the runtime-v2 toolbar popover and inserts legacy-style templates', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mountModal('x'));

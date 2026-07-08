@@ -19,6 +19,7 @@ export async function createRuntimeEditor(
     getLatex: () => editor.getLatex(),
     setLatex: (latex, dispatchOptions) => editor.setLatex(latex, dispatchOptions),
     getRenderHtml: () => editor.getRenderHtml(),
+    getSelection: () => editor.getSelection(),
     focus: () => editor.focus(),
     destroy: () => editor.destroy(),
   };
