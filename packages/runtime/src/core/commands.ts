@@ -3,11 +3,19 @@ import { createFormulaNodeId } from './ids';
 import {
   clampSelection,
   collectPlaceholderTargets,
+  collapseSelectionToEnd,
+  collapseSelectionToStart,
   createSelection,
+  createSelectionFromOffsets,
   findAdjacentPlaceholderTarget,
+  findNodeLocationById,
   findRowById,
   findRowOwner,
+  getSelectionEndOffset,
   getInitialSelection,
+  getSelectionRowId,
+  getSelectionStartOffset,
+  isCollapsedSelection,
   updateRowById,
 } from './selection';
 import type {
@@ -105,10 +113,17 @@ export function insertTextAtSelection(
   text: string,
 ): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
-  const row = findRowById(doc, safeSelection.rowId);
+  const normalizedDoc = isCollapsedSelection(safeSelection)
+    ? doc
+    : removeExpandedSelection(doc, safeSelection).doc;
+  const collapsedSelection = isCollapsedSelection(safeSelection)
+    ? safeSelection
+    : collapseSelectionToStart(safeSelection);
+  const row = findRowById(normalizedDoc, collapsedSelection.rowId);
+  const selectionOffset = getSelectionStartOffset(collapsedSelection);
 
   if (!row || !text) {
-    return { doc, selection: safeSelection, changed: false };
+    return { doc: normalizedDoc, selection: collapsedSelection, changed: false };
   }
 
   const nodes = [...text].map((value) => ({
@@ -117,19 +132,19 @@ export function insertTextAtSelection(
     value,
   }));
 
-  const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
+  const nextDoc = updateRowById(normalizedDoc, row.id, (currentRow) => ({
     ...currentRow,
     children: [
-      ...currentRow.children.slice(0, safeSelection.offset),
+      ...currentRow.children.slice(0, selectionOffset),
       ...nodes,
-      ...currentRow.children.slice(safeSelection.offset),
+      ...currentRow.children.slice(selectionOffset),
     ],
   }));
 
   return {
     doc: ensureRuntimeEditableDoc(nextDoc),
-    selection: createSelection(row.id, safeSelection.offset + nodes.length),
-    changed: nextDoc !== doc,
+    selection: createSelection(row.id, selectionOffset + nodes.length),
+    changed: nextDoc !== doc || normalizedDoc !== doc,
     dispatchOptions: {
       addToHistory: true,
       historyReason: 'insert',
@@ -153,10 +168,17 @@ export function insertLatexAtSelection(
   }
 
   const safeSelection = clampSelection(doc, selection);
-  const row = findRowById(doc, safeSelection.rowId);
+  const normalizedDoc = isCollapsedSelection(safeSelection)
+    ? doc
+    : removeExpandedSelection(doc, safeSelection).doc;
+  const collapsedSelection = isCollapsedSelection(safeSelection)
+    ? safeSelection
+    : collapseSelectionToStart(safeSelection);
+  const row = findRowById(normalizedDoc, collapsedSelection.rowId);
+  const selectionOffset = getSelectionStartOffset(collapsedSelection);
 
   if (!row) {
-    return { doc, selection: safeSelection, changed: false };
+    return { doc: normalizedDoc, selection: collapsedSelection, changed: false };
   }
 
   const fragment = ensureRuntimeEditableDoc(parseLatexToFormulaDoc(normalizedLatex), {
@@ -169,12 +191,12 @@ export function insertLatexAtSelection(
     return { doc, selection: safeSelection, changed: false };
   }
 
-  const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
+  const nextDoc = updateRowById(normalizedDoc, row.id, (currentRow) => ({
     ...currentRow,
     children: [
-      ...currentRow.children.slice(0, safeSelection.offset),
+      ...currentRow.children.slice(0, selectionOffset),
       ...insertedChildren,
-      ...currentRow.children.slice(safeSelection.offset),
+      ...currentRow.children.slice(selectionOffset),
     ],
   }));
 
@@ -183,11 +205,11 @@ export function insertLatexAtSelection(
     selection: resolveInsertedSelection(
       insertedChildren,
       row.id,
-      safeSelection.offset,
+      selectionOffset,
       cursorSelection,
       fragment.root.id,
     ),
-    changed: nextDoc !== doc,
+    changed: nextDoc !== doc || normalizedDoc !== doc,
     dispatchOptions: {
       addToHistory: true,
       historyReason: normalizedLatex.includes('\\') ? 'structure' : 'insert',
@@ -200,26 +222,30 @@ export function deleteBackwardAtSelection(
   selection: FormulaSelection,
 ): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
+  if (!isCollapsedSelection(safeSelection)) {
+    return removeExpandedSelection(doc, safeSelection);
+  }
   const row = findRowById(doc, safeSelection.rowId);
+  const selectionOffset = getSelectionStartOffset(safeSelection);
 
   if (!row) {
     return { doc, selection: safeSelection, changed: false };
   }
 
-  if (safeSelection.offset === 0) {
+  if (selectionOffset === 0) {
     return moveSelectionLeft(doc, safeSelection);
   }
 
   const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
     ...currentRow,
     children: [
-      ...currentRow.children.slice(0, safeSelection.offset - 1),
-      ...currentRow.children.slice(safeSelection.offset),
+      ...currentRow.children.slice(0, selectionOffset - 1),
+      ...currentRow.children.slice(selectionOffset),
     ],
   }));
 
   const nextRow = findRowById(nextDoc, row.id) ?? row;
-  const nextSelection = createSelection(nextRow.id, Math.max(0, Math.min(safeSelection.offset - 1, nextRow.children.length)));
+  const nextSelection = createSelection(nextRow.id, Math.max(0, Math.min(selectionOffset - 1, nextRow.children.length)));
 
   return {
     doc: ensureRuntimeEditableDoc(nextDoc),
@@ -234,14 +260,23 @@ export function deleteBackwardAtSelection(
 
 export function moveSelectionLeft(doc: FormulaDoc, selection: FormulaSelection): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
+  if (!isCollapsedSelection(safeSelection)) {
+    return {
+      doc,
+      selection: collapseSelectionToStart(safeSelection),
+      changed: false,
+      dispatchOptions: { addToHistory: false },
+    };
+  }
   const row = findRowById(doc, safeSelection.rowId) ?? doc.root;
+  const selectionOffset = getSelectionStartOffset(safeSelection);
 
-  if (safeSelection.offset > 0) {
-    const previous = row.children[safeSelection.offset - 1];
+  if (selectionOffset > 0) {
+    const previous = row.children[selectionOffset - 1];
     const target = previous ? findLastEditableSelection(previous) : null;
     return {
       doc,
-      selection: target ?? createSelection(safeSelection.rowId, Math.max(0, safeSelection.offset - 1)),
+      selection: target ?? createSelection(safeSelection.rowId, Math.max(0, selectionOffset - 1)),
       changed: false,
       dispatchOptions: { addToHistory: false },
     };
@@ -258,14 +293,23 @@ export function moveSelectionLeft(doc: FormulaDoc, selection: FormulaSelection):
 
 export function moveSelectionRight(doc: FormulaDoc, selection: FormulaSelection): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
+  if (!isCollapsedSelection(safeSelection)) {
+    return {
+      doc,
+      selection: collapseSelectionToEnd(safeSelection),
+      changed: false,
+      dispatchOptions: { addToHistory: false },
+    };
+  }
   const row = findRowById(doc, safeSelection.rowId) ?? doc.root;
+  const selectionOffset = getSelectionStartOffset(safeSelection);
 
-  if (safeSelection.offset < row.children.length) {
-    const next = row.children[safeSelection.offset];
+  if (selectionOffset < row.children.length) {
+    const next = row.children[selectionOffset];
     const target = next ? findFirstEditableSelection(next) : null;
     return {
       doc,
-      selection: target ?? createSelection(safeSelection.rowId, Math.min(row.children.length, safeSelection.offset + 1)),
+      selection: target ?? createSelection(safeSelection.rowId, Math.min(row.children.length, selectionOffset + 1)),
       changed: false,
       dispatchOptions: { addToHistory: false },
     };
@@ -285,11 +329,45 @@ export function moveSelectionToAdjacentPlaceholder(
   selection: FormulaSelection,
   direction: 1 | -1,
 ): FormulaEditResult {
-  const safeSelection = clampSelection(doc, selection);
+  const safeSelection = clampSelection(doc, isCollapsedSelection(selection) ? selection : collapseSelectionToEnd(selection));
   const nextSelection = findAdjacentPlaceholderTarget(doc, safeSelection, direction);
   return {
     doc,
     selection: nextSelection ?? safeSelection,
+    changed: false,
+    dispatchOptions: { addToHistory: false },
+  };
+}
+
+export function selectAll(doc: FormulaDoc): FormulaEditResult {
+  return {
+    doc,
+    selection: createSelectionFromOffsets(doc.root.id, 0, doc.root.children.length),
+    changed: false,
+    dispatchOptions: { addToHistory: false },
+  };
+}
+
+export function selectNodeById(doc: FormulaDoc, nodeId: string): FormulaEditResult {
+  const location = findNodeLocationById(doc, nodeId);
+  if (!location) {
+    return {
+      doc,
+      selection: getInitialSelection(doc),
+      changed: false,
+      dispatchOptions: { addToHistory: false },
+    };
+  }
+
+  return {
+    doc,
+    selection: {
+      kind: 'node',
+      rowId: location.rowId,
+      nodeId,
+      startOffset: location.index,
+      endOffset: location.index + 1,
+    },
     changed: false,
     dispatchOptions: { addToHistory: false },
   };
@@ -345,6 +423,7 @@ function insertStructureAtSelection(
 ): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
   const row = findRowById(doc, safeSelection.rowId);
+  const selectionOffset = getSelectionStartOffset(safeSelection);
 
   if (!row) {
     return { doc, selection: safeSelection, changed: false };
@@ -353,9 +432,9 @@ function insertStructureAtSelection(
   const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
     ...currentRow,
     children: [
-      ...currentRow.children.slice(0, safeSelection.offset),
+      ...currentRow.children.slice(0, selectionOffset),
       node,
-      ...currentRow.children.slice(safeSelection.offset),
+      ...currentRow.children.slice(selectionOffset),
     ],
   }));
 
@@ -377,6 +456,45 @@ function normalizeToolbarLatex(latex: string): string {
     .trim();
 }
 
+function removeExpandedSelection(
+  doc: FormulaDoc,
+  selection: FormulaSelection,
+): FormulaEditResult {
+  const rowId = getSelectionRowId(selection);
+  const row = findRowById(doc, rowId);
+  if (!row) {
+    return { doc, selection: createSelection(doc.root.id, doc.root.children.length), changed: false };
+  }
+
+  const startOffset = getSelectionStartOffset(selection);
+  const endOffset = getSelectionEndOffset(selection);
+  if (startOffset === endOffset) {
+    return {
+      doc,
+      selection: createSelection(row.id, startOffset),
+      changed: false,
+    };
+  }
+
+  const nextDoc = updateRowById(doc, row.id, (currentRow) => ({
+    ...currentRow,
+    children: [
+      ...currentRow.children.slice(0, startOffset),
+      ...currentRow.children.slice(endOffset),
+    ],
+  }));
+
+  return {
+    doc: ensureRuntimeEditableDoc(nextDoc),
+    selection: createSelection(row.id, startOffset),
+    changed: nextDoc !== doc,
+    dispatchOptions: {
+      addToHistory: true,
+      historyReason: 'delete',
+    },
+  };
+}
+
 function resolveInsertedSelection(
   insertedChildren: FormulaNode[],
   fallbackRowId: string,
@@ -386,7 +504,7 @@ function resolveInsertedSelection(
 ): FormulaSelection {
   if (cursorSelection) {
     if (cursorSelection.rowId === fragmentRootId) {
-      return createSelection(fallbackRowId, fallbackOffset + cursorSelection.offset);
+      return createSelection(fallbackRowId, fallbackOffset + getSelectionStartOffset(cursorSelection));
     }
     return cursorSelection;
   }
@@ -547,7 +665,7 @@ function resolveBoundarySelection(
   selection: FormulaSelection,
   direction: 1 | -1,
 ): FormulaSelection | null {
-  const owner = findRowOwner(doc, selection.rowId);
+  const owner = findRowOwner(doc, getSelectionRowId(selection));
   if (!owner) {
     return null;
   }
@@ -641,14 +759,15 @@ function insertScriptAtSelection(
 ): FormulaEditResult {
   const safeSelection = clampSelection(doc, selection);
   const row = findRowById(doc, safeSelection.rowId);
+  const selectionOffset = getSelectionStartOffset(safeSelection);
 
-  if (!row || safeSelection.offset === 0) {
+  if (!row || selectionOffset === 0) {
     return { doc, selection: safeSelection, changed: false };
   }
 
   let nextSelection = safeSelection;
   const nextDoc = updateRowById(doc, row.id, (currentRow) => {
-    const target = currentRow.children[safeSelection.offset - 1];
+    const target = currentRow.children[selectionOffset - 1];
 
     if (!target) {
       return currentRow;
@@ -660,7 +779,7 @@ function insertScriptAtSelection(
       : replacement.sub!.id, 0);
 
     const children = [...currentRow.children];
-    children[safeSelection.offset - 1] = replacement;
+    children[selectionOffset - 1] = replacement;
     return { ...currentRow, children };
   });
 
@@ -735,6 +854,8 @@ export function applyFormulaCommand(
       return moveSelectionToAdjacentPlaceholder(doc, currentSelection, 1);
     case 'moveToPreviousPlaceholder':
       return moveSelectionToAdjacentPlaceholder(doc, currentSelection, -1);
+    case 'selectAll':
+      return selectAll(doc);
     case 'insertFraction':
       return insertFractionAtSelection(doc, currentSelection);
     case 'insertSqrt':

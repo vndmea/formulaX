@@ -1,7 +1,10 @@
 import type {
+  FormulaCaretSelection,
   FormulaDoc,
   FormulaNode,
+  FormulaNodeSelection,
   FormulaPlaceholderNode,
+  FormulaRangeSelection,
   FormulaRowNode,
   FormulaScriptNode,
   FormulaSelection,
@@ -33,24 +36,279 @@ export interface FormulaPlaceholderTarget {
   placeholder: FormulaPlaceholderNode;
 }
 
-export function createSelection(rowId: string, offset = 0): FormulaSelection {
-  return { rowId, offset };
+export interface FormulaNodeLocation {
+  rowId: string;
+  index: number;
+  node: FormulaNode;
+}
+
+export interface FormulaSelectionPoint {
+  rowId: string;
+  offset: number;
+}
+
+export interface FormulaSelectionProjection {
+  rowId: string;
+  startOffset: number;
+  endOffset: number;
+  nodeId?: string;
+  exact: boolean;
+}
+
+export function createSelection(rowId: string, offset = 0): FormulaCaretSelection {
+  return { kind: 'caret', rowId, offset };
+}
+
+export function createRangeSelection(
+  rowId: string,
+  anchorOffset: number,
+  focusOffset: number,
+): FormulaRangeSelection {
+  return {
+    kind: 'range',
+    rowId,
+    anchorOffset,
+    focusOffset,
+    startOffset: Math.min(anchorOffset, focusOffset),
+    endOffset: Math.max(anchorOffset, focusOffset),
+  };
+}
+
+export function createNodeSelection(
+  rowId: string,
+  nodeId: string,
+  startOffset: number,
+  endOffset: number,
+): FormulaNodeSelection {
+  return {
+    kind: 'node',
+    rowId,
+    nodeId,
+    startOffset: Math.min(startOffset, endOffset),
+    endOffset: Math.max(startOffset, endOffset),
+  };
+}
+
+export function isCaretSelection(selection: FormulaSelection | null | undefined): selection is FormulaCaretSelection {
+  return Boolean(selection && selection.kind === 'caret');
+}
+
+export function isRangeSelection(selection: FormulaSelection | null | undefined): selection is FormulaRangeSelection {
+  return Boolean(selection && selection.kind === 'range');
+}
+
+export function isNodeSelection(selection: FormulaSelection | null | undefined): selection is FormulaNodeSelection {
+  return Boolean(selection && selection.kind === 'node');
+}
+
+export function isCollapsedSelection(selection: FormulaSelection): boolean {
+  if (selection.kind === 'caret') {
+    return true;
+  }
+
+  return selection.startOffset === selection.endOffset;
+}
+
+export function getSelectionRowId(selection: FormulaSelection): string {
+  return selection.rowId;
+}
+
+export function getSelectionAnchorOffset(selection: FormulaSelection): number {
+  switch (selection.kind) {
+    case 'caret':
+      return selection.offset;
+    case 'range':
+      return selection.anchorOffset;
+    case 'node':
+      return selection.startOffset;
+  }
+}
+
+export function getSelectionFocusOffset(selection: FormulaSelection): number {
+  switch (selection.kind) {
+    case 'caret':
+      return selection.offset;
+    case 'range':
+      return selection.focusOffset;
+    case 'node':
+      return selection.endOffset;
+  }
+}
+
+export function getSelectionStartOffset(selection: FormulaSelection): number {
+  switch (selection.kind) {
+    case 'caret':
+      return selection.offset;
+    case 'range':
+      return selection.startOffset;
+    case 'node':
+      return selection.startOffset;
+  }
+}
+
+export function getSelectionEndOffset(selection: FormulaSelection): number {
+  switch (selection.kind) {
+    case 'caret':
+      return selection.offset;
+    case 'range':
+      return selection.endOffset;
+    case 'node':
+      return selection.endOffset;
+  }
+}
+
+export function collapseSelectionToStart(selection: FormulaSelection): FormulaCaretSelection {
+  return createSelection(selection.rowId, getSelectionStartOffset(selection));
+}
+
+export function collapseSelectionToEnd(selection: FormulaSelection): FormulaCaretSelection {
+  return createSelection(selection.rowId, getSelectionEndOffset(selection));
 }
 
 export function clampSelection(doc: FormulaDoc, selection: FormulaSelection): FormulaSelection {
-  const row = findRowById(doc, selection.rowId) ?? doc.root;
-  return {
-    rowId: row.id,
-    offset: Math.max(0, Math.min(selection.offset, row.children.length)),
-  };
+  const rowId = getSelectionRowId(selection);
+  const row = findRowById(doc, rowId) ?? doc.root;
+  const clampOffset = (value: number) => Math.max(0, Math.min(value, row.children.length));
+
+  switch (selection.kind) {
+    case 'caret':
+      return createSelection(row.id, clampOffset(selection.offset));
+    case 'range':
+      return createRangeSelection(row.id, clampOffset(selection.anchorOffset), clampOffset(selection.focusOffset));
+    case 'node': {
+      const startOffset = clampOffset(selection.startOffset);
+      const endOffset = clampOffset(selection.endOffset);
+      const nodeId = row.children[startOffset]?.id ?? selection.nodeId;
+      return createNodeSelection(row.id, nodeId, startOffset, endOffset);
+    }
+  }
+}
+
+export function normalizeSelection(doc: FormulaDoc, selection: FormulaSelection): FormulaSelection {
+  const clamped = clampSelection(doc, selection);
+
+  if (clamped.kind === 'range' && clamped.startOffset === clamped.endOffset) {
+    return createSelection(clamped.rowId, clamped.startOffset);
+  }
+
+  if (clamped.kind === 'node' && clamped.startOffset + 1 !== clamped.endOffset) {
+    return createRangeSelection(clamped.rowId, clamped.startOffset, clamped.endOffset);
+  }
+
+  return clamped;
+}
+
+export function createSelectionPoint(rowId: string, offset: number): FormulaSelectionPoint {
+  return { rowId, offset };
+}
+
+export function projectSelectionPoint(
+  doc: FormulaDoc,
+  point: FormulaSelectionPoint,
+): FormulaSelectionProjection[] {
+  const projections: FormulaSelectionProjection[] = [{
+    rowId: point.rowId,
+    startOffset: point.offset,
+    endOffset: point.offset,
+    exact: true,
+  }];
+
+  let currentRowId = point.rowId;
+  let owner = findRowOwner(doc, currentRowId);
+  while (owner?.parentRowId && owner.parentNodeId) {
+    const parentRow = findRowById(doc, owner.parentRowId);
+    if (!parentRow) {
+      break;
+    }
+
+    const parentNodeId = owner.parentNodeId;
+
+    const childIndex = parentRow.children.findIndex((child) => child.id === parentNodeId);
+    if (childIndex === -1) {
+      break;
+    }
+
+    projections.push({
+      rowId: parentRow.id,
+      startOffset: childIndex,
+      endOffset: childIndex + 1,
+      nodeId: parentNodeId,
+      exact: false,
+    });
+
+    currentRowId = parentRow.id;
+    owner = findRowOwner(doc, currentRowId);
+  }
+
+  return projections;
+}
+
+export function createStructuralSelectionFromPoints(
+  doc: FormulaDoc,
+  anchor: FormulaSelectionPoint,
+  focus: FormulaSelectionPoint,
+): FormulaSelection {
+  const anchorProjections = projectSelectionPoint(doc, anchor);
+  const focusProjections = projectSelectionPoint(doc, focus);
+  const focusByRow = new Map(focusProjections.map((projection) => [projection.rowId, projection] as const));
+  const common = anchorProjections.find((projection) => focusByRow.has(projection.rowId));
+
+  if (!common) {
+    return createSelection(doc.root.id, doc.root.children.length);
+  }
+
+  const focusProjection = focusByRow.get(common.rowId)!;
+  if (common.exact && focusProjection.exact) {
+    return createSelectionFromOffsets(common.rowId, common.startOffset, focusProjection.startOffset);
+  }
+
+  const anchorBeforeFocus = common.startOffset < focusProjection.startOffset
+    || (common.startOffset === focusProjection.startOffset && common.endOffset <= focusProjection.endOffset);
+  const anchorOffset = common.exact
+    ? common.startOffset
+    : (anchorBeforeFocus ? common.startOffset : common.endOffset);
+  const focusOffset = focusProjection.exact
+    ? focusProjection.startOffset
+    : (anchorBeforeFocus ? focusProjection.endOffset : focusProjection.startOffset);
+  const startOffset = Math.min(anchorOffset, focusOffset);
+  const endOffset = Math.max(anchorOffset, focusOffset);
+
+  if (endOffset - startOffset === 1) {
+    const nodeId = common.nodeId === focusProjection.nodeId
+      ? common.nodeId
+      : (anchorBeforeFocus ? focusProjection.nodeId : common.nodeId);
+    if (nodeId) {
+      return createNodeSelection(common.rowId, nodeId, startOffset, endOffset);
+    }
+  }
+
+  return createSelectionFromOffsets(common.rowId, anchorOffset, focusOffset);
 }
 
 export function getInitialSelection(doc: FormulaDoc): FormulaSelection {
   return findFirstPlaceholderTarget(doc) ?? createSelection(doc.root.id, doc.root.children.length);
 }
 
+export function createSelectionFromOffsets(
+  rowId: string,
+  anchorOffset: number,
+  focusOffset: number,
+): FormulaSelection {
+  return anchorOffset === focusOffset
+    ? createSelection(rowId, focusOffset)
+    : createRangeSelection(rowId, anchorOffset, focusOffset);
+}
+
 export function findRowById(doc: FormulaDoc, rowId: string): FormulaRowNode | null {
   return findRowInNode(doc.root, rowId);
+}
+
+export function findNodeLocationById(doc: FormulaDoc, nodeId: string): FormulaNodeLocation | null {
+  return findNodeLocationInRow(doc.root, nodeId);
+}
+
+export function findNodeById(doc: FormulaDoc, nodeId: string): FormulaNode | null {
+  return findNodeInTree(doc.root, nodeId);
 }
 
 export function findRowOwner(doc: FormulaDoc, rowId: string): FormulaRowOwner | null {
@@ -81,7 +339,8 @@ export function findAdjacentPlaceholderTarget(
     return null;
   }
 
-  const index = targets.findIndex((target) => target.rowId === selection.rowId);
+  const focusRowId = getSelectionRowId(selection);
+  const index = targets.findIndex((target) => target.rowId === focusRowId);
   if (index === -1) {
     return direction === 1
       ? createSelection(targets[0].rowId, targets[0].offset)
@@ -157,6 +416,90 @@ function findRowInNode(node: FormulaNode, rowId: string): FormulaRowNode | null 
   }
 
   return null;
+}
+
+function findNodeLocationInRow(row: FormulaRowNode, nodeId: string): FormulaNodeLocation | null {
+  for (let index = 0; index < row.children.length; index += 1) {
+    const child = row.children[index];
+    if (child.id === nodeId) {
+      return { rowId: row.id, index, node: child };
+    }
+
+    const nested = findNodeLocationInNode(child, nodeId);
+    if (nested) {
+      return nested;
+    }
+  }
+
+  return null;
+}
+
+function findNodeLocationInNode(node: FormulaNode, nodeId: string): FormulaNodeLocation | null {
+  switch (node.type) {
+    case 'row':
+      return findNodeLocationInRow(node, nodeId);
+    case 'frac':
+      return findNodeLocationInRow(node.numerator, nodeId) ?? findNodeLocationInRow(node.denominator, nodeId);
+    case 'sqrt':
+      return (node.index ? findNodeLocationInRow(node.index, nodeId) : null) ?? findNodeLocationInRow(node.value, nodeId);
+    case 'script':
+      return findNodeLocationInNode(node.base, nodeId)
+        ?? (node.sup ? findNodeLocationInRow(node.sup, nodeId) : null)
+        ?? (node.sub ? findNodeLocationInRow(node.sub, nodeId) : null);
+    case 'fence':
+      return findNodeLocationInRow(node.body, nodeId);
+    case 'matrix':
+      for (const row of node.rows) {
+        for (const cell of row) {
+          const found = findNodeLocationInRow(cell, nodeId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
+    default:
+      return null;
+  }
+}
+
+function findNodeInTree(node: FormulaNode, nodeId: string): FormulaNode | null {
+  if (node.id === nodeId) {
+    return node;
+  }
+
+  switch (node.type) {
+    case 'row':
+      for (const child of node.children) {
+        const found = findNodeInTree(child, nodeId);
+        if (found) {
+          return found;
+        }
+      }
+      return null;
+    case 'frac':
+      return findNodeInTree(node.numerator, nodeId) ?? findNodeInTree(node.denominator, nodeId);
+    case 'sqrt':
+      return (node.index ? findNodeInTree(node.index, nodeId) : null) ?? findNodeInTree(node.value, nodeId);
+    case 'script':
+      return findNodeInTree(node.base, nodeId)
+        ?? (node.sup ? findNodeInTree(node.sup, nodeId) : null)
+        ?? (node.sub ? findNodeInTree(node.sub, nodeId) : null);
+    case 'fence':
+      return findNodeInTree(node.body, nodeId);
+    case 'matrix':
+      for (const row of node.rows) {
+        for (const cell of row) {
+          const found = findNodeInTree(cell, nodeId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
+    default:
+      return null;
+  }
 }
 
 function findRowOwnerInNode(

@@ -94,10 +94,33 @@ export type FormulaNode =
   | FormulaMatrixNode
   | FormulaUnsupportedNode;
 
-export interface FormulaSelection {
+export interface FormulaCaretSelection {
+  kind: 'caret';
   rowId: string;
   offset: number;
 }
+
+export interface FormulaRangeSelection {
+  kind: 'range';
+  rowId: string;
+  anchorOffset: number;
+  focusOffset: number;
+  startOffset: number;
+  endOffset: number;
+}
+
+export interface FormulaNodeSelection {
+  kind: 'node';
+  rowId: string;
+  nodeId: string;
+  startOffset: number;
+  endOffset: number;
+}
+
+export type FormulaSelection =
+  | FormulaCaretSelection
+  | FormulaRangeSelection
+  | FormulaNodeSelection;
 
 export interface FormulaHistorySnapshot {
   doc: FormulaDoc;
@@ -147,6 +170,7 @@ export interface RuntimeEditorHandle {
     getLatex(): string;
     setLatex(latex: string, options?: FormulaDispatchOptions): void;
     getRenderHtml(): string;
+    getSelection(): FormulaSelection | null;
     dispatch(command: FormulaCommand, options?: FormulaDispatchOptions): void;
     undo(): boolean;
     redo(): boolean;
@@ -160,6 +184,7 @@ export interface RuntimeEditorHandle {
   getLatex(): string;
   setLatex(latex: string, options?: FormulaDispatchOptions): void;
   getRenderHtml(): string;
+  getSelection(): FormulaSelection | null;
   focus(): void;
   destroy(): void;
 }
@@ -181,6 +206,7 @@ export type FormulaCommandName =
   | 'moveDown'
   | 'moveToNextPlaceholder'
   | 'moveToPreviousPlaceholder'
+  | 'selectAll'
   | 'insertFraction'
   | 'insertSqrt'
   | 'insertSuperscript'
@@ -198,6 +224,7 @@ export interface FormulaCommandPayloadMap {
   moveDown: undefined;
   moveToNextPlaceholder: undefined;
   moveToPreviousPlaceholder: undefined;
+  selectAll: undefined;
   insertFraction: undefined;
   insertSqrt: undefined;
   insertSuperscript: undefined;

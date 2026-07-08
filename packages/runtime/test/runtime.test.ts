@@ -10,6 +10,7 @@ import {
   insertSuperscriptAtSelection,
   insertTextAtSelection,
 } from '../src/core/commands';
+import { createNodeSelection, createRangeSelection, createSelection } from '../src/core/selection';
 import { resetFormulaNodeIdsForTests } from '../src/core/ids';
 import { layoutFormula } from '../src/layout/layout';
 import { parseLatexToFormulaDoc } from '../src/latex/parse';
@@ -126,7 +127,7 @@ describe('runtime latex parser and serializer', () => {
   it('parses the legacy kity toolbar template catalog without unsupported nodes', () => {
     for (const sample of LEGACY_TOOLBAR_LATEX_SAMPLES) {
       const doc = createEmptyFormulaDoc('');
-      const inserted = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+      const inserted = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
         type: 'insertLatex',
         payload: { latex: sample },
       });
@@ -140,12 +141,9 @@ describe('runtime latex parser and serializer', () => {
 describe('runtime commands and layout', () => {
   it('inserts text and structures into the active row', () => {
     const doc = createEmptyFormulaDoc('');
-    const textInserted = insertTextAtSelection(doc, { rowId: doc.root.id, offset: 0 }, 'x');
+    const textInserted = insertTextAtSelection(doc, createSelection(doc.root.id, 0), 'x');
     const fractionInserted = insertFractionAtSelection(textInserted.doc, textInserted.selection,);
-    const sqrtInserted = insertSqrtAtSelection(fractionInserted.doc, {
-      rowId: doc.root.id,
-      offset: 2,
-    });
+    const sqrtInserted = insertSqrtAtSelection(fractionInserted.doc, createSelection(doc.root.id, 2));
 
     expect(serializeFormulaDocToLatex(textInserted.doc)).toBe('x');
     expect(serializeFormulaDocToLatex(fractionInserted.doc)).toBe('x\\frac{}{}');
@@ -154,9 +152,9 @@ describe('runtime commands and layout', () => {
 
   it('wraps the previous atom into superscript and subscript nodes', () => {
     const doc = createEmptyFormulaDoc('x');
-    const sup = insertSuperscriptAtSelection(doc, { rowId: doc.root.id, offset: 1 });
+    const sup = insertSuperscriptAtSelection(doc, createSelection(doc.root.id, 1));
     sup.doc.root.children[0] && insertTextAtSelection(sup.doc, sup.selection, '2');
-    const sub = insertSubscriptAtSelection(sup.doc, { rowId: doc.root.id, offset: 1 });
+    const sub = insertSubscriptAtSelection(sup.doc, createSelection(doc.root.id, 1));
 
     expect(serializeFormulaDocToLatex(sub.doc)).toBe('x^{}_{}');
   });
@@ -173,7 +171,7 @@ describe('runtime commands and layout', () => {
 
   it('deletes backward from the active row', () => {
     const doc = createEmptyFormulaDoc('xy');
-    const deleted = deleteBackwardAtSelection(doc, { rowId: doc.root.id, offset: 2 });
+    const deleted = deleteBackwardAtSelection(doc, createSelection(doc.root.id, 2));
     expect(serializeFormulaDocToLatex(deleted.doc)).toBe('x');
   });
 
@@ -293,7 +291,7 @@ describe('runtime commands and layout', () => {
 
   it('inserts latex snippets at the active selection', () => {
     const doc = createEmptyFormulaDoc('x');
-    const result = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 1 }, {
+    const result = applyFormulaCommand(doc, createSelection(doc.root.id, 1), {
       type: 'insertLatex',
       payload: { latex: '\\frac \\placeholder\\placeholder' },
     });
@@ -305,7 +303,7 @@ describe('runtime commands and layout', () => {
 
   it('normalizes toolbar placeholders into editable rows', () => {
     const doc = createEmptyFormulaDoc('');
-    const result = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+    const result = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
       type: 'insertLatex',
       payload: { latex: '\\sin\\placeholder' },
     });
@@ -313,12 +311,13 @@ describe('runtime commands and layout', () => {
     expect(result.changed).toBe(true);
     expect(serializeFormulaDocToLatex(result.doc)).toBe('\\sin');
     expect(result.selection.rowId).toBe(result.doc.root.id);
-    expect(result.selection.offset).toBe(1);
+    expect(result.selection.kind).toBe('caret');
+    expect(result.selection.kind === 'caret' ? result.selection.offset : undefined).toBe(1);
   });
 
   it('navigates semantic placeholders in document order with Tab semantics', () => {
     const doc = createEmptyFormulaDoc('');
-    const inserted = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+    const inserted = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
       type: 'insertLatex',
       payload: { latex: '\\frac \\placeholder\\placeholder' },
     });
@@ -339,7 +338,7 @@ describe('runtime commands and layout', () => {
 
   it('keeps fence and nth-root toolbar placeholders editable without synthetic wrapper groups', () => {
     const doc = createEmptyFormulaDoc('');
-    const fenced = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+    const fenced = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
       type: 'insertLatex',
       payload: { latex: '\\left(\\placeholder\\right)' },
     });
@@ -347,13 +346,47 @@ describe('runtime commands and layout', () => {
 
     expect(serializeFormulaDocToLatex(fencedTyped.doc)).toBe('\\left(x\\right)');
 
-    const rooted = applyFormulaCommand(doc, { rowId: doc.root.id, offset: 0 }, {
+    const rooted = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
       type: 'insertLatex',
       payload: { latex: '\\sqrt [3] \\placeholder' },
     });
     const rootedTyped = insertTextAtSelection(rooted.doc, rooted.selection, 'y');
 
     expect(serializeFormulaDocToLatex(rootedTyped.doc)).toBe('\\sqrt[3]{y}');
+  });
+
+  it('selects all root children and replaces the selection on input', () => {
+    const doc = createEmptyFormulaDoc('abc');
+    const selected = applyFormulaCommand(doc, null, {
+      type: 'selectAll',
+      payload: undefined,
+    });
+
+    expect(selected.selection.kind).toBe('range');
+    if (selected.selection.kind !== 'range') {
+      throw new Error('expected selectAll to create a range selection');
+    }
+    expect(selected.selection.rowId).toBe(doc.root.id);
+    expect(selected.selection.startOffset).toBe(0);
+    expect(selected.selection.endOffset).toBe(3);
+
+    const replaced = insertTextAtSelection(selected.doc, selected.selection, 'z');
+    expect(serializeFormulaDocToLatex(replaced.doc)).toBe('z');
+  });
+
+  it('replaces explicit range selections within a row', () => {
+    const doc = createEmptyFormulaDoc('abcd');
+    const result = insertTextAtSelection(doc, createRangeSelection(doc.root.id, 1, 3), 'x');
+
+    expect(serializeFormulaDocToLatex(result.doc)).toBe('axd');
+  });
+
+  it('deletes selected structural nodes as a single unit', () => {
+    const doc = createEmptyFormulaDoc('\\frac{a}{b}+x');
+    const selection = createNodeSelection(doc.root.id, doc.root.children[0]!.id, 0, 1);
+    const deleted = deleteBackwardAtSelection(doc, selection);
+
+    expect(serializeFormulaDocToLatex(deleted.doc)).toBe('+x');
   });
 });
 
