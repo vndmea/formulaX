@@ -64,4 +64,22 @@ describe('FormulaRuntimeEditor', () => {
 
     handle.destroy();
   });
+
+  it('localizes the root placeholder and preserves it across setLatex resets', async () => {
+    document.body.innerHTML = '<div id="root"></div>';
+    const root = document.getElementById('root') as HTMLElement;
+    const handle = await createRuntimeEditor(root, {
+      initialLatex: '',
+      autofocus: false,
+      locale: 'zh_CN',
+    });
+
+    expect(handle.getRenderHtml()).toContain('请输入公式');
+
+    handle.setLatex('x');
+    handle.setLatex('');
+    expect(handle.getRenderHtml()).toContain('请输入公式');
+
+    handle.destroy();
+  });
 });

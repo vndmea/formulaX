@@ -24,6 +24,7 @@ import type {
 import { layoutFormula } from '../layout/layout';
 import type { LayoutResult } from '../layout/types';
 import { buildAbsoluteLayoutState } from '../layout/absolute';
+import { getFormulaXRuntimeMessage } from '../i18n';
 import { parseLatexToFormulaDoc } from '../latex/parse';
 import { serializeFormulaDocToLatex } from '../latex/serialize';
 import { BrowserFormulaMetrics } from '../metrics/browser-metrics';
@@ -57,7 +58,7 @@ export class FormulaRuntimeEditor {
   ) {
     this.options = options;
     const initialDoc = ensureRuntimeEditableDoc(createEmptyFormulaDoc(options.initialLatex ?? ''), {
-      rootPlaceholderLabel: this.getRootPlaceholderLabel(options.locale),
+      rootPlaceholderLabel: getFormulaXRuntimeMessage('editor.placeholder.root', options.locale),
     });
     const initialSelection = getInitialSelection(initialDoc);
     this.metrics = new BrowserFormulaMetrics(host.ownerDocument ?? document);
@@ -138,7 +139,7 @@ export class FormulaRuntimeEditor {
 
   setLatex(latex: string, dispatchOptions: FormulaDispatchOptions = {}): void {
     const nextDoc = ensureRuntimeEditableDoc(parseLatexToFormulaDoc(latex), {
-      rootPlaceholderLabel: this.getRootPlaceholderLabel(this.options.locale),
+      rootPlaceholderLabel: getFormulaXRuntimeMessage('editor.placeholder.root', this.options.locale),
     });
     const nextSelection = getInitialSelection(nextDoc);
     if (dispatchOptions.preserveHistory) {
@@ -267,7 +268,7 @@ export class FormulaRuntimeEditor {
 
   private applyState(doc: FormulaDoc, selection: FormulaSelection): void {
     const editableDoc = ensureRuntimeEditableDoc(doc, {
-      rootPlaceholderLabel: this.getRootPlaceholderLabel(this.options.locale),
+      rootPlaceholderLabel: getFormulaXRuntimeMessage('editor.placeholder.root', this.options.locale),
     });
     const safeSelection = clampSelection(editableDoc, selection);
     const nextLayout = layoutFormula(editableDoc, this.metrics, {
@@ -848,9 +849,5 @@ export class FormulaRuntimeEditor {
     }
 
     return this.options.maxWidth;
-  }
-
-  private getRootPlaceholderLabel(locale?: string): string {
-    return locale?.toLowerCase().startsWith('zh') ? '请输入公式' : 'Type formula here';
   }
 }

@@ -1,4 +1,5 @@
 export * from './core/types';
+export * from './i18n';
 export * from './core/commands';
 export * from './core/selection';
 export * from './latex/parse';

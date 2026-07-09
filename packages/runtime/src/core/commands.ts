@@ -83,12 +83,7 @@ export function ensureRuntimeEditableDoc(
   const hasContent = doc.root.children.length > 0;
   const placeholder = hasContent
     ? undefined
-    : (doc.root.placeholder ?? createPlaceholderNode({
-      role: 'root',
-      label: rootPlaceholderLabel,
-      required: false,
-      isRoot: true,
-    }));
+    : normalizeRootPlaceholder(doc.root.placeholder, rootPlaceholderLabel);
 
   if (doc.root.placeholder === placeholder) {
     return doc;
@@ -101,6 +96,38 @@ export function ensureRuntimeEditableDoc(
       placeholder,
     },
   };
+}
+
+function normalizeRootPlaceholder(
+  placeholder: FormulaPlaceholderNode | undefined,
+  rootPlaceholderLabel: string,
+): FormulaPlaceholderNode {
+  if (
+    placeholder
+    && placeholder.role === 'root'
+    && placeholder.label === rootPlaceholderLabel
+    && placeholder.required === false
+    && placeholder.isRoot === true
+  ) {
+    return placeholder;
+  }
+
+  if (placeholder) {
+    return {
+      ...placeholder,
+      role: 'root',
+      label: rootPlaceholderLabel,
+      required: false,
+      isRoot: true,
+    };
+  }
+
+  return createPlaceholderNode({
+    role: 'root',
+    label: rootPlaceholderLabel,
+    required: false,
+    isRoot: true,
+  });
 }
 
 export function createEmptyFormulaDoc(latex = ''): FormulaDoc {
