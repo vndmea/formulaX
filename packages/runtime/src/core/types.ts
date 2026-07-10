@@ -61,6 +61,36 @@ export interface FormulaScriptNode {
   order?: Array<'sup' | 'sub'>;
 }
 
+export interface FormulaFunctionNode {
+  type: 'function';
+  id: string;
+  name: string;
+  body: FormulaRowNode;
+  bodyStyle?: 'atom' | 'group';
+}
+
+export interface FormulaLargeOperatorNode {
+  type: 'large-op';
+  id: string;
+  operator: 'sum';
+  sup?: FormulaRowNode;
+  sub?: FormulaRowNode;
+  order?: Array<'sup' | 'sub'>;
+  body: FormulaRowNode;
+  bodyStyle?: 'atom' | 'group';
+}
+
+export interface FormulaIntegralNode {
+  type: 'integral';
+  id: string;
+  operator: 'int' | 'iint' | 'iiint';
+  sup?: FormulaRowNode;
+  sub?: FormulaRowNode;
+  order?: Array<'sup' | 'sub'>;
+  body: FormulaRowNode;
+  bodyStyle?: 'atom' | 'group';
+}
+
 export interface FormulaFenceNode {
   type: 'fence';
   id: string;
@@ -90,6 +120,9 @@ export type FormulaNode =
   | FormulaFractionNode
   | FormulaSqrtNode
   | FormulaScriptNode
+  | FormulaFunctionNode
+  | FormulaLargeOperatorNode
+  | FormulaIntegralNode
   | FormulaFenceNode
   | FormulaMatrixNode
   | FormulaUnsupportedNode;

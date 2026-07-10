@@ -807,6 +807,25 @@ export class FormulaRuntimeEditor {
       return null;
     }
 
+    if ((parentNode.type === 'large-op' || parentNode.type === 'integral')) {
+      const supField = parentNode.type === 'large-op' ? 'large-op-sup' : 'integral-sup';
+      const subField = parentNode.type === 'large-op' ? 'large-op-sub' : 'integral-sub';
+      const bodyField = parentNode.type === 'large-op' ? 'large-op-body' : 'integral-body';
+      if (direction < 0 && owner.field === subField && parentNode.sup) {
+        return createSelection(parentNode.sup.id, Math.min(caretOffset, parentNode.sup.children.length));
+      }
+      if (direction > 0 && owner.field === supField && parentNode.sub) {
+        return createSelection(parentNode.sub.id, Math.min(caretOffset, parentNode.sub.children.length));
+      }
+      if (direction < 0 && owner.field === bodyField && parentNode.sup) {
+        return createSelection(parentNode.sup.id, Math.min(caretOffset, parentNode.sup.children.length));
+      }
+      if (direction > 0 && owner.field === bodyField && parentNode.sub) {
+        return createSelection(parentNode.sub.id, Math.min(caretOffset, parentNode.sub.children.length));
+      }
+      return null;
+    }
+
     if (parentNode.type === 'matrix' && owner.field === 'matrix-cell' && owner.matrixRowIndex !== undefined && owner.matrixColumnIndex !== undefined) {
       const nextRowIndex = owner.matrixRowIndex + direction;
       const nextCell = parentNode.rows[nextRowIndex]?.[owner.matrixColumnIndex];

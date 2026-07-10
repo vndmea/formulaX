@@ -23,6 +23,13 @@ export interface FormulaRowOwner {
     | 'script-base'
     | 'script-sup'
     | 'script-sub'
+    | 'function-body'
+    | 'large-op-sup'
+    | 'large-op-sub'
+    | 'large-op-body'
+    | 'integral-sup'
+    | 'integral-sub'
+    | 'integral-body'
     | 'fence-body'
     | 'matrix-cell';
   childIndex?: number;
@@ -400,6 +407,16 @@ function findRowInNode(node: FormulaNode, rowId: string): FormulaRowNode | null 
     return findRowInScript(node, rowId);
   }
 
+  if (node.type === 'function') {
+    return findRowInNode(node.body, rowId);
+  }
+
+  if (node.type === 'large-op' || node.type === 'integral') {
+    return (node.sup ? findRowInNode(node.sup, rowId) : null)
+      ?? (node.sub ? findRowInNode(node.sub, rowId) : null)
+      ?? findRowInNode(node.body, rowId);
+  }
+
   if (node.type === 'fence') {
     return findRowInNode(node.body, rowId);
   }
@@ -446,6 +463,13 @@ function findNodeLocationInNode(node: FormulaNode, nodeId: string): FormulaNodeL
       return findNodeLocationInNode(node.base, nodeId)
         ?? (node.sup ? findNodeLocationInRow(node.sup, nodeId) : null)
         ?? (node.sub ? findNodeLocationInRow(node.sub, nodeId) : null);
+    case 'function':
+      return findNodeLocationInRow(node.body, nodeId);
+    case 'large-op':
+    case 'integral':
+      return (node.sup ? findNodeLocationInRow(node.sup, nodeId) : null)
+        ?? (node.sub ? findNodeLocationInRow(node.sub, nodeId) : null)
+        ?? findNodeLocationInRow(node.body, nodeId);
     case 'fence':
       return findNodeLocationInRow(node.body, nodeId);
     case 'matrix':
@@ -485,6 +509,13 @@ function findNodeInTree(node: FormulaNode, nodeId: string): FormulaNode | null {
       return findNodeInTree(node.base, nodeId)
         ?? (node.sup ? findNodeInTree(node.sup, nodeId) : null)
         ?? (node.sub ? findNodeInTree(node.sub, nodeId) : null);
+    case 'function':
+      return findNodeInTree(node.body, nodeId);
+    case 'large-op':
+    case 'integral':
+      return (node.sup ? findNodeInTree(node.sup, nodeId) : null)
+        ?? (node.sub ? findNodeInTree(node.sub, nodeId) : null)
+        ?? findNodeInTree(node.body, nodeId);
     case 'fence':
       return findNodeInTree(node.body, nodeId);
     case 'matrix':
@@ -580,6 +611,54 @@ function findRowOwnerInNode(
       : null);
   }
 
+  if (node.type === 'function') {
+    return findRowOwnerInNode(node.body, rowId, {
+      parentRowId: owner.parentRowId,
+      parentNodeId: node.id,
+      field: 'function-body',
+    });
+  }
+
+  if (node.type === 'large-op') {
+    return (node.sup
+      ? findRowOwnerInNode(node.sup, rowId, {
+        parentRowId: owner.parentRowId,
+        parentNodeId: node.id,
+        field: 'large-op-sup',
+      })
+      : null) ?? (node.sub
+      ? findRowOwnerInNode(node.sub, rowId, {
+        parentRowId: owner.parentRowId,
+        parentNodeId: node.id,
+        field: 'large-op-sub',
+      })
+      : null) ?? findRowOwnerInNode(node.body, rowId, {
+      parentRowId: owner.parentRowId,
+      parentNodeId: node.id,
+      field: 'large-op-body',
+    });
+  }
+
+  if (node.type === 'integral') {
+    return (node.sup
+      ? findRowOwnerInNode(node.sup, rowId, {
+        parentRowId: owner.parentRowId,
+        parentNodeId: node.id,
+        field: 'integral-sup',
+      })
+      : null) ?? (node.sub
+      ? findRowOwnerInNode(node.sub, rowId, {
+        parentRowId: owner.parentRowId,
+        parentNodeId: node.id,
+        field: 'integral-sub',
+      })
+      : null) ?? findRowOwnerInNode(node.body, rowId, {
+      parentRowId: owner.parentRowId,
+      parentNodeId: node.id,
+      field: 'integral-body',
+    });
+  }
+
   if (node.type === 'fence') {
     return findRowOwnerInNode(node.body, rowId, {
       parentRowId: owner.parentRowId,
@@ -652,6 +731,19 @@ function collectPlaceholderTargetsInNode(node: FormulaNode, targets: FormulaPlac
         collectPlaceholderTargetsInRow(node.sub, targets);
       }
       return;
+    case 'function':
+      collectPlaceholderTargetsInRow(node.body, targets);
+      return;
+    case 'large-op':
+    case 'integral':
+      if (node.sup) {
+        collectPlaceholderTargetsInRow(node.sup, targets);
+      }
+      if (node.sub) {
+        collectPlaceholderTargetsInRow(node.sub, targets);
+      }
+      collectPlaceholderTargetsInRow(node.body, targets);
+      return;
     case 'fence':
       collectPlaceholderTargetsInRow(node.body, targets);
       return;
@@ -707,6 +799,19 @@ function updateNodeRow(
       const sub = node.sub ? updateNodeRow(node.sub, rowId, updater) as FormulaRowNode : undefined;
       return base !== node.base || sup !== node.sup || sub !== node.sub
         ? { ...node, base, sup, sub }
+        : node;
+    }
+    case 'function': {
+      const body = updateNodeRow(node.body, rowId, updater) as FormulaRowNode;
+      return body !== node.body ? { ...node, body } : node;
+    }
+    case 'large-op':
+    case 'integral': {
+      const sup = node.sup ? updateNodeRow(node.sup, rowId, updater) as FormulaRowNode : undefined;
+      const sub = node.sub ? updateNodeRow(node.sub, rowId, updater) as FormulaRowNode : undefined;
+      const body = updateNodeRow(node.body, rowId, updater) as FormulaRowNode;
+      return sup !== node.sup || sub !== node.sub || body !== node.body
+        ? { ...node, sup, sub, body }
         : node;
     }
     case 'fence': {

@@ -346,6 +346,12 @@ function layoutNode(
       return layoutSqrt(node, metrics, options, nodeMap);
     case 'script':
       return layoutScript(node, metrics, options, nodeMap);
+    case 'function':
+      return layoutFunction(node, metrics, options, nodeMap);
+    case 'large-op':
+      return layoutOperatorWithBody(node, metrics, options, nodeMap);
+    case 'integral':
+      return layoutOperatorWithBody(node, metrics, options, nodeMap);
     case 'fence':
       return layoutFence(node, metrics, options, nodeMap);
     case 'matrix':
@@ -569,6 +575,86 @@ function layoutScript(
         x: base.width,
         y: ascent + base.descent * 0.35,
       }] : []),
+    ],
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}
+
+function layoutFunction(
+  node: Extract<FormulaNode, { type: 'function' }>,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const name = layoutTextBox(`${node.id}-name`, `${node.id}-name`, 'symbol', node.name, metrics.measureText(node.name, {
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontSize: options.fontSize,
+  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+  const body = layoutRow(node.body, metrics, options, nodeMap);
+  const gap = body.modelChildCount === 0 && !body.placeholderRole ? 0 : options.fontSize * 0.08;
+  const ascent = Math.max(name.ascent, body.ascent);
+  const descent = Math.max(name.descent, body.descent);
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: 'function',
+    x: 0,
+    y: 0,
+    width: name.width + gap + body.width,
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: [
+      { ...name, x: 0, y: ascent - name.ascent },
+      { ...body, x: name.width + gap, y: ascent - body.ascent },
+    ],
+  };
+  nodeMap.set(node.id, box);
+  return box;
+}
+
+function layoutOperatorWithBody(
+  node: Extract<FormulaNode, { type: 'large-op' | 'integral' }>,
+  metrics: FormulaMetrics,
+  options: FormulaLayoutOptions,
+  nodeMap: Map<string, LayoutBox>,
+): LayoutBox {
+  const operatorLatex = `\\${node.operator}`;
+  const operatorText = resolveRuntimeSymbol(operatorLatex)?.char ?? operatorLatex;
+  const operatorFontSize = options.fontSize * (node.type === 'large-op' ? 1.15 : 1.25);
+  const operator = layoutTextBox(`${node.id}-operator`, `${node.id}-operator`, 'symbol', operatorText, metrics.measureText(operatorText, {
+    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontSize: operatorFontSize,
+  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+  const scriptOptions = {
+    ...options,
+    fontSize: options.fontSize * options.scriptScale!,
+  };
+  const sup = node.sup ? layoutRow(node.sup, metrics, scriptOptions, nodeMap) : null;
+  const sub = node.sub ? layoutRow(node.sub, metrics, scriptOptions, nodeMap) : null;
+  const body = layoutRow(node.body, metrics, options, nodeMap);
+  const stackWidth = Math.max(sup?.width ?? 0, sub?.width ?? 0);
+  const bodyGap = body.modelChildCount === 0 && !body.placeholderRole ? 0 : options.fontSize * 0.12;
+  const ascent = Math.max(operator.ascent + (sup ? sup.height * 0.55 : 0), body.ascent);
+  const descent = Math.max(operator.descent + (sub ? sub.height * 0.55 : 0), body.descent);
+  const limitX = operator.width;
+  const bodyX = operator.width + stackWidth + bodyGap;
+  const box: LayoutBox = {
+    id: node.id,
+    nodeId: node.id,
+    kind: node.type,
+    x: 0,
+    y: 0,
+    width: bodyX + body.width,
+    height: ascent + descent,
+    ascent,
+    descent,
+    children: [
+      { ...operator, x: 0, y: ascent - operator.ascent },
+      ...(sup ? [{ ...sup, x: limitX, y: 0 }] : []),
+      ...(sub ? [{ ...sub, x: limitX, y: ascent + operator.descent * 0.2 }] : []),
+      { ...body, x: bodyX, y: ascent - body.ascent },
     ],
   };
   nodeMap.set(node.id, box);

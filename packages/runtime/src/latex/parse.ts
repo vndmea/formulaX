@@ -4,6 +4,9 @@ import type {
   FormulaDoc,
   FormulaEnvironmentName,
   FormulaFenceNode,
+  FormulaFunctionNode,
+  FormulaIntegralNode,
+  FormulaLargeOperatorNode,
   FormulaMatrixNode,
   FormulaNode,
   FormulaPlaceholderNode,
@@ -20,6 +23,15 @@ type ScriptTarget = {
   sub?: FormulaRowNode;
   order: Array<'sup' | 'sub'>;
 };
+
+type ParsedBody = {
+  row: FormulaRowNode;
+  style: 'atom' | 'group';
+};
+
+const FUNCTION_COMMANDS = new Set(['sin', 'cos', 'tan', 'csc', 'sec', 'cot']);
+const INTEGRAL_COMMANDS = new Set(['int', 'iint', 'iiint']);
+const LARGE_OPERATOR_COMMANDS = new Set(['sum']);
 
 function createRow(children: FormulaNode[] = []): FormulaRowNode {
   return {
@@ -239,6 +251,18 @@ class RuntimeLatexParser {
       return createPlaceholder();
     }
 
+    if (FUNCTION_COMMANDS.has(command)) {
+      return this.parseFunctionCommand(command);
+    }
+
+    if (INTEGRAL_COMMANDS.has(command)) {
+      return this.parseIntegralCommand(command as FormulaIntegralNode['operator']);
+    }
+
+    if (LARGE_OPERATOR_COMMANDS.has(command)) {
+      return this.parseLargeOperatorCommand(command as FormulaLargeOperatorNode['operator']);
+    }
+
     const resolved = resolveRuntimeSymbol(`\\${command}`);
     if (resolved) {
       return createSymbol(resolved.char, resolved.latex, resolved.fontFamily);
@@ -268,7 +292,85 @@ class RuntimeLatexParser {
     return createSymbol(resolved.char, resolved.latex, resolved.fontFamily);
   }
 
+  private parseFunctionCommand(name: string): FormulaFunctionNode {
+    const body = this.parseOptionalBody('function-argument');
+    return {
+      type: 'function',
+      id: createFormulaNodeId('fn'),
+      name,
+      body: normalizeParsedRow(body.row, { role: 'function-argument' }),
+      bodyStyle: body.style,
+    };
+  }
+
+  private parseIntegralCommand(operator: FormulaIntegralNode['operator']): FormulaIntegralNode {
+    const scripts = this.readScripts();
+    const body = this.parseOptionalBody('integrand');
+    return {
+      type: 'integral',
+      id: createFormulaNodeId('integral'),
+      operator,
+      sup: scripts.sup ? normalizeParsedRow(scripts.sup, { role: 'upper-limit' }) : undefined,
+      sub: scripts.sub ? normalizeParsedRow(scripts.sub, { role: 'lower-limit' }) : undefined,
+      order: scripts.order,
+      body: normalizeParsedRow(body.row, { role: 'integrand' }),
+      bodyStyle: body.style,
+    };
+  }
+
+  private parseLargeOperatorCommand(operator: FormulaLargeOperatorNode['operator']): FormulaLargeOperatorNode {
+    const scripts = this.readScripts();
+    const body = this.parseOptionalBody('operator-body');
+    return {
+      type: 'large-op',
+      id: createFormulaNodeId('largeop'),
+      operator,
+      sup: scripts.sup ? normalizeParsedRow(scripts.sup, { role: 'upper-limit' }) : undefined,
+      sub: scripts.sub ? normalizeParsedRow(scripts.sub, { role: 'lower-limit' }) : undefined,
+      order: scripts.order,
+      body: normalizeParsedRow(body.row, { role: 'operator-body' }),
+      bodyStyle: body.style,
+    };
+  }
+
+  private parseOptionalBody(_context: string): ParsedBody {
+    this.skipWhitespace();
+    if (this.input[this.index] === '{') {
+      this.index += 1;
+      const row = this.parseRow(() => this.input[this.index] === '}');
+      this.consume('}');
+      return { row, style: 'group' };
+    }
+
+    const atom = this.parseAtom();
+    return {
+      row: atom ? createRow([atom]) : createRow([]),
+      style: 'atom',
+    };
+  }
+
   private applyScripts(atom: FormulaNode): FormulaNode {
+    const scriptTarget = this.readScripts();
+
+    if (!scriptTarget.sup && !scriptTarget.sub) {
+      return atom;
+    }
+
+    return {
+      type: 'script',
+      id: createFormulaNodeId('script'),
+      base: atom,
+      sup: scriptTarget.sup ? normalizeParsedRow(scriptTarget.sup, {
+        role: 'superscript',
+      }) : undefined,
+      sub: scriptTarget.sub ? normalizeParsedRow(scriptTarget.sub, {
+        role: 'subscript',
+      }) : undefined,
+      order: scriptTarget.order,
+    } satisfies FormulaScriptNode;
+  }
+
+  private readScripts(): ScriptTarget {
     const scriptTarget: ScriptTarget = { order: [] };
 
     while (this.index < this.input.length) {
@@ -280,30 +382,15 @@ class RuntimeLatexParser {
       this.index += 1;
       const row = this.parseRequiredGroup(current === '^' ? 'superscript' : 'subscript');
       if (current === '^') {
-        scriptTarget.sup = normalizeParsedRow(row, {
-          role: 'superscript',
-        });
+        scriptTarget.sup = row;
         scriptTarget.order.push('sup');
       } else {
-        scriptTarget.sub = normalizeParsedRow(row, {
-          role: 'subscript',
-        });
+        scriptTarget.sub = row;
         scriptTarget.order.push('sub');
       }
     }
 
-    if (!scriptTarget.sup && !scriptTarget.sub) {
-      return atom;
-    }
-
-    return {
-      type: 'script',
-      id: createFormulaNodeId('script'),
-      base: atom,
-      sup: scriptTarget.sup,
-      sub: scriptTarget.sub,
-      order: scriptTarget.order,
-    } satisfies FormulaScriptNode;
+    return scriptTarget;
   }
 
   private parseRequiredGroup(context: string): FormulaRowNode {
@@ -470,6 +557,12 @@ function serializeRawRow(row: FormulaRowNode): string {
         return child.latex ?? child.value;
       case 'placeholder':
         return '\\placeholder';
+      case 'function':
+        return `\\${child.name}${serializeRawRow(child.body)}`;
+      case 'large-op':
+        return `\\${child.operator}${serializeRawRow(child.body)}`;
+      case 'integral':
+        return `\\${child.operator}${serializeRawRow(child.body)}`;
       case 'unsupported':
         return child.rawLatex;
       default:
@@ -569,12 +662,31 @@ function normalizeParsedNode(node: FormulaNode): FormulaNode {
         index: node.index ? normalizeParsedRow(node.index, { role: 'index' }) : undefined,
         value: normalizeParsedRow(node.value, { role: 'radicand' }),
       };
-    case 'script':
-      return {
-        ...node,
+      case 'script':
+        return {
+          ...node,
         base: normalizeParsedNode(node.base),
         sup: node.sup ? normalizeParsedRow(node.sup, { role: 'superscript' }) : undefined,
-        sub: node.sub ? normalizeParsedRow(node.sub, { role: 'subscript' }) : undefined,
+          sub: node.sub ? normalizeParsedRow(node.sub, { role: 'subscript' }) : undefined,
+        };
+    case 'function':
+      return {
+        ...node,
+        body: normalizeParsedRow(node.body, { role: 'function-argument' }),
+      };
+    case 'large-op':
+      return {
+        ...node,
+        sup: node.sup ? normalizeParsedRow(node.sup, { role: 'upper-limit' }) : undefined,
+        sub: node.sub ? normalizeParsedRow(node.sub, { role: 'lower-limit' }) : undefined,
+        body: normalizeParsedRow(node.body, { role: 'operator-body' }),
+      };
+    case 'integral':
+      return {
+        ...node,
+        sup: node.sup ? normalizeParsedRow(node.sup, { role: 'upper-limit' }) : undefined,
+        sub: node.sub ? normalizeParsedRow(node.sub, { role: 'lower-limit' }) : undefined,
+        body: normalizeParsedRow(node.body, { role: 'integrand' }),
       };
     case 'fence':
       return {

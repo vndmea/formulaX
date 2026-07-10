@@ -53,6 +53,12 @@ export function serializeFormulaNode(node: FormulaNode): string {
       }).join('');
       return `${base}${serialized}`;
     }
+    case 'function':
+      return `\\${node.name}${serializeOperatorBody(node.body, node.bodyStyle)}`;
+    case 'large-op':
+      return `\\${node.operator}${serializeOperatorLimits(node)}${serializeOperatorBody(node.body, node.bodyStyle)}`;
+    case 'integral':
+      return `\\${node.operator}${serializeOperatorLimits(node)}${serializeOperatorBody(node.body, node.bodyStyle)}`;
     case 'fence':
       return `\\left${node.left}${serializeRow(node.body)}\\right${node.right}`;
     case 'matrix': {
@@ -64,6 +70,37 @@ export function serializeFormulaNode(node: FormulaNode): string {
     case 'unsupported':
       return node.rawLatex;
   }
+}
+
+function serializeOperatorLimits(node: Extract<FormulaNode, { type: 'large-op' | 'integral' }>): string {
+  const parts = node.order?.length
+    ? node.order
+    : [
+      ...(node.sup ? ['sup' as const] : []),
+      ...(node.sub ? ['sub' as const] : []),
+    ];
+
+  return parts.map((part) => {
+    if (part === 'sup' && node.sup) {
+      return `^${serializeScriptRow(node.sup)}`;
+    }
+    if (part === 'sub' && node.sub) {
+      return `_${serializeScriptRow(node.sub)}`;
+    }
+    return '';
+  }).join('');
+}
+
+function serializeOperatorBody(row: FormulaRowNode, style: 'atom' | 'group' = 'atom'): string {
+  if (row.children.length === 0) {
+    return '';
+  }
+
+  if (style === 'group' || row.children.length > 1) {
+    return `{${serializeRow(row)}}`;
+  }
+
+  return serializeFormulaNode(row.children[0]);
 }
 
 export function serializeFormulaDocToLatex(doc: FormulaDoc): string {

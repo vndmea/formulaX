@@ -652,6 +652,15 @@ function findFirstEditableSelection(node: FormulaNode): FormulaSelection | null 
         : node.sub
           ? createSelection(node.sub.id, 0)
           : findFirstEditableSelection(node.base);
+    case 'function':
+      return createSelection(node.body.id, 0);
+    case 'large-op':
+    case 'integral':
+      return node.sup
+        ? createSelection(node.sup.id, 0)
+        : node.sub
+          ? createSelection(node.sub.id, 0)
+          : createSelection(node.body.id, 0);
     case 'fence':
       return createSelection(node.body.id, 0);
     case 'matrix':
@@ -675,6 +684,11 @@ function findLastEditableSelection(node: FormulaNode): FormulaSelection | null {
         : node.sup
           ? createSelection(node.sup.id, node.sup.children.length)
           : findLastEditableSelection(node.base);
+    case 'function':
+      return createSelection(node.body.id, node.body.children.length);
+    case 'large-op':
+    case 'integral':
+      return createSelection(node.body.id, node.body.children.length);
     case 'fence':
       return createSelection(node.body.id, node.body.children.length);
     case 'matrix': {
@@ -762,6 +776,13 @@ function findNodeById(node: FormulaNode, nodeId: string): FormulaNode | null {
       return findNodeById(node.base, nodeId)
         ?? (node.sup ? findNodeById(node.sup, nodeId) : null)
         ?? (node.sub ? findNodeById(node.sub, nodeId) : null);
+    case 'function':
+      return findNodeById(node.body, nodeId);
+    case 'large-op':
+    case 'integral':
+      return (node.sup ? findNodeById(node.sup, nodeId) : null)
+        ?? (node.sub ? findNodeById(node.sub, nodeId) : null)
+        ?? findNodeById(node.body, nodeId);
     case 'fence':
       return findNodeById(node.body, nodeId);
     case 'matrix':

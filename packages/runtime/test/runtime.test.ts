@@ -87,6 +87,9 @@ describe('runtime latex parser and serializer', () => {
       '\\left(x+1\\right)',
       '\\left\\{x+1\\right\\}',
       '\\mathcal{A}+\\mathbb{R}',
+      '\\int^a_b{x}',
+      '\\sum^n_{k=0}{x}',
+      '\\sin{x}',
       '\\begin{matrix}a&b\\\\c&d\\end{matrix}',
       '\\begin{cases}x&1\\\\y&2\\end{cases}',
     ];
@@ -122,6 +125,31 @@ describe('runtime latex parser and serializer', () => {
     expect(fraction && 'denominator' in fraction ? fraction.denominator.placeholder?.type : undefined)
       .toBe('placeholder');
     expect(serializeFormulaDocToLatex(parsed)).toBe('\\frac{}{}');
+  });
+
+  it('promotes kity operator and function templates to structural nodes', () => {
+    const integral = parseLatexToFormulaDoc('\\int^\\placeholder_\\placeholder\\placeholder');
+    const integralNode = integral.root.children[0];
+    expect(integralNode?.type).toBe('integral');
+    expect(integralNode && integralNode.type === 'integral' ? integralNode.sup?.placeholder?.role : undefined)
+      .toBe('upper-limit');
+    expect(integralNode && integralNode.type === 'integral' ? integralNode.sub?.placeholder?.role : undefined)
+      .toBe('lower-limit');
+    expect(integralNode && integralNode.type === 'integral' ? integralNode.body.placeholder?.role : undefined)
+      .toBe('integrand');
+    expect(serializeFormulaDocToLatex(integral)).toBe('\\int^{}_{}');
+
+    const sum = parseLatexToFormulaDoc('\\sum^n_{k=0}{x}');
+    const sumNode = sum.root.children[0];
+    expect(sumNode?.type).toBe('large-op');
+    expect(serializeFormulaDocToLatex(sum)).toBe('\\sum^n_{k=0}{x}');
+
+    const fn = parseLatexToFormulaDoc('\\sin\\theta');
+    const fnNode = fn.root.children[0];
+    expect(fnNode?.type).toBe('function');
+    expect(fnNode && fnNode.type === 'function' ? fnNode.body.children[0]?.type : undefined)
+      .toBe('symbol');
+    expect(serializeFormulaDocToLatex(fn)).toBe('\\sin\\theta');
   });
 
   it('parses the legacy kity toolbar template catalog without unsupported nodes', () => {
@@ -203,18 +231,20 @@ describe('runtime commands and layout', () => {
     expect(symbolLayout.root.children[0]?.ascent).toBe(symbolLayout.root.children[0]?.descent);
   });
 
-  it('centers trailing placeholders beside scripted operators', () => {
+  it('keeps integral limits and body in one structural layout box', () => {
     const doc = createEmptyFormulaDoc('\\int^\\placeholder_\\placeholder\\placeholder');
     const layout = layoutFormula(doc, testMetrics, {
       fontSize: 40,
     });
-    const scriptBox = layout.root.children[0];
-    const trailingPlaceholder = layout.root.children[1];
+    const integralBox = layout.root.children[0];
+    const bodyRow = integralBox?.children.find((child) => child.kind === 'row' && child.placeholderRole === 'integrand');
 
-    expect(scriptBox?.kind).toBe('script');
-    expect(trailingPlaceholder?.kind).toBe('placeholder');
-    expect(trailingPlaceholder?.y + trailingPlaceholder!.height / 2)
-      .toBeCloseTo(scriptBox!.y + scriptBox!.height / 2, 0);
+    expect(layout.root.children).toHaveLength(1);
+    expect(integralBox?.kind).toBe('integral');
+    expect(bodyRow).toBeDefined();
+    expect(bodyRow?.children[0]?.kind).toBe('placeholder');
+    expect(bodyRow!.y + bodyRow!.height / 2)
+      .toBeCloseTo(integralBox!.height / 2, 0);
   });
 
   it('centers leading equation text beside tall fractions', () => {
@@ -310,9 +340,11 @@ describe('runtime commands and layout', () => {
 
     expect(result.changed).toBe(true);
     expect(serializeFormulaDocToLatex(result.doc)).toBe('\\sin');
-    expect(result.selection.rowId).toBe(result.doc.root.id);
+    const functionNode = result.doc.root.children[0];
+    expect(functionNode?.type).toBe('function');
+    expect(result.selection.rowId).toBe(functionNode && functionNode.type === 'function' ? functionNode.body.id : null);
     expect(result.selection.kind).toBe('caret');
-    expect(result.selection.kind === 'caret' ? result.selection.offset : undefined).toBe(1);
+    expect(result.selection.kind === 'caret' ? result.selection.offset : undefined).toBe(0);
   });
 
   it('navigates semantic placeholders in document order with Tab semantics', () => {
@@ -413,6 +445,16 @@ function hasUnsupportedNode(node: FormulaNode): boolean {
       || Boolean(node.sub && hasUnsupportedNode(node.sub));
   }
 
+  if (node.type === 'function') {
+    return hasUnsupportedNode(node.body);
+  }
+
+  if (node.type === 'large-op' || node.type === 'integral') {
+    return Boolean(node.sup && hasUnsupportedNode(node.sup))
+      || Boolean(node.sub && hasUnsupportedNode(node.sub))
+      || hasUnsupportedNode(node.body);
+  }
+
   if (node.type === 'fence') {
     return hasUnsupportedNode(node.body);
   }
@@ -445,6 +487,16 @@ function containsSymbolValue(node: FormulaNode, value: string): boolean {
     return containsSymbolValue(node.base, value)
       || Boolean(node.sup && containsSymbolValue(node.sup, value))
       || Boolean(node.sub && containsSymbolValue(node.sub, value));
+  }
+
+  if (node.type === 'function') {
+    return containsSymbolValue(node.body, value);
+  }
+
+  if (node.type === 'large-op' || node.type === 'integral') {
+    return Boolean(node.sup && containsSymbolValue(node.sup, value))
+      || Boolean(node.sub && containsSymbolValue(node.sub, value))
+      || containsSymbolValue(node.body, value);
   }
 
   if (node.type === 'fence') {
