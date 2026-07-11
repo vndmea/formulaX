@@ -9,9 +9,9 @@ import type {
   LayoutResult,
   TextMetricsBox,
 } from './types';
+import { DEFAULT_RUNTIME_FONT_FAMILY } from '../asset-manifest';
 import { resolveRuntimeSymbol } from '../latex/symbols';
 
-const DEFAULT_FONT_FAMILY = '"KF AMS MAIN", "Cambria Math", "Times New Roman", serif';
 const RELATION_SYMBOLS = new Set(['=', '<', '>', '≤', '≥', '≈']);
 const BINARY_SYMBOLS = new Set(['+', '-', '±', '·', '×', '÷']);
 const PUNCTUATION_SYMBOLS = new Set([',', ';', ':']);
@@ -19,7 +19,7 @@ const PUNCTUATION_SYMBOLS = new Set([',', ';', ':']);
 function createOptions(options: Partial<FormulaLayoutOptions>): FormulaLayoutOptions {
   return {
     fontSize: options.fontSize ?? 40,
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
     maxWidth: options.maxWidth,
     wrap: options.wrap ?? 'none',
     continuationIndent: options.continuationIndent ?? (options.fontSize ?? 40) * 0.75,
@@ -327,7 +327,7 @@ function layoutNode(
     case 'row':
       return layoutRow(node, metrics, options, nodeMap);
     case 'symbol': {
-      const fontFamily = node.fontFamily ?? options.fontFamily ?? DEFAULT_FONT_FAMILY;
+      const fontFamily = node.fontFamily ?? options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY;
       return layoutTextBox(node.id, node.id, 'symbol', node.value, metrics.measureText(node.value, {
         fontFamily,
         fontSize: options.fontSize,
@@ -337,9 +337,9 @@ function layoutNode(
       return layoutPlaceholder(node, metrics, options, nodeMap);
     case 'unsupported':
       return layoutTextBox(node.id, node.id, 'unsupported', node.rawLatex, metrics.measureText(node.rawLatex, {
-        fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+        fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
         fontSize: options.fontSize * 0.8,
-      }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+      }), nodeMap, options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY);
     case 'frac':
       return layoutFraction(node, metrics, options, nodeMap);
     case 'sqrt':
@@ -368,7 +368,7 @@ function layoutPlaceholder(
   const hasLabel = Boolean(placeholder.label);
   const measured = hasLabel
     ? metrics.measureText(placeholder.label!, {
-      fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+      fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
       fontSize: Math.max(16, options.fontSize * 0.45),
     })
     : null;
@@ -388,7 +388,7 @@ function layoutPlaceholder(
     ascent,
     descent: height - ascent,
     text: placeholder.label,
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
     placeholderRole: placeholder.role,
     placeholderLabel: placeholder.label,
     placeholderRequired: placeholder.required,
@@ -588,9 +588,9 @@ function layoutFunction(
   nodeMap: Map<string, LayoutBox>,
 ): LayoutBox {
   const name = layoutTextBox(`${node.id}-name`, `${node.id}-name`, 'symbol', node.name, metrics.measureText(node.name, {
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
     fontSize: options.fontSize,
-  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+  }), nodeMap, options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY);
   const body = layoutRow(node.body, metrics, options, nodeMap);
   const gap = body.modelChildCount === 0 && !body.placeholderRole ? 0 : options.fontSize * 0.08;
   const ascent = Math.max(name.ascent, body.ascent);
@@ -624,9 +624,9 @@ function layoutOperatorWithBody(
   const operatorText = resolveRuntimeSymbol(operatorLatex)?.char ?? operatorLatex;
   const operatorFontSize = options.fontSize * (node.type === 'large-op' ? 1.15 : 1.25);
   const operator = layoutTextBox(`${node.id}-operator`, `${node.id}-operator`, 'symbol', operatorText, metrics.measureText(operatorText, {
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
     fontSize: operatorFontSize,
-  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+  }), nodeMap, options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY);
   const scriptOptions = {
     ...options,
     fontSize: options.fontSize * options.scriptScale!,
@@ -670,13 +670,13 @@ function layoutFence(
   const leftDelimiter = resolveDelimiterText(node.left);
   const rightDelimiter = resolveDelimiterText(node.right);
   const left = layoutTextBox(`${node.id}-left`, `${node.id}-left`, 'fence-delimiter', leftDelimiter, metrics.measureText(leftDelimiter, {
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
     fontSize: options.fontSize,
-  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+  }), nodeMap, options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY);
   const right = layoutTextBox(`${node.id}-right`, `${node.id}-right`, 'fence-delimiter', rightDelimiter, metrics.measureText(rightDelimiter, {
-    fontFamily: options.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamily: options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY,
     fontSize: options.fontSize,
-  }), nodeMap, options.fontFamily ?? DEFAULT_FONT_FAMILY);
+  }), nodeMap, options.fontFamily ?? DEFAULT_RUNTIME_FONT_FAMILY);
   const body = layoutRow(node.body, metrics, options, nodeMap);
   const ascent = Math.max(left.ascent, body.ascent, right.ascent);
   const descent = Math.max(left.descent, body.descent, right.descent);

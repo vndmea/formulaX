@@ -1,5 +1,7 @@
 export * from './core/types';
+export * from './asset-manifest';
 export * from './i18n';
+export * from './toolbar';
 export * from './core/commands';
 export * from './core/selection';
 export * from './latex/parse';
