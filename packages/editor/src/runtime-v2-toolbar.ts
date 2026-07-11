@@ -1,42 +1,15 @@
+import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
 import {
-  createToolbarConfig,
+  createRuntimeToolbarPanels,
   normalizeFormulaXLocale,
   type FormulaXLocale,
-} from '@formulaxjs/kity-runtime';
-import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
-import type { RuntimeEditorAssets, RuntimeEditorHandle } from '@formulaxjs/runtime';
+  type RuntimeEditorAssets,
+  type RuntimeEditorHandle,
+  type RuntimeToolbarGroup,
+  type RuntimeToolbarItem,
+  type RuntimeToolbarPanel,
+} from '@formulaxjs/runtime';
 import { FORMULAX_DEFAULT_ICON_SVG } from './icons';
-
-type RuntimeToolbarItemKind = 'symbol' | 'template';
-
-type RuntimeToolbarItem = {
-  id: string;
-  kind: RuntimeToolbarItemKind;
-  title: string;
-  label?: string;
-  latex: string;
-  previewLatex: string;
-  previewSize?: {
-    width: number;
-    height: number;
-  };
-};
-
-type RuntimeToolbarGroup = {
-  id: string;
-  title: string;
-  items: RuntimeToolbarItem[];
-};
-
-type RuntimeToolbarPanel = {
-  id: string;
-  kind: 'dropdown' | 'area';
-  layout: 'templates' | 'symbols' | 'presets';
-  label: string;
-  width: number;
-  groups: RuntimeToolbarGroup[];
-  buttonClassName?: string;
-};
 
 type RuntimeToolbarMountOptions = {
   locale?: FormulaXLocale;
@@ -47,44 +20,6 @@ type ToolbarPreviewRenderer = {
   render(host: HTMLElement, latex: string, fontSize?: number, priority?: boolean): void;
   preload(latex: string, fontSize?: number): void;
   destroy(): void;
-};
-
-type RawToolbarContentItem = {
-  label?: string;
-  key?: string;
-  unicode?: string;
-  item?: {
-    val?: string;
-    size?: {
-      width?: number;
-      height?: number;
-    };
-  };
-};
-
-type RawToolbarConfig = Array<{
-  type?: number;
-  options?: {
-    button?: {
-      label?: string;
-      className?: string;
-    };
-    box?: {
-      width?: number;
-      group?: Array<{
-        title?: string;
-        items?: Array<{
-          title?: string;
-          content?: RawToolbarContentItem[];
-        }>;
-      }>;
-    };
-  };
-}>;
-
-const TOOLBAR_SYMBOL_LABELS: Record<FormulaXLocale, string> = {
-  en_US: 'Symbols',
-  zh_CN: '符号',
 };
 
 const TOOLBAR_SYMBOL_PREVIOUS_LABELS: Record<FormulaXLocale, string> = {
@@ -654,37 +589,6 @@ function resolveToolbarPreviewFontSize(
     : TOOLBAR_TEMPLATE_PREVIEW_FONT_SIZE;
 }
 
-function createRuntimeToolbarPanels(locale: FormulaXLocale): RuntimeToolbarPanel[] {
-  const config = createToolbarConfig(locale) as RawToolbarConfig;
-  const panels: RuntimeToolbarPanel[] = [];
-
-  for (const entry of config) {
-    const rawGroups = entry.options?.box?.group ?? [];
-    const groups = extractToolbarGroups(rawGroups);
-    if (groups.length === 0) {
-      continue;
-    }
-
-    const label = entry.options?.button?.label;
-    const id = createPanelId(label ?? TOOLBAR_SYMBOL_LABELS[locale]);
-    const isPresets = entry.options?.button?.className === 'yushe-btn'
-      || id === 'presets'
-      || id === '预设';
-
-    panels.push({
-      id,
-      kind: entry.type === 2 ? 'area' : 'dropdown',
-      layout: entry.type === 2 ? 'symbols' : (isPresets ? 'presets' : 'templates'),
-      label: label ?? TOOLBAR_SYMBOL_LABELS[locale],
-      width: entry.options?.box?.width ?? 332,
-      groups,
-      buttonClassName: entry.options?.button?.className,
-    });
-  }
-
-  return panels;
-}
-
 function preloadToolbarPreviews(
   panels: RuntimeToolbarPanel[],
   previewRenderer: ToolbarPreviewRenderer,
@@ -696,79 +600,6 @@ function preloadToolbarPreviews(
       }
     }
   }
-}
-
-function extractToolbarGroups(
-  groups: NonNullable<NonNullable<RawToolbarConfig[number]['options']>['box']>['group'],
-): RuntimeToolbarGroup[] {
-  const normalizedGroups: RuntimeToolbarGroup[] = [];
-
-  for (const group of groups ?? []) {
-    for (const item of group.items ?? []) {
-      const normalizedItems = (item.content ?? [])
-        .map(normalizeToolbarItem)
-        .filter((value): value is RuntimeToolbarItem => value !== null);
-
-      if (normalizedItems.length === 0) {
-        continue;
-      }
-
-      normalizedGroups.push({
-        id: createPanelId(item.title ?? group.title ?? 'Items'),
-        title: stripHtml(item.title ?? group.title ?? 'Items'),
-        items: normalizedItems,
-      });
-    }
-  }
-
-  return normalizedGroups;
-}
-
-function normalizeToolbarItem(item: RawToolbarContentItem): RuntimeToolbarItem | null {
-  if (typeof item.item?.val === 'string' && item.item.val.trim()) {
-    const latex = item.item.val.trim();
-    const label = stripHtml(item.label ?? '');
-    const previewSize = normalizePreviewSize(item.item.size);
-    return {
-      id: createPanelId(`${item.label ?? latex}-${latex}`),
-      kind: 'template',
-      title: label || latex,
-      label: label || undefined,
-      latex,
-      previewLatex: createPreviewLatex(latex),
-      previewSize,
-    };
-  }
-
-  if (typeof item.key === 'string' && item.key.trim()) {
-    const title = stripHtml(item.unicode ?? item.key);
-    return {
-      id: createPanelId(item.key),
-      kind: 'symbol',
-      title,
-      latex: item.key,
-      previewLatex: item.key,
-    };
-  }
-
-  return null;
-}
-
-function normalizePreviewSize(size?: { width?: number; height?: number }): RuntimeToolbarItem['previewSize'] {
-  if (
-    !size
-    || typeof size.width !== 'number'
-    || typeof size.height !== 'number'
-    || !Number.isFinite(size.width)
-    || !Number.isFinite(size.height)
-  ) {
-    return undefined;
-  }
-
-  return {
-    width: Math.max(1, Number(size.width)),
-    height: Math.max(1, Number(size.height)),
-  };
 }
 
 function applyToolbarItemSize(
@@ -812,14 +643,8 @@ function applyToolbarPreviewSize(
   }
 }
 
-function createPreviewLatex(latex: string): string {
-  return latex
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function createToolbarButtonIconLatex(latex: string): string {
-  return createPreviewLatex(latex)
+  return latex
     .replace(/\\placeholder/g, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -961,14 +786,6 @@ function createSymbolArea(
   buttonContainer.append(moveUpButton, moveDownButton, openButton);
   root.append(viewport, buttonContainer);
   return { root, button: openButton };
-}
-
-function createPanelId(value: string): string {
-  return stripHtml(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    || 'panel';
 }
 
 function stripHtml(value: string): string {
