@@ -4,6 +4,25 @@ import {
   createRuntimeToolbarPanels,
   runtimeAssetManifest,
 } from '../src';
+import {
+  applyFormulaCommand,
+  createEmptyFormulaDoc,
+} from '../src/core/commands';
+import { createSelection } from '../src/core/selection';
+import { layoutFormula } from '../src/layout/layout';
+import { parseLatexToFormulaDoc } from '../src/latex/parse';
+import { serializeFormulaDocToLatex } from '../src/latex/serialize';
+
+const testMetrics = {
+  measureText(text: string, style: { fontSize: number }) {
+    return {
+      width: Math.max(4, text.length * style.fontSize * 0.6),
+      height: style.fontSize,
+      ascent: style.fontSize * 0.8,
+      descent: style.fontSize * 0.2,
+    };
+  },
+};
 
 const LEGACY_TOOLBAR_LATEX_SAMPLES = [
   '\\cos\\placeholder',
@@ -83,6 +102,36 @@ describe('runtime toolbar public surface', () => {
 
     for (const latex of LEGACY_TOOLBAR_LATEX_SAMPLES) {
       expect(latexValues.has(latex), latex).toBe(true);
+    }
+  });
+
+  it('keeps every toolbar latex item parseable, serializable, layoutable, and insertable', () => {
+    const toolbarItems = createRuntimeToolbarPanels()
+      .flatMap((panel) => panel.groups)
+      .flatMap((group) => group.items);
+
+    expect(toolbarItems.length).toBeGreaterThan(LEGACY_TOOLBAR_LATEX_SAMPLES.length);
+
+    for (const item of toolbarItems) {
+      const parsed = parseLatexToFormulaDoc(item.latex);
+      const serialized = serializeFormulaDocToLatex(parsed);
+      const parsedLayout = layoutFormula(parsed, testMetrics);
+
+      expect(serialized, item.latex).toEqual(expect.any(String));
+      expect(parsedLayout.root.width, item.latex).toBeGreaterThan(0);
+      expect(parsedLayout.nodeMap.size, item.latex).toBeGreaterThan(0);
+
+      const baseDoc = createEmptyFormulaDoc();
+      const inserted = applyFormulaCommand(baseDoc, createSelection(baseDoc.root.id, 0), {
+        type: 'insertLatex',
+        payload: { latex: item.latex },
+      });
+      const insertedLayout = layoutFormula(inserted.doc, testMetrics);
+
+      expect(inserted.changed, item.latex).toBe(true);
+      expect(inserted.selection, item.latex).not.toBeNull();
+      expect(insertedLayout.root.width, item.latex).toBeGreaterThan(0);
+      expect(serializeFormulaDocToLatex(inserted.doc), item.latex).toEqual(expect.any(String));
     }
   });
 
