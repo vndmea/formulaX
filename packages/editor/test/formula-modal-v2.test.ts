@@ -1,7 +1,50 @@
 import { describe, expect, it } from 'vitest';
-import { ensureFormulaXModalStyles, mountFormulaXEditor } from '../src/formula-modal';
+import {
+  getDefaultFormulaXEditorRuntime,
+  resetDefaultFormulaXEditorRuntime,
+  setDefaultFormulaXEditorRuntime,
+  ensureFormulaXModalStyles,
+  mountFormulaXEditor,
+} from '../src/formula-modal';
 
 describe('mountFormulaXEditor runtime=v2', () => {
+  it('allows runtime v2 to be selected as the editor default', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    setDefaultFormulaXEditorRuntime('v2');
+
+    try {
+      expect(getDefaultFormulaXEditorRuntime()).toBe('v2');
+      const mounted = mountFormulaXEditor(host, {
+        initialLatex: '\\sqrt{x+1}',
+        autofocus: false,
+      });
+
+      expect(await mounted.getLatex()).toBe('\\sqrt{x+1}');
+      expect(await mounted.getRenderHtml()).toContain('data-formulax-runtime="solid-svg"');
+
+      mounted.destroy();
+    } finally {
+      resetDefaultFormulaXEditorRuntime();
+    }
+  });
+
+  it('auto-selects runtime v2 when runtime-only options are provided', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'auto',
+      initialLatex: 'x',
+      autofocus: false,
+      wrap: 'soft',
+    });
+
+    expect(await mounted.getLatex()).toBe('x');
+    expect(await mounted.getRenderHtml()).toContain('data-formulax-runtime="solid-svg"');
+
+    mounted.destroy();
+  });
+
   it('mounts the new runtime editor and exposes latex and svg html', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;

@@ -27,12 +27,29 @@ const STYLE_ID = 'fx-formula-modal-styles';
 const RUNTIME_FONT_STYLE_ID = 'fx-runtime-font-styles';
 
 export type FormulaXEditorRuntime = 'kity' | 'v2';
+export type FormulaXEditorRuntimePreference = FormulaXEditorRuntime | 'auto';
+
+export const DEFAULT_FORMULAX_EDITOR_RUNTIME: FormulaXEditorRuntime = 'kity';
+
+let defaultFormulaXEditorRuntime: FormulaXEditorRuntimePreference = DEFAULT_FORMULAX_EDITOR_RUNTIME;
+
+export function getDefaultFormulaXEditorRuntime(): FormulaXEditorRuntimePreference {
+  return defaultFormulaXEditorRuntime;
+}
+
+export function setDefaultFormulaXEditorRuntime(runtime: FormulaXEditorRuntimePreference): void {
+  defaultFormulaXEditorRuntime = runtime;
+}
+
+export function resetDefaultFormulaXEditorRuntime(): void {
+  defaultFormulaXEditorRuntime = DEFAULT_FORMULAX_EDITOR_RUNTIME;
+}
 
 export interface FormulaXEditorOptions {
   initialLatex?: string;
   height?: number | string;
   autofocus?: boolean;
-  runtime?: FormulaXEditorRuntime;
+  runtime?: FormulaXEditorRuntimePreference;
   locale?: FormulaXLocale;
   assets?: Partial<KityEditorAssets>;
   runtimeAssets?: Partial<RuntimeEditorAssets>;
@@ -965,7 +982,7 @@ export function mountFormulaXEditor(
   let latestLatex = options.initialLatex ?? '';
   let handle: MountedFormulaXHandle | null = null;
   const initialLatex = latestLatex.trim() ? latestLatex : EMPTY_FORMULA_PLACEHOLDER;
-  const runtime = options.runtime ?? 'kity';
+  const runtime = resolveFormulaXEditorRuntime(options);
 
   renderFormulaXEditorLoadingState(root);
   const loadingVisibleMark = markFormulaXPerf('fx:formula-editor:loading-visible');
@@ -1063,6 +1080,25 @@ async function mountFormulaEditorHandle(
   }
 
   return mountLegacyKityHandle(root, options);
+}
+
+function resolveFormulaXEditorRuntime(options: FormulaXEditorOptions): FormulaXEditorRuntime {
+  const requestedRuntime = options.runtime ?? defaultFormulaXEditorRuntime;
+  if (requestedRuntime !== 'auto') {
+    return requestedRuntime;
+  }
+
+  if (
+    options.runtimeAssets
+    || options.wrap
+    || options.maxWidth !== undefined
+    || options.lineGap !== undefined
+    || options.continuationIndent !== undefined
+  ) {
+    return 'v2';
+  }
+
+  return DEFAULT_FORMULAX_EDITOR_RUNTIME;
 }
 
 async function mountRuntimeV2Handle(
