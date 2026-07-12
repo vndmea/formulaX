@@ -37,7 +37,7 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/runtime/test",
+    "test": "vitest run packages/runtime/test --root ../..",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

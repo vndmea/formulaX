@@ -3,7 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "ignoreDeprecations": "5.0",
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "@formulaxjs/core": ["../core/src/index.ts"]
+    }
   },
   "include": ["src"]
 }
