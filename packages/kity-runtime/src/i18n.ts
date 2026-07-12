@@ -1,10 +1,11 @@
-export const FORMULAX_LOCALES = ['en_US', 'zh_CN'] as const;
+import {
+  DEFAULT_FORMULAX_LOCALE,
+  normalizeFormulaXLocale,
+  type FormulaXLocale,
+} from '@formulaxjs/core';
 
-export type FormulaXLocale = (typeof FORMULAX_LOCALES)[number];
 export type FormulaXI18nNamespace = 'toolbar';
 export type FormulaXRuntimeMessageKey = 'editor.placeholder.root';
-
-export const DEFAULT_FORMULAX_LOCALE: FormulaXLocale = 'en_US';
 
 const FORMULAX_TRANSLATIONS: Partial<Record<FormulaXLocale, Record<FormulaXI18nNamespace, Record<string, string>>>> = {
   en_US: {
@@ -53,14 +54,6 @@ const FORMULAX_RUNTIME_MESSAGES: Record<FormulaXLocale, Record<FormulaXRuntimeMe
     'editor.placeholder.root': '请输入公式',
   },
 };
-
-export function normalizeFormulaXLocale(locale?: string): FormulaXLocale {
-  if (locale === 'zh_CN') {
-    return 'zh_CN';
-  }
-
-  return DEFAULT_FORMULAX_LOCALE;
-}
 
 export function translateFormulaXText(
   namespace: FormulaXI18nNamespace,

@@ -2,9 +2,9 @@ import { createEmptyState, parseLatex, type FormulaState } from '@formulaxjs/cor
 import {
   kityFontAssets,
   mountKityEditor,
-  type FormulaXLocale,
   type KityEditorAssets,
 } from '@formulaxjs/kity-runtime';
+import type { FormulaXLocale } from '@formulaxjs/core';
 import {
   createRuntimeEditor,
   type RuntimeEditorAssets,

@@ -1,8 +1,10 @@
 import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
 import {
-  createRuntimeToolbarPanels,
   normalizeFormulaXLocale,
   type FormulaXLocale,
+} from '@formulaxjs/core';
+import {
+  createRuntimeToolbarPanels,
   type RuntimeEditorAssets,
   type RuntimeEditorHandle,
   type RuntimeToolbarGroup,

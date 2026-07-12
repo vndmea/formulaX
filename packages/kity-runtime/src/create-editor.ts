@@ -24,10 +24,10 @@ import {
 import { setToolbarAssetUrls } from './toolbar-assets';
 import {
   DEFAULT_FORMULAX_LOCALE,
-  getFormulaXRuntimeMessage,
   normalizeFormulaXLocale,
   type FormulaXLocale,
-} from './i18n';
+} from '@formulaxjs/core';
+import { getFormulaXRuntimeMessage } from './i18n';
 
 const DEFAULT_LATEX = 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}';
 const DEFAULT_EDITOR_HEIGHT = 'auto';

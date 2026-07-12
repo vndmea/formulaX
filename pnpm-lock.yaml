@@ -234,6 +234,9 @@ importers:
 
   packages/kity-runtime:
     dependencies:
+      '@formulaxjs/core':
+        specifier: workspace:*
+        version: link:../core
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -270,6 +273,9 @@ importers:
 
   packages/runtime:
     dependencies:
+      '@formulaxjs/core':
+        specifier: workspace:*
+        version: link:../core
       solid-js:
         specifier: ^1.9.9
         version: 1.9.13

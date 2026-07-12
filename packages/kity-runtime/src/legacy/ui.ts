@@ -6,7 +6,7 @@ import type { LegacyEditorInstance } from './editor';
 import Toolbar from './toolbar';
 import Scrollbar from './scrollbar';
 import createToolbarConfig from './toolbar-config';
-import { normalizeFormulaXLocale } from '../i18n';
+import { normalizeFormulaXLocale } from '@formulaxjs/core';
 
 type ViewState = (typeof legacyUiDef.VIEW_STATE)[keyof typeof legacyUiDef.VIEW_STATE];
 

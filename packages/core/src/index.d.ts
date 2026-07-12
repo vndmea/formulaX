@@ -1,6 +1,7 @@
 export * from './ast';
 export * from './commands';
 export * from './cursor';
+export * from './i18n';
 export * from './latex';
 export * from './protocol';
 export * from './schema';

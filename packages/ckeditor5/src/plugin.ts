@@ -6,7 +6,7 @@ import {
   toWidget,
   viewToModelPositionOutsideModelElement,
 } from 'ckeditor5';
-import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
+import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/core';
 import {
   DEFAULT_FORMULA_ATTRIBUTE,
   DEFAULT_FORMULA_CLASS,

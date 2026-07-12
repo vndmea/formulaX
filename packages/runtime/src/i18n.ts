@@ -1,9 +1,10 @@
-export const FORMULAX_LOCALES = ['en_US', 'zh_CN'] as const;
+import {
+  DEFAULT_FORMULAX_LOCALE,
+  normalizeFormulaXLocale,
+  type FormulaXLocale,
+} from '@formulaxjs/core';
 
-export type FormulaXLocale = (typeof FORMULAX_LOCALES)[number];
 export type FormulaXRuntimeMessageKey = 'editor.placeholder.root';
-
-export const DEFAULT_FORMULAX_LOCALE: FormulaXLocale = 'en_US';
 
 const FORMULAX_RUNTIME_MESSAGES: Record<FormulaXLocale, Record<FormulaXRuntimeMessageKey, string>> = {
   en_US: {
@@ -13,19 +14,6 @@ const FORMULAX_RUNTIME_MESSAGES: Record<FormulaXLocale, Record<FormulaXRuntimeMe
     'editor.placeholder.root': '请输入公式',
   },
 };
-
-export function normalizeFormulaXLocale(locale?: string): FormulaXLocale {
-  if (!locale) {
-    return DEFAULT_FORMULAX_LOCALE;
-  }
-
-  const normalized = locale.replace(/-/g, '_').toLowerCase();
-  if (normalized === 'zh' || normalized.startsWith('zh_')) {
-    return 'zh_CN';
-  }
-
-  return DEFAULT_FORMULAX_LOCALE;
-}
 
 export function getFormulaXRuntimeMessage(
   key: FormulaXRuntimeMessageKey,

@@ -4,7 +4,7 @@ import type {
   TinyMceEditorLike,
   TinyMceLike,
 } from './types';
-import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
+import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/core';
 import {
   getFormulaXEditorMessage,
   resolveFormulaXIcon,

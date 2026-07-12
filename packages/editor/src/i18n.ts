@@ -2,7 +2,7 @@ import {
   DEFAULT_FORMULAX_LOCALE,
   normalizeFormulaXLocale,
   type FormulaXLocale,
-} from '@formulaxjs/kity-runtime';
+} from '@formulaxjs/core';
 
 export type FormulaXEditorMessageKey =
   | 'modal.title'

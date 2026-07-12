@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getFormulaXRuntimeMessage, normalizeFormulaXLocale } from '../src/i18n';
+import { normalizeFormulaXLocale } from '@formulaxjs/core';
+import { getFormulaXRuntimeMessage } from '../src/i18n';
 
 describe('runtime i18n', () => {
   it('normalizes zh locale variants to zh_CN', () => {

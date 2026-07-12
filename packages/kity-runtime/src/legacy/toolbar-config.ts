@@ -7,9 +7,9 @@ import { resolveUnicode } from '../formula-symbols';
 import {
   DEFAULT_FORMULAX_LOCALE,
   normalizeFormulaXLocale,
-  translateFormulaXText,
   type FormulaXLocale,
-} from '../i18n';
+} from '@formulaxjs/core';
+import { translateFormulaXText } from '../i18n';
 
 type ToolbarConfig = Record<string, any>;
 

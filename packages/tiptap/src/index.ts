@@ -1,5 +1,5 @@
 import { Node } from '@tiptap/core';
-import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/kity-runtime';
+import { DEFAULT_FORMULAX_LOCALE } from '@formulaxjs/core';
 import { parseLatex, serializeLatex, type FormulaDoc } from '@formulaxjs/core';
 import {
   createFormulaElement,

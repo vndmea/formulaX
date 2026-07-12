@@ -2,7 +2,7 @@ import {
   DEFAULT_FORMULAX_LOCALE,
   normalizeFormulaXLocale,
   type FormulaXLocale,
-} from './i18n';
+} from '@formulaxjs/core';
 
 export type RuntimeToolbarItemKind = 'symbol' | 'template';
 export type RuntimeToolbarPanelKind = 'dropdown' | 'area';
