@@ -9,7 +9,7 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@formulaxjs/renderer-next": "workspace:*",
+    "@formulaxjs/renderer": "workspace:*",
     "@formulaxjs/tinymce": "workspace:*",
     "tinymce": "^7.7.1"
   }

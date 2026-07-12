@@ -19,7 +19,7 @@ CKEditor 5 integration adapter for FormulaX.
 - Default SVG persistence in the CKEditor 5 model
 - Optional `output: 'image'` PNG persistence with user-provided upload
 - Runtime SVG rendering in the editing view
-- Default read-only rendering through `@formulaxjs/renderer-kity`
+- Default read-only rendering through `@formulaxjs/renderer/kity`
 - Optional runtime preload before the first modal open
 - Upcast and downcast support for formula markup in editor data
 - Direct modal helper export through `openFormulaXModal`
@@ -67,7 +67,7 @@ import {
   FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
 } from '@formulaxjs/ckeditor5';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -212,7 +212,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 
 ## Custom renderer
 
-The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer-kity`.
+The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer/kity`.
 
 ## Options
 

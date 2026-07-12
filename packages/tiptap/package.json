@@ -37,14 +37,12 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs && node ./scripts/postbuild.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/tiptap/test",
+    "test": "vitest run --root ../.. packages/tiptap/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/renderer": "workspace:*",
-    "@formulaxjs/renderer-image": "workspace:*",
-    "@formulaxjs/renderer-kity": "workspace:*",
     "@formulaxjs/editor": "workspace:*"
   },
   "peerDependencies": {

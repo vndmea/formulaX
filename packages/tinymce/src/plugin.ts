@@ -11,7 +11,7 @@ import {
   resolveFormulaXIconName,
   scheduleFormulaXEditorPreload,
 } from '@formulaxjs/editor';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 import { createTinyMceCompat, warnUnsupportedTinyMceVersion } from './compat';
 import {
   createFormulaSourceHtml,
@@ -67,10 +67,12 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     output: options.output ?? 'svg',
     image: options.image,
     initialLatex: options.initialLatex ?? '',
-    renderer: options.renderer ?? createKityFormulaRenderer({
+    renderer: options.renderer ?? createStandardFormulaRenderer({
       fontSize: options.editor?.render?.fontsize ?? 40,
       height: options.editor?.height ?? '100%',
-      assets: options.editor?.assets ?? {},
+      runtime: {
+        assets: options.editor?.runtimeAssets ?? {},
+      },
     }),
     preload: options.preload ?? 'idle',
     modal: {
@@ -85,10 +87,10 @@ export function resolveOptions(options: FormulaXTinyMceOptions = {}): RequiredFo
     editor: {
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
-      runtime: options.editor?.runtime ?? 'kity',
+      runtime: options.editor?.runtime ?? 'standard',
       locale,
-      assets: options.editor?.assets ?? {},
       runtimeAssets: options.editor?.runtimeAssets ?? {},
+      extensions: options.editor?.extensions ?? [],
       wrap: options.editor?.wrap ?? 'none',
       maxWidth: options.editor?.maxWidth ?? 'host',
       lineGap: options.editor?.lineGap ?? 14,

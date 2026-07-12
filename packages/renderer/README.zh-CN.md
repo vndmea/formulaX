@@ -50,7 +50,7 @@ if (svg instanceof SVGSVGElement) {
 当你需要面向 renderer 的共享基础能力时，请使用这个包：
 
 - 需要稳定 LaTeX wrapper 与公式 markup helper 的宿主编辑器 adapter
-- `@formulaxjs/renderer-kity` 这类具体 renderer 包
+- `@formulaxjs/renderer/kity` 这类具体 renderer 包
 - 处理渲染后 SVG 的导出或后处理流程
 
-如果你需要一个基于 Kity 的具体 renderer，请使用 `@formulaxjs/renderer-kity`。
+如果你需要一个基于 Kity 的具体 renderer，请使用 `@formulaxjs/renderer/kity`。

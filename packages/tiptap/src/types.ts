@@ -2,7 +2,7 @@ import type { FormulaXEditorOptions, FormulaXEditorPreloadMode } from '@formulax
 import type { FormulaMarkupOutput, FormulaRenderer } from '@formulaxjs/renderer';
 import type {
   FormulaXImageOptions,
-} from '@formulaxjs/renderer-image';
+} from '@formulaxjs/renderer/image';
 
 export type FormulaXOutputMode = FormulaMarkupOutput;
 
@@ -59,8 +59,8 @@ export interface RequiredFormulaXTiptapOptions {
     autofocus: boolean;
     runtime: FormulaXEditorOptions['runtime'];
     locale: FormulaXEditorOptions['locale'];
-    assets: FormulaXEditorOptions['assets'];
     runtimeAssets: FormulaXEditorOptions['runtimeAssets'];
+    extensions: NonNullable<FormulaXEditorOptions['extensions']>;
     wrap: NonNullable<FormulaXEditorOptions['wrap']>;
     maxWidth: NonNullable<FormulaXEditorOptions['maxWidth']>;
     lineGap: number;

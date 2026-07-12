@@ -3,6 +3,7 @@ import {
   DEFAULT_RUNTIME_FONT_FAMILY,
   createRuntimeToolbarPanels,
   runtimeAssetManifest,
+  runtimeFontAssets,
 } from '../src';
 import {
   applyFormulaCommand,
@@ -92,7 +93,7 @@ describe('runtime toolbar public surface', () => {
     expect(chinesePanels.find((panel) => panel.id === 'symbols')?.kind).toBe('area');
   });
 
-  it('covers the legacy toolbar latex samples supported by runtime v2', () => {
+  it('covers the legacy toolbar latex samples supported by runtime standard', () => {
     const latexValues = new Set(
       createRuntimeToolbarPanels()
         .flatMap((panel) => panel.groups)
@@ -136,9 +137,16 @@ describe('runtime toolbar public surface', () => {
   });
 
   it('exposes an explicit asset manifest for integrations', () => {
-    expect(runtimeAssetManifest.requiresBundledAssets).toBe(false);
+    expect(runtimeAssetManifest.requiresBundledAssets).toBe(true);
     expect(runtimeAssetManifest.defaultFontFamily).toBe(DEFAULT_RUNTIME_FONT_FAMILY);
-    expect(runtimeAssetManifest.fonts).toEqual({});
+    expect(runtimeAssetManifest.fonts).toBe(runtimeFontAssets);
+    expect(Object.keys(runtimeAssetManifest.fonts).sort()).toEqual([
+      'KF_AMS_BB',
+      'KF_AMS_CAL',
+      'KF_AMS_FRAK',
+      'KF_AMS_MAIN',
+      'KF_AMS_ROMAN',
+    ]);
     expect(runtimeAssetManifest.toolbar).toEqual({});
     expect(runtimeAssetManifest.styles).toEqual({});
   });

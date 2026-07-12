@@ -7,7 +7,7 @@ const npmCommand = process.platform === 'win32' ? 'npm' : 'npm';
 
 const packageExpectations = [
   {
-    dir: 'packages/kity-runtime',
+    dir: 'packages/runtime-kity',
     files: [
       'dist/editor.css',
       'dist/base.css',

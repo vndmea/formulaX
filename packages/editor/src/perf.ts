@@ -1,5 +1,3 @@
-import { ensureKityRuntime } from '@formulaxjs/kity-runtime';
-
 type FormulaXPerfState = {
   reportedMeasureCount: number;
   reportScheduled: boolean;
@@ -129,7 +127,7 @@ export function clearFormulaXPerfMarks(...marks: Array<string | null | undefined
 }
 
 export async function preloadFormulaXEditor(): Promise<void> {
-  await ensureKityRuntime();
+  await Promise.resolve();
 }
 
 export function scheduleFormulaXEditorPreload(

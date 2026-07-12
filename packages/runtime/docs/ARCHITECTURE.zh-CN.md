@@ -4,11 +4,11 @@
 
 当前项目同时存在两套公式编辑运行时：
 
-- `packages/kity-runtime`
+- `packages/runtime-kity`
   - 基于 Kity Formula 的旧运行时
   - 具备完整的输入、选区、光标、占位符、结构插入、拖拽选择、工具栏、滚动与重选体系
 - `packages/runtime`
-  - 新的 runtime graph / runtime-v2
+  - 新的 runtime graph / standard
   - 当前更接近“可渲染、可做少量结构插入的最小编辑原型”
 
 在最新代码下，新 runtime 已经具备以下能力：
@@ -20,7 +20,7 @@
 - 基础删除
 - 分数、根式、上下标插入
 - 撤销与重做
-- runtime-v2 toolbar 与 modal 接入
+- standard toolbar 与 modal 接入
 
 但它距离“真正可编辑的公式编辑器”还有明显差距，尤其体现在：
 

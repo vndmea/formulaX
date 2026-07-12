@@ -1,7 +1,7 @@
 import { createRuntimeEditor, type FormulaCommand } from '@formulaxjs/runtime';
 import type { FormulaSelection } from '@formulaxjs/runtime';
 import { ensureFormulaXModalStyles, mountFormulaXEditor } from '@formulaxjs/editor';
-import { renderLatexToSvgMarkup } from '@formulaxjs/renderer-next';
+import { renderLatexToSvgMarkup } from '@formulaxjs/renderer/standard';
 
 declare global {
   interface Window {
@@ -79,7 +79,7 @@ window.__FORMULAX_RUNTIME_TEST__ = {
 
     modalHandle?.destroy();
     modalHandle = mountFormulaXEditor(host, {
-      runtime: 'v2',
+      runtime: 'standard',
       initialLatex: latex,
       autofocus: false,
     });

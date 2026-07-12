@@ -86,11 +86,11 @@ describe('tiptap adapter', () => {
   it('resolves wrap-aware modal editor defaults', () => {
     expect(resolveOptions({
       editor: {
-        runtime: 'v2',
+        runtime: 'standard',
       },
     })).toMatchObject({
       editor: {
-        runtime: 'v2',
+        runtime: 'standard',
         wrap: 'none',
         maxWidth: 'host',
         lineGap: 14,

@@ -1,35 +1,32 @@
-import { createEmptyState, parseLatex, type FormulaState } from '@formulaxjs/core';
 import {
-  kityFontAssets,
-  mountKityEditor,
-  type KityEditorAssets,
-} from '@formulaxjs/kity-runtime';
-import type { FormulaXLocale } from '@formulaxjs/core';
+  createEmptyState,
+  parseLatex,
+  type FormulaState,
+  type FormulaXLocale,
+} from '@formulaxjs/core';
 import {
   createRuntimeEditor,
+  runtimeFontAssets,
   type RuntimeEditorAssets,
+  type RuntimeExtension,
 } from '@formulaxjs/runtime';
 import { escapeHtml, ensureFormulaXBaseStyles } from '@formulaxjs/renderer';
-import {
-  serializeKityFormulaFromRoot,
-  waitForKityFormulaSvgLayout,
-} from '@formulaxjs/renderer-kity';
 import {
   clearFormulaXPerfMarks,
   markFormulaXPerf,
   measureFormulaXPerf,
   recordFormulaXPerfPoint,
 } from './perf';
-import { mountRuntimeV2Toolbar } from './runtime-v2-toolbar';
+import { mountStandardRuntimeToolbar } from './standard-runtime-toolbar';
 
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
 const STYLE_ID = 'fx-formula-modal-styles';
 const RUNTIME_FONT_STYLE_ID = 'fx-runtime-font-styles';
 
-export type FormulaXEditorRuntime = 'kity' | 'v2';
+export type FormulaXEditorRuntime = 'standard';
 export type FormulaXEditorRuntimePreference = FormulaXEditorRuntime | 'auto';
 
-export const DEFAULT_FORMULAX_EDITOR_RUNTIME: FormulaXEditorRuntime = 'kity';
+export const DEFAULT_FORMULAX_EDITOR_RUNTIME: FormulaXEditorRuntime = 'standard';
 
 let defaultFormulaXEditorRuntime: FormulaXEditorRuntimePreference = DEFAULT_FORMULAX_EDITOR_RUNTIME;
 
@@ -51,8 +48,8 @@ export interface FormulaXEditorOptions {
   autofocus?: boolean;
   runtime?: FormulaXEditorRuntimePreference;
   locale?: FormulaXLocale;
-  assets?: Partial<KityEditorAssets>;
   runtimeAssets?: Partial<RuntimeEditorAssets>;
+  extensions?: RuntimeExtension[];
   wrap?: 'none' | 'soft';
   maxWidth?: number | 'host';
   lineGap?: number;
@@ -952,11 +949,11 @@ function ensureRuntimeFontStyles(doc: Document): void {
   const style = doc.createElement('style');
   style.id = RUNTIME_FONT_STYLE_ID;
   style.textContent = [
-    ['KF AMS MAIN', kityFontAssets.KF_AMS_MAIN],
-    ['KF AMS CAL', kityFontAssets.KF_AMS_CAL],
-    ['KF AMS FRAK', kityFontAssets.KF_AMS_FRAK],
-    ['KF AMS BB', kityFontAssets.KF_AMS_BB],
-    ['KF AMS ROMAN', kityFontAssets.KF_AMS_ROMAN],
+    ['KF AMS MAIN', runtimeFontAssets.KF_AMS_MAIN],
+    ['KF AMS CAL', runtimeFontAssets.KF_AMS_CAL],
+    ['KF AMS FRAK', runtimeFontAssets.KF_AMS_FRAK],
+    ['KF AMS BB', runtimeFontAssets.KF_AMS_BB],
+    ['KF AMS ROMAN', runtimeFontAssets.KF_AMS_ROMAN],
   ].map(([family, source]) => (
     `@font-face{font-family:"${family}";font-style:normal;font-weight:400;src:url("${source}") format("woff");}`
   )).join('\n');
@@ -964,7 +961,7 @@ function ensureRuntimeFontStyles(doc: Document): void {
 }
 
 export function renderFormulaXEditorLoadingState(root: HTMLElement): void {
-  root.classList.add('fx-formula-kity-host');
+  root.classList.add('fx-formula-runtime-host');
   root.innerHTML = `
     <div class="fx-formula-editor-loading" role="status" aria-live="polite">
       Loading FormulaX editor...
@@ -1000,8 +997,8 @@ export function mountFormulaXEditor(
         throw new Error('FormulaX editor mount cancelled');
       }
 
-      const readyMark = markFormulaXPerf('fx:kity-editor:ready');
-      measureFormulaXPerf('fx:kity-editor:ready', mountStart, readyMark);
+      const readyMark = markFormulaXPerf('fx:standard-editor:ready');
+      measureFormulaXPerf('fx:standard-editor:ready', mountStart, readyMark);
       clearFormulaXPerfMarks(readyMark);
       handle = nextHandle;
       return nextHandle;
@@ -1075,11 +1072,7 @@ async function mountFormulaEditorHandle(
   root: HTMLElement,
   options: FormulaXEditorOptions & { initialLatex: string; runtime: FormulaXEditorRuntime },
 ): Promise<MountedFormulaXHandle> {
-  if (options.runtime === 'v2') {
-    return mountRuntimeV2Handle(root, options);
-  }
-
-  return mountLegacyKityHandle(root, options);
+  return mountStandardRuntimeHandle(root, options);
 }
 
 function resolveFormulaXEditorRuntime(options: FormulaXEditorOptions): FormulaXEditorRuntime {
@@ -1095,13 +1088,13 @@ function resolveFormulaXEditorRuntime(options: FormulaXEditorOptions): FormulaXE
     || options.lineGap !== undefined
     || options.continuationIndent !== undefined
   ) {
-    return 'v2';
+    return 'standard';
   }
 
   return DEFAULT_FORMULAX_EDITOR_RUNTIME;
 }
 
-async function mountRuntimeV2Handle(
+async function mountStandardRuntimeHandle(
   root: HTMLElement,
   options: FormulaXEditorOptions & { initialLatex: string },
 ): Promise<MountedFormulaXHandle> {
@@ -1139,9 +1132,10 @@ async function mountRuntimeV2Handle(
   });
   surfaceHost.querySelector('.fx-runtime-editor__surface')?.classList.add('fx-formula-runtime-canvas');
 
-  const toolbar = mountRuntimeV2Toolbar(toolbarHost, handle, {
+  const toolbar = mountStandardRuntimeToolbar(toolbarHost, handle, {
     locale: options.locale,
     runtimeAssets: options.runtimeAssets,
+    extensions: options.extensions,
   });
 
   return {
@@ -1153,83 +1147,4 @@ async function mountRuntimeV2Handle(
       handle.destroy();
     },
   };
-}
-
-async function mountLegacyKityHandle(
-  root: HTMLElement,
-  options: FormulaXEditorOptions & { initialLatex: string },
-): Promise<MountedFormulaXHandle> {
-  const handle = await mountKityEditor(root, {
-    initialLatex: options.initialLatex,
-    height: options.height ?? '100%',
-    autofocus: options.autofocus ?? true,
-    locale: options.locale,
-    assets: options.assets as Partial<KityEditorAssets> | undefined,
-    render: {
-      fontsize: options.render?.fontsize ?? options.render?.fontSize ?? 40,
-    },
-  });
-
-  return {
-    ready: Promise.resolve(),
-    getLatex: async () => tryReadLatexFromKityHandle(handle),
-    getRenderHtml: async () => {
-      await waitForKityFormulaSvgLayout(root);
-      return serializeKityFormulaFromRoot(root);
-    },
-    destroy: () => handle.destroy(),
-  };
-}
-
-async function tryReadLatexFromKityHandle(handle: {
-  ready: (callback: (this: { execCommand: (name: string, value?: string) => unknown }) => void) => void;
-}): Promise<string> {
-  try {
-    let isEmpty = false;
-
-    handle.ready(function ready() {
-      const result = this.execCommand('content.is.empty');
-      isEmpty = result === true;
-    });
-
-    if (isEmpty) {
-      return '';
-    }
-  } catch {
-    // Fall back to source commands for runtimes without content.is.empty.
-  }
-
-  const candidates = [
-    'get.source',
-    'getSource',
-    'getLatex',
-    'get.latex',
-    'get.content',
-    'getContent',
-  ];
-
-  for (const command of candidates) {
-    try {
-      let value: unknown = null;
-
-      handle.ready(function ready() {
-        value = this.execCommand(command);
-      });
-
-      if (typeof value === 'string' && value.trim()) {
-        return value;
-      }
-
-      if (value && typeof value === 'object' && 'latex' in value) {
-        const latex = (value as { latex?: unknown }).latex;
-        if (typeof latex === 'string' && latex.trim()) {
-          return latex;
-        }
-      }
-    } catch {
-      // Try the next available command name.
-    }
-  }
-
-  return '';
 }

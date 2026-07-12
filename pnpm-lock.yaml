@@ -80,15 +80,15 @@ importers:
 
   apps/playground:
     dependencies:
-      '@formulaxjs/kity-runtime':
+      '@formulaxjs/runtime-kity':
         specifier: workspace:*
-        version: link:../../packages/kity-runtime
+        version: link:../../packages/runtime-kity
 
   apps/react-demo:
     dependencies:
       '@formulaxjs/tiptap':
-        specifier: 0.5.1
-        version: 0.5.1(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))
+        specifier: workspace:*
+        version: link:../../packages/tiptap
       '@tiptap/react':
         specifier: ^3.0.0
         version: 3.23.4(@floating-ui/dom@1.7.6)(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))(@tiptap/pm@3.23.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -115,8 +115,8 @@ importers:
   apps/svelte-demo:
     dependencies:
       '@formulaxjs/ckeditor5':
-        specifier: 0.5.1
-        version: 0.5.1(ckeditor5@46.1.1)
+        specifier: workspace:*
+        version: link:../../packages/ckeditor5
       ckeditor5:
         specifier: ^46.1.1
         version: 46.1.1
@@ -133,9 +133,9 @@ importers:
 
   apps/tinymce-demo:
     dependencies:
-      '@formulaxjs/renderer-next':
+      '@formulaxjs/renderer':
         specifier: workspace:*
-        version: link:../../packages/renderer-next
+        version: link:../../packages/renderer
       '@formulaxjs/tinymce':
         specifier: workspace:*
         version: link:../../packages/tinymce
@@ -174,8 +174,8 @@ importers:
   apps/vue-demo:
     dependencies:
       '@formulaxjs/tinymce':
-        specifier: 0.4.1
-        version: 0.4.1(tinymce@7.9.2)
+        specifier: workspace:*
+        version: link:../../packages/tinymce
       tinymce:
         specifier: ^7.7.1
         version: 7.9.2
@@ -198,12 +198,6 @@ importers:
       '@formulaxjs/renderer':
         specifier: workspace:*
         version: link:../renderer
-      '@formulaxjs/renderer-image':
-        specifier: workspace:*
-        version: link:../renderer-image
-      '@formulaxjs/renderer-kity':
-        specifier: workspace:*
-        version: link:../renderer-kity
     devDependencies:
       ckeditor5:
         specifier: ^46.1.1
@@ -216,23 +210,35 @@ importers:
       '@formulaxjs/core':
         specifier: workspace:*
         version: link:../core
-      '@formulaxjs/kity-runtime':
-        specifier: workspace:*
-        version: link:../kity-runtime
       '@formulaxjs/renderer':
         specifier: workspace:*
         version: link:../renderer
-      '@formulaxjs/renderer-kity':
-        specifier: workspace:*
-        version: link:../renderer-kity
-      '@formulaxjs/renderer-next':
-        specifier: workspace:*
-        version: link:../renderer-next
       '@formulaxjs/runtime':
         specifier: workspace:*
         version: link:../runtime
+      '@formulaxjs/runtime-kity':
+        specifier: workspace:*
+        version: link:../runtime-kity
 
-  packages/kity-runtime:
+  packages/renderer:
+    dependencies:
+      '@formulaxjs/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@formulaxjs/runtime-kity':
+        specifier: workspace:*
+        version: link:../runtime-kity
+
+  packages/runtime:
+    dependencies:
+      '@formulaxjs/core':
+        specifier: workspace:*
+        version: link:../core
+      solid-js:
+        specifier: ^1.9.9
+        version: 1.9.13
+
+  packages/runtime-kity:
     dependencies:
       '@formulaxjs/core':
         specifier: workspace:*
@@ -245,41 +251,6 @@ importers:
         specifier: ^4.17.12
         version: 4.17.12
 
-  packages/renderer: {}
-
-  packages/renderer-image:
-    dependencies:
-      '@formulaxjs/renderer':
-        specifier: workspace:*
-        version: link:../renderer
-
-  packages/renderer-kity:
-    dependencies:
-      '@formulaxjs/kity-runtime':
-        specifier: workspace:*
-        version: link:../kity-runtime
-      '@formulaxjs/renderer':
-        specifier: workspace:*
-        version: link:../renderer
-
-  packages/renderer-next:
-    dependencies:
-      '@formulaxjs/renderer':
-        specifier: workspace:*
-        version: link:../renderer
-      '@formulaxjs/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-
-  packages/runtime:
-    dependencies:
-      '@formulaxjs/core':
-        specifier: workspace:*
-        version: link:../core
-      solid-js:
-        specifier: ^1.9.9
-        version: 1.9.13
-
   packages/tinymce:
     dependencies:
       '@formulaxjs/core':
@@ -291,12 +262,6 @@ importers:
       '@formulaxjs/renderer':
         specifier: workspace:*
         version: link:../renderer
-      '@formulaxjs/renderer-image':
-        specifier: workspace:*
-        version: link:../renderer-image
-      '@formulaxjs/renderer-kity':
-        specifier: workspace:*
-        version: link:../renderer-kity
     devDependencies:
       tinymce:
         specifier: ^7.7.1
@@ -313,12 +278,6 @@ importers:
       '@formulaxjs/renderer':
         specifier: workspace:*
         version: link:../renderer
-      '@formulaxjs/renderer-image':
-        specifier: workspace:*
-        version: link:../renderer-image
-      '@formulaxjs/renderer-kity':
-        specifier: workspace:*
-        version: link:../renderer-kity
     devDependencies:
       '@tiptap/core':
         specifier: ^2.27.2
@@ -1053,30 +1012,6 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
-
-  '@formulaxjs/ckeditor5@0.5.1':
-    resolution: {integrity: sha512-6N00rw6r/KCMJh/2OfWVYKVpJphvTRfQ07X2VQtVTFOQKqcLRKpCFi/Kz+stpSN6QQLlcpEyLXyICwAYK7OcHw==}
-    peerDependencies:
-      ckeditor5: '>=42 <49'
-    peerDependenciesMeta:
-      ckeditor5:
-        optional: true
-
-  '@formulaxjs/tinymce@0.4.1':
-    resolution: {integrity: sha512-MfzjlBSxagaDzkMJ+nv/jN+EgZpLZFaC/9xVrLRPav8KF7Kyy/JFTiwRlQdSB1bFGJObpKk2PDptHLm09RXpng==}
-    peerDependencies:
-      tinymce: '>=5 <9'
-    peerDependenciesMeta:
-      tinymce:
-        optional: true
-
-  '@formulaxjs/tiptap@0.5.1':
-    resolution: {integrity: sha512-w9r9dEhSenpGSdrnGAx5x4K26D038A0frXvNMsjsE3B+hMTCPVDT20JnclYJjGd2M/AjMCDsWlPuSt62NM7nxg==}
-    peerDependencies:
-      '@tiptap/core': '>=2 <4'
-    peerDependenciesMeta:
-      '@tiptap/core':
-        optional: true
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4069,6 +4004,8 @@ snapshots:
       '@ckeditor/ckeditor5-core': 46.1.1
       '@ckeditor/ckeditor5-upload': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-alignment@46.1.1':
     dependencies:
@@ -4220,6 +4157,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-editor-classic@46.1.1':
     dependencies:
@@ -4229,6 +4168,8 @@ snapshots:
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
       es-toolkit: 1.39.5
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-editor-decoupled@46.1.1':
     dependencies:
@@ -4279,8 +4220,6 @@ snapshots:
     dependencies:
       '@ckeditor/ckeditor5-utils': 46.1.1
       es-toolkit: 1.39.5
-    transitivePeerDependencies:
-      - supports-color
 
   '@ckeditor/ckeditor5-enter@46.1.1':
     dependencies:
@@ -4557,6 +4496,8 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 46.1.1
       '@ckeditor/ckeditor5-utils': 46.1.1
       ckeditor5: 46.1.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@ckeditor/ckeditor5-restricted-editing@46.1.1':
     dependencies:
@@ -4943,36 +4884,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.11':
     optional: true
-
-  '@formulaxjs/ckeditor5@0.5.1(ckeditor5@46.1.1)':
-    dependencies:
-      '@formulaxjs/core': link:packages/core
-      '@formulaxjs/editor': link:packages/editor
-      '@formulaxjs/renderer': link:packages/renderer
-      '@formulaxjs/renderer-image': link:packages/renderer-image
-      '@formulaxjs/renderer-kity': link:packages/renderer-kity
-    optionalDependencies:
-      ckeditor5: 46.1.1
-
-  '@formulaxjs/tinymce@0.4.1(tinymce@7.9.2)':
-    dependencies:
-      '@formulaxjs/core': link:packages/core
-      '@formulaxjs/editor': link:packages/editor
-      '@formulaxjs/renderer': link:packages/renderer
-      '@formulaxjs/renderer-image': link:packages/renderer-image
-      '@formulaxjs/renderer-kity': link:packages/renderer-kity
-    optionalDependencies:
-      tinymce: 7.9.2
-
-  '@formulaxjs/tiptap@0.5.1(@tiptap/core@3.23.4(@tiptap/pm@3.23.4))':
-    dependencies:
-      '@formulaxjs/core': link:packages/core
-      '@formulaxjs/editor': link:packages/editor
-      '@formulaxjs/renderer': link:packages/renderer
-      '@formulaxjs/renderer-image': link:packages/renderer-image
-      '@formulaxjs/renderer-kity': link:packages/renderer-kity
-    optionalDependencies:
-      '@tiptap/core': 3.23.4(@tiptap/pm@3.23.4)
 
   '@humanfs/core@0.19.2':
     dependencies:

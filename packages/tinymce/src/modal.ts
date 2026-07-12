@@ -10,7 +10,7 @@ import {
 import {
   createFormulaDisplayAttributes,
   renderFormulaDisplayHtml,
-} from '@formulaxjs/renderer-image';
+} from '@formulaxjs/renderer/image';
 import { ensureTinyMceStyles } from './styles';
 import { mountFormulaXEditorInModal } from './editor-host';
 import {

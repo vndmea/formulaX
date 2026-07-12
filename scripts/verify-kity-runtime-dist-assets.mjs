@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const distDir = path.join(repoRoot, 'packages', 'kity-runtime', 'dist');
+const distDir = path.join(repoRoot, 'packages', 'runtime-kity', 'dist');
 const editorCssPath = path.join(distDir, 'editor.css');
 const requiredFiles = [
   'editor.css',
@@ -42,4 +42,4 @@ for (const specifier of localCssImports) {
   assertFileExists(path.join(distDir, specifier.slice(2)));
 }
 
-console.log('Verified kity-runtime dist assets.');
+console.log('Verified runtime-kity dist assets.');

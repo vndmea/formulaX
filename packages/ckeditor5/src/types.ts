@@ -6,7 +6,7 @@ import type {
 import type { FormulaMarkupOutput, FormulaRenderer } from '@formulaxjs/renderer';
 import type {
   FormulaXImageOptions,
-} from '@formulaxjs/renderer-image';
+} from '@formulaxjs/renderer/image';
 
 export type FormulaXOutputMode = FormulaMarkupOutput;
 
@@ -69,8 +69,8 @@ export interface RequiredFormulaXCKEditor5Options {
     autofocus: boolean;
     runtime: FormulaXEditorOptions['runtime'];
     locale: FormulaXEditorOptions['locale'];
-    assets: FormulaXEditorOptions['assets'];
     runtimeAssets: FormulaXEditorOptions['runtimeAssets'];
+    extensions: NonNullable<FormulaXEditorOptions['extensions']>;
     wrap: NonNullable<FormulaXEditorOptions['wrap']>;
     maxWidth: NonNullable<FormulaXEditorOptions['maxWidth']>;
     lineGap: number;

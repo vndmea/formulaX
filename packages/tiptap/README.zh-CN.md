@@ -18,7 +18,7 @@ FormulaX 的 Tiptap 集成适配器。
 - 默认在节点 attrs 中持久化 LaTeX
 - 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片元数据
 - 在 node view 中运行时渲染 SVG
-- 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
+- 默认通过 `@formulaxjs/renderer/kity` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
 - 直接导出弹窗工具函数 `openFormulaXTiptapModal`
 - 兼容 Tiptap 2 和 3 的 peer dependency 范围
@@ -165,11 +165,11 @@ const formulaXNode = createFormulaXNode(undefined, {
 
 ## 自定义 renderer
 
-该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer-kity` 的 `createKityFormulaRenderer()`。
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/kity` 的 `createKityFormulaRenderer()`。
 
 ```ts
 import { createFormulaXNode } from '@formulaxjs/tiptap';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 const formulaXNode = createFormulaXNode(undefined, {
   renderer: createKityFormulaRenderer({

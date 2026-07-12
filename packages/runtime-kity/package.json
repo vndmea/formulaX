@@ -1,0 +1,61 @@
+{
+  "name": "@formulaxjs/runtime-kity",
+  "version": "0.5.1",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "KityFormula runtime adapter for FormulaX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vndmea/formulaX.git",
+    "directory": "packages/runtime-kity"
+  },
+  "keywords": [
+    "formulax",
+    "kityformula",
+    "kity",
+    "formula",
+    "math-editor",
+    "kity-runtime",
+    "latex",
+    "svg"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./canvg-runtime": {
+      "types": "./dist/canvg-runtime.d.ts",
+      "import": "./dist/canvg-runtime.js",
+      "require": "./dist/canvg-runtime.cjs"
+    },
+    "./styles/*": "./public/assets/styles/*",
+    "./theme/*": "./public/assets/theme/*",
+    "./resource/*": "./public/resource/*",
+    "./images/*": "./public/assets/images/*"
+  },
+  "files": [
+    "dist",
+    "public"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.mjs && node ./scripts/postbuild.mjs",
+    "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@formulaxjs/core": "workspace:*",
+    "lodash-es": "^4.18.1"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12"
+  }
+}

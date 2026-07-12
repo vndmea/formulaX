@@ -50,7 +50,7 @@ if (svg instanceof SVGSVGElement) {
 Use this package when you need shared renderer-facing primitives:
 
 - host-editor adapters that need stable latex wrapper and formula markup helpers
-- concrete renderer packages such as `@formulaxjs/renderer-kity`
+- concrete renderer packages such as `@formulaxjs/renderer/kity`
 - export or post-processing flows that work with rendered SVG
 
-If you need a concrete Kity-backed renderer, use `@formulaxjs/renderer-kity`.
+If you need a concrete Kity-backed renderer, use `@formulaxjs/renderer/kity`.

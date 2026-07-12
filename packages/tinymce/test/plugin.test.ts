@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createFormulaDisplayAttributes, createFormulaImageHtml } from '@formulaxjs/renderer-image';
+import { createFormulaDisplayAttributes, createFormulaImageHtml } from '@formulaxjs/renderer/image';
 import {
   FORMULAX_DEFAULT_ICON_NAME,
   createTinyMceFormulaMarkup,
@@ -216,14 +216,14 @@ describe('registerFormulaXTinyMcePlugin', () => {
     });
   });
 
-  it('resolves runtime v2 wrap defaults for modal editors', () => {
+  it('resolves runtime standard wrap defaults for modal editors', () => {
     expect(resolveOptions({
       editor: {
-        runtime: 'v2',
+        runtime: 'standard',
       },
     })).toMatchObject({
       editor: {
-        runtime: 'v2',
+        runtime: 'standard',
         wrap: 'none',
         maxWidth: 'host',
         lineGap: 14,

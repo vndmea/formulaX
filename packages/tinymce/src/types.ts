@@ -7,7 +7,7 @@ import type {
 import type { FormulaMarkupOutput, FormulaRenderer } from '@formulaxjs/renderer';
 import type {
   FormulaXImageOptions,
-} from '@formulaxjs/renderer-image';
+} from '@formulaxjs/renderer/image';
 
 export type FormulaXOutputMode = FormulaMarkupOutput;
 
@@ -107,7 +107,17 @@ export interface RequiredFormulaXTinyMceOptions {
   renderer: FormulaRenderer;
   preload: FormulaXEditorPreloadMode;
   modal: Required<FormulaXModalOptions>;
-  editor: Required<Omit<FormulaXEditorOptions, 'initialLatex' | 'render'>> & {
+  editor: {
+    height: number | string;
+    autofocus: boolean;
+    runtime: FormulaXEditorOptions['runtime'];
+    locale: FormulaXEditorOptions['locale'];
+    runtimeAssets: FormulaXEditorOptions['runtimeAssets'];
+    extensions: NonNullable<FormulaXEditorOptions['extensions']>;
+    wrap: NonNullable<FormulaXEditorOptions['wrap']>;
+    maxWidth: NonNullable<FormulaXEditorOptions['maxWidth']>;
+    lineGap: number;
+    continuationIndent: number;
     render: {
       fontsize: number;
     };

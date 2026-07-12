@@ -3,7 +3,13 @@
   "compilerOptions": {
     "baseUrl": ".",
     "ignoreDeprecations": "5.0",
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "@formulaxjs/core": ["../core/src/index.ts"],
+      "@formulaxjs/runtime": ["../runtime/src/index.ts"],
+      "@formulaxjs/runtime-kity": ["../runtime-kity/src/index.ts"],
+      "@formulaxjs/runtime-kity/canvg-runtime": ["../runtime-kity/src/canvg-runtime.ts"]
+    }
   },
   "include": ["src"]
 }

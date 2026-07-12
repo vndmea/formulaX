@@ -25,6 +25,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./standard": {
+      "types": "./dist/standard.d.ts",
+      "import": "./dist/standard.js",
+      "require": "./dist/standard.cjs"
+    },
+    "./kity": {
+      "types": "./dist/kity.d.ts",
+      "import": "./dist/kity.js",
+      "require": "./dist/kity.cjs"
     }
   },
   "unpkg": "./dist/index.global.js",
@@ -37,15 +47,13 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run --passWithNoTests packages/editor/test",
+    "test": "vitest run --root ../.. --passWithNoTests packages/editor/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/renderer": "workspace:*",
-    "@formulaxjs/renderer-kity": "workspace:*",
-    "@formulaxjs/renderer-next": "workspace:*",
-    "@formulaxjs/kity-runtime": "workspace:*",
+    "@formulaxjs/runtime-kity": "workspace:*",
     "@formulaxjs/runtime": "workspace:*"
   }
 }

@@ -4,7 +4,7 @@
   "private": false,
   "type": "module",
   "license": "MIT",
-  "description": "Shared renderer compatibility layer for FormulaX rich-text adapters.",
+  "description": "FormulaX renderer protocol and standard, kity, and image rendering entries.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vndmea/formulaX.git",
@@ -24,6 +24,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./standard": {
+      "types": "./dist/standard.d.ts",
+      "import": "./dist/standard.js",
+      "require": "./dist/standard.cjs"
+    },
+    "./kity": {
+      "types": "./dist/kity.d.ts",
+      "import": "./dist/kity.js",
+      "require": "./dist/kity.cjs"
+    },
+    "./image": {
+      "types": "./dist/image.d.ts",
+      "import": "./dist/image.js",
+      "require": "./dist/image.cjs"
     }
   },
   "unpkg": "./dist/index.global.js",
@@ -36,7 +51,11 @@
   "scripts": {
     "build": "tsup --config ../../tsup.config.mjs",
     "clean": "Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue",
-    "test": "vitest run packages/renderer/test",
+    "test": "vitest run --root ../.. packages/renderer/test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@formulaxjs/runtime": "workspace:*",
+    "@formulaxjs/runtime-kity": "workspace:*"
   }
 }

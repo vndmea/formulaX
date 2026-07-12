@@ -1,4 +1,4 @@
-import { createFormulaRendererV2 } from '@formulaxjs/renderer-next';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
 import {
   loadTinyMceRuntime,
@@ -78,7 +78,7 @@ function getDemoEditorHeight(): number {
   return Math.max(240, Math.min(360, viewportHeight - 330));
 }
 
-const demoRenderer = createFormulaRendererV2({
+const demoRenderer = createStandardFormulaRenderer({
   maxWidth: 720,
   wrap: 'soft',
   lineGap: 14,
@@ -110,7 +110,7 @@ app.innerHTML = `
         <label class="fx-demo-field fx-demo-field--compact">
           <span>Output</span>
           <select id="formulax-output-mode" aria-label="FormulaX output mode">
-            <option value="svg">Renderer Next (SVG)</option>
+            <option value="svg">Renderer Standard (SVG)</option>
             <option value="image">Image</option>
           </select>
         </label>
@@ -207,7 +207,7 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
         title: 'FormulaX Editor',
       },
       editor: {
-        runtime: 'v2',
+        runtime: 'standard',
         wrap: 'soft',
         maxWidth: 'host',
         lineGap: 14,
@@ -233,8 +233,8 @@ async function initTinyMce(version: TinyMceDemoVersion): Promise<void> {
 
     setStatus(
       outputMode === 'image'
-        ? `TinyMCE ${version} · runtime v2 + image`
-        : `TinyMCE ${version} · runtime v2 + renderer-next`,
+        ? `TinyMCE ${version} · runtime standard + image`
+        : `TinyMCE ${version} · runtime standard + renderer-standard`,
       'success',
     );
   } catch (error) {

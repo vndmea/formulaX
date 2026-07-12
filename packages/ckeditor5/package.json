@@ -42,9 +42,7 @@
   "dependencies": {
     "@formulaxjs/core": "workspace:*",
     "@formulaxjs/editor": "workspace:*",
-    "@formulaxjs/renderer": "workspace:*",
-    "@formulaxjs/renderer-image": "workspace:*",
-    "@formulaxjs/renderer-kity": "workspace:*"
+    "@formulaxjs/renderer": "workspace:*"
   },
   "peerDependencies": {
     "ckeditor5": ">=42 <49"

@@ -10,10 +10,10 @@ export default defineConfig({
     alias: {
       '@formulaxjs/core': path.resolve(rootDir, 'packages/core/src/index.ts'),
       '@formulaxjs/editor': path.resolve(rootDir, 'packages/editor/src/index.ts'),
-      '@formulaxjs/kity-runtime': path.resolve(rootDir, 'packages/kity-runtime/src/index.ts'),
+      '@formulaxjs/runtime-kity': path.resolve(rootDir, 'packages/runtime-kity/src/index.ts'),
+      '@formulaxjs/renderer/standard': path.resolve(rootDir, 'packages/renderer/src/standard/index.ts'),
+      '@formulaxjs/renderer/kity': path.resolve(rootDir, 'packages/renderer/src/kity/index.ts'),
       '@formulaxjs/renderer': path.resolve(rootDir, 'packages/renderer/src/index.ts'),
-      '@formulaxjs/renderer-next': path.resolve(rootDir, 'packages/renderer-next/src/index.ts'),
-      '@formulaxjs/renderer-kity': path.resolve(rootDir, 'packages/renderer-kity/src/index.ts'),
       '@formulaxjs/runtime': path.resolve(rootDir, 'packages/runtime/src/index.ts'),
     },
   },

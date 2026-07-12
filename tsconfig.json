@@ -7,15 +7,17 @@
       "@formulaxjs/ckeditor5": ["packages/ckeditor5/src/index.ts"],
       "@formulaxjs/core": ["packages/core/src/index.ts"],
       "@formulaxjs/editor": ["packages/editor/src/index.ts"],
+      "@formulaxjs/editor/standard": ["packages/editor/src/standard.ts"],
+      "@formulaxjs/editor/kity": ["packages/editor/src/kity.ts"],
       "@formulaxjs/renderer": ["packages/renderer/src/index.ts"],
-      "@formulaxjs/renderer-image": ["packages/renderer-image/src/index.ts"],
-      "@formulaxjs/renderer-kity": ["packages/renderer-kity/src/index.ts"],
-      "@formulaxjs/renderer-next": ["packages/renderer-next/src/index.ts"],
+      "@formulaxjs/renderer/standard": ["packages/renderer/src/standard/index.ts"],
+      "@formulaxjs/renderer/kity": ["packages/renderer/src/kity/index.ts"],
+      "@formulaxjs/renderer/image": ["packages/renderer/src/image/index.ts"],
       "@formulaxjs/runtime": ["packages/runtime/src/index.ts"],
+      "@formulaxjs/runtime-kity": ["packages/runtime-kity/src/index.ts"],
+      "@formulaxjs/runtime-kity/canvg-runtime": ["packages/runtime-kity/src/canvg-runtime.ts"],
       "@formulaxjs/tiptap": ["packages/tiptap/src/index.ts"],
-      "@formulaxjs/tinymce": ["packages/tinymce/src/index.ts"],
-      "@formulaxjs/kity-runtime": ["packages/kity-runtime/src/index.ts"],
-      "@formulaxjs/kity-runtime/canvg-runtime": ["packages/kity-runtime/src/canvg-runtime.ts"]
+      "@formulaxjs/tinymce": ["packages/tinymce/src/index.ts"]
     }
   },
   "include": ["packages", "apps"]

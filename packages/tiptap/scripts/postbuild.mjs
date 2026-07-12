@@ -6,8 +6,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(packageRoot, '..', '..');
 const distDir = path.join(packageRoot, 'dist');
-const kityStylesDir = path.join(repoRoot, 'packages', 'kity-runtime', 'public', 'assets', 'styles');
-const kityImagesDir = path.join(repoRoot, 'packages', 'kity-runtime', 'public', 'assets', 'images');
+const kityStylesDir = path.join(repoRoot, 'packages', 'runtime-kity', 'public', 'assets', 'styles');
+const kityImagesDir = path.join(repoRoot, 'packages', 'runtime-kity', 'public', 'assets', 'images');
 
 const supportStyleFiles = ['base.css', 'ui.css', 'scrollbar.css'];
 

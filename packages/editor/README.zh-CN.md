@@ -65,5 +65,5 @@ const cleanup = scheduleFormulaXEditorPreload('hover', document.querySelector('#
 当你需要基于弹窗的编辑流程和内嵌 FormulaX 编辑器 UI 时，请使用这个包。
 
 - 如果需要共享 markup 或基础公式样式，请使用 `@formulaxjs/renderer`
-- 如果需要基于 Kity 的只读渲染，请使用 `@formulaxjs/renderer-kity`
-- 如果需要低层旧版 runtime 入口，请使用 `@formulaxjs/kity-runtime`
+- 如果需要基于 Kity 的只读渲染，请使用 `@formulaxjs/renderer/kity`
+- 如果需要低层旧版 runtime 入口，请使用 `@formulaxjs/runtime-kity`

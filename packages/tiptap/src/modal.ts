@@ -12,7 +12,7 @@ import {
   escapeAttribute,
   escapeHtml,
 } from '@formulaxjs/renderer';
-import { renderFormulaDisplayHtml } from '@formulaxjs/renderer-image';
+import { renderFormulaDisplayHtml } from '@formulaxjs/renderer/image';
 import type { FormulaXPayload, RequiredFormulaXTiptapOptions } from './types';
 
 export interface OpenFormulaXTiptapModalInput {
@@ -85,8 +85,8 @@ export function openFormulaXTiptapModal(
         autofocus: input.options.editor.autofocus,
         runtime: input.options.editor.runtime,
         locale: input.options.editor.locale,
-        assets: input.options.editor.assets,
         runtimeAssets: input.options.editor.runtimeAssets,
+        extensions: input.options.editor.extensions,
         wrap: input.options.editor.wrap,
         maxWidth: input.options.editor.maxWidth,
         lineGap: input.options.editor.lineGap,

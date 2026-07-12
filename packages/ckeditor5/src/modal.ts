@@ -9,7 +9,7 @@ import {
   waitForFormulaXAnimationFrame,
 } from '@formulaxjs/editor';
 import { escapeAttribute, escapeHtml } from '@formulaxjs/renderer';
-import { renderFormulaDisplayHtml } from '@formulaxjs/renderer-image';
+import { renderFormulaDisplayHtml } from '@formulaxjs/renderer/image';
 import type { FormulaXPayload, RequiredFormulaXCKEditor5Options } from './types';
 
 export interface OpenFormulaXModalInput {
@@ -80,8 +80,8 @@ export function openFormulaXModal(input: OpenFormulaXModalInput): Promise<Formul
         autofocus: input.options.editor.autofocus,
         runtime: input.options.editor.runtime,
         locale: input.options.editor.locale,
-        assets: input.options.editor.assets,
         runtimeAssets: input.options.editor.runtimeAssets,
+        extensions: input.options.editor.extensions,
         wrap: input.options.editor.wrap,
         maxWidth: input.options.editor.maxWidth,
         lineGap: input.options.editor.lineGap,

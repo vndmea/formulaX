@@ -24,8 +24,8 @@ import {
   FORMULAX_IMAGE_STYLE_ATTRIBUTE,
   FORMULAX_IMAGE_URL_ATTRIBUTE,
   FORMULAX_IMAGE_WIDTH_ATTRIBUTE,
-} from '@formulaxjs/renderer-image';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+} from '@formulaxjs/renderer/image';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 import {
   ensureFormulaXModalStyles,
   getFormulaXEditorMessage,
@@ -60,10 +60,12 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
     formulaAttributeName: options.formulaAttributeName ?? DEFAULT_FORMULA_ATTRIBUTE,
     output: options.output ?? 'svg',
     image: options.image,
-    renderer: options.renderer ?? createKityFormulaRenderer({
+    renderer: options.renderer ?? createStandardFormulaRenderer({
       fontSize: options.editor?.render?.fontsize ?? 40,
       height: options.editor?.height ?? '100%',
-      assets: options.editor?.assets ?? {},
+      runtime: {
+        assets: options.editor?.runtimeAssets ?? {},
+      },
     }),
     preload: options.preload ?? 'idle',
     modal: {
@@ -76,10 +78,10 @@ export function resolveOptions(options: FormulaXCKEditor5Options = {}): Required
     editor: {
       height: options.editor?.height ?? '100%',
       autofocus: options.editor?.autofocus ?? true,
-      runtime: options.editor?.runtime ?? 'kity',
+      runtime: options.editor?.runtime ?? 'standard',
       locale,
-      assets: options.editor?.assets ?? {},
       runtimeAssets: options.editor?.runtimeAssets ?? {},
+      extensions: options.editor?.extensions ?? [],
       wrap: options.editor?.wrap ?? 'none',
       maxWidth: options.editor?.maxWidth ?? 'host',
       lineGap: options.editor?.lineGap ?? 14,

@@ -8,7 +8,7 @@
 
 FormulaX 是一个现代化的公式编辑器项目。当前实现保留了从 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 适配而来的兼容运行时，同时逐步把核心模型、渲染协议、只读渲染和宿主编辑器适配层拆分成更清晰的 packages。
 
-FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为旧版兼容后端，保存在 `@formulaxjs/kity-runtime` 中。
+FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为旧版兼容后端，保存在 `@formulaxjs/runtime-kity` 中。
 
 ## 功能特性
 
@@ -29,10 +29,10 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 | --- | --- |
 | `@formulaxjs/core` | 核心数据模型、LaTeX 解析和纯逻辑 |
 | `@formulaxjs/renderer` | 共享 renderer 协议、公式 markup、基础样式、cache helper 和 SVG 工具 |
-| `@formulaxjs/renderer-kity` | 基于 Kity 的只读渲染器，将 LaTeX 转成可内联的 SVG markup |
-| `@formulaxjs/renderer-image` | 用于 image output 持久化的 SVG 转 PNG 与上传辅助层 |
+| `@formulaxjs/renderer/kity` | 基于 Kity 的只读渲染器，将 LaTeX 转成可内联的 SVG markup |
+| `@formulaxjs/renderer/image` | 用于 image output 持久化的 SVG 转 PNG 与上传辅助层 |
 | `@formulaxjs/editor` | 基于 runtime 的弹窗编辑 UI 辅助层 |
-| `@formulaxjs/kity-runtime` | 旧版 KityFormula 兼容运行时、内置资源和低层编辑器工厂 |
+| `@formulaxjs/runtime-kity` | 旧版 KityFormula 兼容运行时、内置资源和低层编辑器工厂 |
 | `@formulaxjs/tiptap` | Tiptap 集成适配器 |
 | `@formulaxjs/tinymce` | TinyMCE 集成适配器 |
 | `@formulaxjs/ckeditor5` | CKEditor 5 集成适配器 |
@@ -56,10 +56,10 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 FormulaX workspace
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
 ├── @formulaxjs/renderer（renderer 协议、markup、styles、svg helpers）
-├── @formulaxjs/renderer-kity（基于 Kity 的 LaTeX -> inline SVG 渲染器）
-├── @formulaxjs/renderer-image（SVG -> PNG 上传辅助层，用于图片持久化）
+├── @formulaxjs/renderer/kity（基于 Kity 的 LaTeX -> inline SVG 渲染器）
+├── @formulaxjs/renderer/image（SVG -> PNG 上传辅助层，用于图片持久化）
 ├── @formulaxjs/editor（弹窗 UI 和内嵌编辑器编排）
-├── @formulaxjs/kity-runtime（旧版兼容运行时和内置静态资源）
+├── @formulaxjs/runtime-kity（旧版兼容运行时和内置静态资源）
 │   ├── KityFormula 运行时（懒加载 chunk）
 │   ├── Parser 运行时（懒加载 chunk）
 │   ├── 字体映射、sprite 位置映射和静态资源
@@ -72,7 +72,7 @@ FormulaX workspace
 这种划分带来的好处：
 
 - 各适配器可以共用一套 renderer 接口
-- Kity 特有的只读渲染被隔离在 `@formulaxjs/renderer-kity`
+- Kity 特有的只读渲染被隔离在 `@formulaxjs/renderer/kity`
 - 弹窗编辑 UI 不再混入只读渲染职责
 - 未来引入 `renderer-katex` 时，无需整体重写适配器
 
@@ -80,7 +80,7 @@ FormulaX workspace
 
 当前编辑运行时仍然基于百度 FEX 团队的 [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor 生态兼容层。
 
-FormulaX 将这部分代码保留在独立运行时包（`@formulaxjs/kity-runtime`）中，并将其视为兼容后端，而不是长期对外架构本体。
+FormulaX 将这部分代码保留在独立运行时包（`@formulaxjs/runtime-kity`）中，并将其视为兼容后端，而不是长期对外架构本体。
 
 这样做可以：
 
@@ -142,7 +142,7 @@ pnpm build
 ### 共享渲染器
 
 ```ts
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 const renderer = createKityFormulaRenderer({
   fontSize: 40, // 渲染器默认字号
@@ -201,7 +201,7 @@ mounted.destroy();
 ### 低层 Kity Runtime 入口
 
 ```ts
-import { FormulaXEditor } from '@formulaxjs/kity-runtime';
+import { FormulaXEditor } from '@formulaxjs/runtime-kity';
 
 const editor = new FormulaXEditor({
   el: '#app', // HTMLElement 或选择器字符串
@@ -264,7 +264,7 @@ const latex = serializeLatex(doc);
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
 import { createFormulaXNode } from '@formulaxjs/tiptap';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 const formulaNode = createFormulaXNode(undefined, {
   name: 'formulaX', // 自定义节点名，避免 schema 冲突

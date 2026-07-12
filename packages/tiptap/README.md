@@ -18,7 +18,7 @@ Tiptap integration adapter for FormulaX.
 - Default SVG persistence in node attrs
 - Optional `output: 'image'` PNG persistence with user-provided upload
 - Runtime SVG rendering in the node view
-- Default read-only rendering through `@formulaxjs/renderer-kity`
+- Default read-only rendering through `@formulaxjs/renderer/kity`
 - Optional runtime preload before the first modal open
 - Modal helper export through `openFormulaXTiptapModal`
 - Compatible peer dependency range for Tiptap 2 and 3
@@ -162,11 +162,11 @@ const formulaXNode = createFormulaXNode(undefined, {
 
 ## Custom renderer
 
-The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer-kity`.
+The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer/kity`.
 
 ```ts
 import { createFormulaXNode } from '@formulaxjs/tiptap';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 const formulaXNode = createFormulaXNode(undefined, {
   renderer: createKityFormulaRenderer({

@@ -65,5 +65,5 @@ Supported preload modes:
 Use this package for modal-based editing flows and embedded FormulaX editor UI.
 
 - If you need shared markup or base formula styles, use `@formulaxjs/renderer`.
-- If you need Kity-based read-only rendering, use `@formulaxjs/renderer-kity`.
-- If you need the low-level legacy runtime entry, use `@formulaxjs/kity-runtime`.
+- If you need Kity-based read-only rendering, use `@formulaxjs/renderer/kity`.
+- If you need the low-level legacy runtime entry, use `@formulaxjs/runtime-kity`.

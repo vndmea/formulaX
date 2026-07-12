@@ -19,7 +19,7 @@ FormulaX 的 CKEditor 5 集成适配器。
 - 默认在 CKEditor 5 model 中持久化 LaTeX 源内容
 - 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片元数据
 - 在 editing view 中运行时渲染 SVG
-- 默认通过 `@formulaxjs/renderer-kity` 完成只读渲染
+- 默认通过 `@formulaxjs/renderer/kity` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
 - 支持在编辑器数据中对公式 markup 进行 upcast 和 downcast
 - 直接导出弹窗工具函数 `openFormulaXModal`
@@ -67,7 +67,7 @@ import {
   FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
 } from '@formulaxjs/ckeditor5';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -215,7 +215,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 
 ## 自定义 renderer
 
-该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer-kity` 的 `createKityFormulaRenderer()`。
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/kity` 的 `createKityFormulaRenderer()`。
 
 ## 配置项
 

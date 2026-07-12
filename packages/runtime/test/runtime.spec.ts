@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('runtime v2 editor and renderer', () => {
+test.describe('runtime standard editor and renderer', () => {
   test('mounts an editor and exposes svg markup', async ({ page }) => {
     await page.goto('/');
 
@@ -46,7 +46,7 @@ test.describe('runtime v2 editor and renderer', () => {
       .toBe('\\frac{x}{y}');
   });
 
-  test('renders readonly svg through renderer-next', async ({ page }) => {
+  test('renders readonly svg through renderer-standard', async ({ page }) => {
     await page.goto('/');
 
     const result = await page.evaluate(async () => {
@@ -55,7 +55,7 @@ test.describe('runtime v2 editor and renderer', () => {
       });
     });
 
-    expect(result.engine).toBe('runtime-v2');
+    expect(result.engine).toBe('standard');
     expect(result.output).toBe('svg');
     expect(result.html).toContain('<svg');
     expect(result.html).toContain('data-formulax-runtime="solid-svg"');
@@ -179,7 +179,7 @@ test.describe('runtime v2 editor and renderer', () => {
     expect(afterUp?.rowId).toBe(before?.rowId);
   });
 
-  test('mounts the runtime-v2 toolbar popover and inserts legacy-style templates', async ({ page }) => {
+  test('mounts the standard toolbar popover and inserts legacy-style templates', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mountModal('x'));
 
@@ -209,7 +209,7 @@ test.describe('runtime v2 editor and renderer', () => {
     await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.destroyModal());
   });
 
-  test('runtime-v2 modal toolbar keeps labels visible and shows non-area popovers without scrollbars', async ({ page }) => {
+  test('standard modal toolbar keeps labels visible and shows non-area popovers without scrollbars', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => window.__FORMULAX_RUNTIME_TEST__!.mountModal('x'));
 

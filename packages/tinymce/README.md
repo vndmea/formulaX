@@ -21,7 +21,7 @@ TinyMCE integration adapter for FormulaX.
 - LaTeX persistence through `data-formulax-latex`
 - Optional `output: 'image'` PNG persistence with user-provided upload
 - Markup helpers for creating, parsing, serializing, finding, and replacing formula elements
-- Default read-only rendering through `@formulaxjs/renderer-kity`
+- Default read-only rendering through `@formulaxjs/renderer/kity`
 - Optional runtime preload before the first modal open
 
 ## Compatibility
@@ -235,12 +235,12 @@ The exact generated markup is internal and may evolve. Consumers should rely on 
 
 ## Custom renderer
 
-The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer-kity`.
+The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer/kity`.
 
 ```ts
 import tinymce from 'tinymce';
 import { registerFormulaXTinyMcePlugin } from '@formulaxjs/tinymce';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 registerFormulaXTinyMcePlugin(tinymce, {
   renderer: createKityFormulaRenderer({

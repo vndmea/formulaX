@@ -8,7 +8,7 @@ A modern formula editor workspace with legacy KityFormula compatibility, modular
 
 FormulaX is a modern formula editor project. The current implementation keeps a compatibility runtime adapted from [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor, while progressively separating core model logic, renderer contracts, read-only rendering, and host-editor adapters into clearer packages.
 
-It is **not** an official KityFormula project. KityFormula-related code is treated as a legacy compatibility backend under `@formulaxjs/kity-runtime`.
+It is **not** an official KityFormula project. KityFormula-related code is treated as a legacy compatibility backend under `@formulaxjs/runtime-kity`.
 
 ## Features
 
@@ -29,10 +29,10 @@ Some packages are experimental and not yet published to npm.
 | --- | --- |
 | `@formulaxjs/core` | Core data model, LaTeX parsing, and shared pure logic |
 | `@formulaxjs/renderer` | Shared renderer contracts, formula markup helpers, base styles, cache helpers, and SVG utilities |
-| `@formulaxjs/renderer-kity` | Kity-based read-only renderer that turns LaTeX into inline SVG markup |
-| `@formulaxjs/renderer-image` | SVG-to-PNG upload helpers for image-based formula persistence |
+| `@formulaxjs/renderer/kity` | Kity-based read-only renderer that turns LaTeX into inline SVG markup |
+| `@formulaxjs/renderer/image` | SVG-to-PNG upload helpers for image-based formula persistence |
 | `@formulaxjs/editor` | Modal-oriented FormulaX editor UI helpers built on top of the runtime |
-| `@formulaxjs/kity-runtime` | Legacy KityFormula compatibility runtime, embedded assets, and low-level editor factory |
+| `@formulaxjs/runtime-kity` | Legacy KityFormula compatibility runtime, embedded assets, and low-level editor factory |
 | `@formulaxjs/tiptap` | Tiptap integration adapter |
 | `@formulaxjs/tinymce` | TinyMCE integration adapter |
 | `@formulaxjs/ckeditor5` | CKEditor 5 integration adapter |
@@ -56,10 +56,10 @@ FormulaX now separates shared rendering concerns from the Kity-specific read-onl
 FormulaX workspace
 ├── @formulaxjs/core (document model, LaTeX parser/serializer)
 ├── @formulaxjs/renderer (renderer protocol, markup, styles, svg helpers)
-├── @formulaxjs/renderer-kity (Kity-based LaTeX -> inline SVG renderer)
-├── @formulaxjs/renderer-image (SVG -> PNG upload helpers for persisted image output)
+├── @formulaxjs/renderer/kity (Kity-based LaTeX -> inline SVG renderer)
+├── @formulaxjs/renderer/image (SVG -> PNG upload helpers for persisted image output)
 ├── @formulaxjs/editor (modal UI and embedded editor orchestration)
-├── @formulaxjs/kity-runtime (legacy compatibility runtime and embedded assets)
+├── @formulaxjs/runtime-kity (legacy compatibility runtime and embedded assets)
 │   ├── KityFormula runtime (lazy-loaded chunk)
 │   ├── Parser runtime (lazy-loaded chunk)
 │   ├── Font maps, sprite position maps, and static assets
@@ -72,7 +72,7 @@ FormulaX workspace
 This architecture allows:
 
 - Reusing one renderer contract across adapters
-- Keeping Kity-specific rendering isolated behind `@formulaxjs/renderer-kity`
+- Keeping Kity-specific rendering isolated behind `@formulaxjs/renderer/kity`
 - Keeping modal editing behavior isolated from read-only rendering
 - Preparing for future engines such as `renderer-katex` without reworking adapters
 
@@ -80,7 +80,7 @@ This architecture allows:
 
 The current editing runtime is still based on a legacy compatibility layer adapted from Baidu FEX Team's [KityFormula](https://github.com/BaiduFE/kityformula) / kf-editor ecosystem.
 
-FormulaX keeps this code in a dedicated runtime package (`@formulaxjs/kity-runtime`) and treats it as a compatibility backend rather than the long-term public architecture.
+FormulaX keeps this code in a dedicated runtime package (`@formulaxjs/runtime-kity`) and treats it as a compatibility backend rather than the long-term public architecture.
 
 This approach:
 
@@ -142,7 +142,7 @@ The examples below intentionally show more optional fields than a minimal setup 
 ### Shared Renderer Usage
 
 ```ts
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 const renderer = createKityFormulaRenderer({
   fontSize: 40, // default font size used by the Kity-backed renderer
@@ -201,7 +201,7 @@ mounted.destroy();
 ### Low-Level Kity Runtime Entry
 
 ```ts
-import { FormulaXEditor } from '@formulaxjs/kity-runtime';
+import { FormulaXEditor } from '@formulaxjs/runtime-kity';
 
 const editor = new FormulaXEditor({
   el: '#app', // HTMLElement or selector
@@ -264,7 +264,7 @@ const latex = serializeLatex(doc);
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
 import { createFormulaXNode } from '@formulaxjs/tiptap';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer-kity';
+import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 const formulaNode = createFormulaXNode(undefined, {
   name: 'formulaX', // custom node name when avoiding schema collisions
