@@ -13,6 +13,7 @@ export default defineConfig({
       '@formulaxjs/kity-runtime/canvg-runtime': path.resolve(rootDir, 'packages/kity-runtime/src/canvg-runtime.ts'),
       '@formulaxjs/kity-runtime': path.resolve(rootDir, 'packages/kity-runtime/src/index.ts'),
       '@formulaxjs/renderer': path.resolve(rootDir, 'packages/renderer/src/index.ts'),
+      '@formulaxjs/renderer-image': path.resolve(rootDir, 'packages/renderer-image/src/index.ts'),
       '@formulaxjs/renderer-next': path.resolve(rootDir, 'packages/renderer-next/src/index.ts'),
       '@formulaxjs/renderer-kity': path.resolve(rootDir, 'packages/renderer-kity/src/index.ts'),
       '@formulaxjs/runtime': path.resolve(rootDir, 'packages/runtime/src/index.ts'),
