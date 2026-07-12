@@ -214,11 +214,13 @@ function appendBox(
       const ruleStart = radical
         ? radical.x + radical.width * 0.72
         : value.x;
+      const ruleY = radical ? radical.y + 1 : 1;
       const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('data-formulax-role', 'sqrt-rule');
       line.setAttribute('x1', String(ruleStart));
       line.setAttribute('x2', String(value.x + value.width));
-      line.setAttribute('y1', '1');
-      line.setAttribute('y2', '1');
+      line.setAttribute('y1', String(ruleY));
+      line.setAttribute('y2', String(ruleY));
       line.setAttribute('stroke', 'currentColor');
       line.setAttribute('stroke-width', '1.25');
       group.appendChild(line);

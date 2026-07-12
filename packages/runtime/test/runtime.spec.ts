@@ -61,6 +61,47 @@ test.describe('runtime standard editor and renderer', () => {
     expect(result.html).toContain('data-formulax-runtime="solid-svg"');
   });
 
+  test('aligns indexed root radical and overbar', async ({ page }) => {
+    await page.goto('/');
+
+    const alignment = await page.evaluate(async () => {
+      const result = await window.__FORMULAX_RUNTIME_TEST__!.renderLatexToSvgMarkup('\\sqrt [3] \\placeholder', {
+        cache: false,
+        fontSize: 40,
+      });
+      const host = document.createElement('div');
+      host.innerHTML = result.html;
+      const sqrt = host.querySelector('[data-formulax-box-kind="sqrt"]');
+      if (!sqrt) {
+        throw new Error('sqrt box not rendered');
+      }
+      const radical = Array.from(sqrt.children).find((child) => {
+        return child.getAttribute('data-formulax-box-kind') === 'sqrt-radical';
+      });
+      const rule = sqrt.querySelector('line[data-formulax-role="sqrt-rule"]');
+      const parseTranslateY = (element: Element): number => {
+        const transform = element.getAttribute('transform') ?? '';
+        const match = /translate\(\s*[-\d.]+\s*,\s*([-\d.]+)\s*\)/.exec(transform);
+        if (!match) {
+          throw new Error(`missing translate y: ${transform}`);
+        }
+        return Number(match[1]);
+      };
+
+      if (!radical || !rule) {
+        throw new Error('indexed sqrt radical or rule not rendered');
+      }
+
+      return {
+        radicalY: parseTranslateY(radical),
+        ruleY: Number(rule.getAttribute('y1')),
+      };
+    });
+
+    expect(alignment.radicalY).toBeGreaterThan(0);
+    expect(alignment.ruleY).toBeCloseTo(alignment.radicalY + 1, 3);
+  });
+
   test('wraps long formulas across multiple svg lines', async ({ page }) => {
     await page.goto('/');
 
