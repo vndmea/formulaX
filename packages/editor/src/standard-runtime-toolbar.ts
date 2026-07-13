@@ -48,13 +48,13 @@ const REDO_LABELS: Record<FormulaXLocale, string> = {
 };
 
 const TOOLBAR_BUTTON_ICON_PREVIEWS: Partial<Record<string, { latex: string; fontSize?: number }>> = {
-  fraction: { latex: '\\frac {a}{b}', fontSize: 18 },
-  scripts: { latex: '{}^n_1Y', fontSize: 18 },
-  radicals: { latex: '\\sqrt [3] x', fontSize: 18 },
-  integrals: { latex: '\\int_a^b', fontSize: 18 },
-  'large-ops': { latex: '\\sum_1^n', fontSize: 18 },
-  brackets: { latex: '\\left(x\\right)', fontSize: 19 },
-  functions: { latex: '\\sin x', fontSize: 18 },
+  fraction: { latex: '\\frac {x}{y}', fontSize: 18 },
+  scripts: { latex: 'e^x', fontSize: 18 },
+  radicals: { latex: '\\sqrt [n] x', fontSize: 18 },
+  integrals: { latex: '\\int_x^x', fontSize: 18 },
+  'large-ops': { latex: '\\sum^n_{i=0}', fontSize: 18 },
+  brackets: { latex: '\\left(\\placeholder\\right)', fontSize: 19 },
+  functions: { latex: '\\sin\\theta', fontSize: 18 },
 };
 
 const TOOLBAR_SYMBOL_PREVIEW_FONT_SIZE = 20;
