@@ -99,8 +99,8 @@ export const formulaXModalStyles = `
 }
 
 .fx-formula-modal {
-  --fx-formula-editor-body-height: 264px;
-  --fx-formula-workspace-height: 168px;
+  --fx-formula-editor-body-height: 280px;
+  --fx-formula-workspace-height: 184px;
   position: relative;
   width: min(900px, calc(100vw - 40px));
   height: auto;
@@ -1127,7 +1127,7 @@ async function mountStandardRuntimeHandle(
     lineGap: options.lineGap,
     continuationIndent: options.continuationIndent,
     render: {
-      fontSize: options.render?.fontSize ?? options.render?.fontsize ?? 40,
+      fontSize: options.render?.fontSize ?? options.render?.fontsize ?? 36,
     },
   });
   surfaceHost.querySelector('.fx-runtime-editor__surface')?.classList.add('fx-formula-runtime-canvas');
