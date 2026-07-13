@@ -53,7 +53,7 @@ const TOOLBAR_BUTTON_ICON_PREVIEWS: Partial<Record<string, { latex: string; font
   radicals: { latex: '\\sqrt [n] x', fontSize: 18 },
   integrals: { latex: '\\int_x^x', fontSize: 18 },
   'large-ops': { latex: '\\sum^n_{i=0}', fontSize: 18 },
-  brackets: { latex: '\\left(\\placeholder\\right)', fontSize: 19 },
+  brackets: { latex: '\\{()\\}', fontSize: 19 },
   functions: { latex: '\\sin\\theta', fontSize: 18 },
 };
 
