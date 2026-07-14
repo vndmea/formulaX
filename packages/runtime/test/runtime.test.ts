@@ -15,6 +15,7 @@ import { resetFormulaNodeIdsForTests } from '../src/core/ids';
 import { layoutFormula } from '../src/layout/layout';
 import { parseLatexToFormulaDoc } from '../src/latex/parse';
 import { serializeFormulaDocToLatex } from '../src/latex/serialize';
+import { createRuntimeToolbarPanels } from '../src/toolbar';
 
 const testMetrics = {
   measureText(text: string, style: { fontSize: number }) {
@@ -72,6 +73,11 @@ const LEGACY_TOOLBAR_LATEX_SAMPLES = [
   'x^2',
   'x=\\frac {-b\\pm\\sqrt {b^2-4ac}}{2a}',
 ] as const;
+
+const LEGACY_SYMBOL_TOOLBAR_LATEX_SAMPLES = createRuntimeToolbarPanels('zh_CN')
+  .find((panel) => panel.id === 'symbols')
+  ?.groups.flatMap((group) => group.items.map((item) => item.latex))
+  ?? [];
 
 describe('runtime latex parser and serializer', () => {
   it('round-trips the supported runtime subset', () => {
@@ -154,6 +160,19 @@ describe('runtime latex parser and serializer', () => {
 
   it('parses the legacy kity toolbar template catalog without unsupported nodes', () => {
     for (const sample of LEGACY_TOOLBAR_LATEX_SAMPLES) {
+      const doc = createEmptyFormulaDoc('');
+      const inserted = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
+        type: 'insertLatex',
+        payload: { latex: sample },
+      });
+
+      expect(inserted.changed, sample).toBe(true);
+      expect(hasUnsupportedNode(inserted.doc.root), sample).toBe(false);
+    }
+  });
+
+  it('parses the legacy kity symbol catalog without unsupported nodes', () => {
+    for (const sample of LEGACY_SYMBOL_TOOLBAR_LATEX_SAMPLES) {
       const doc = createEmptyFormulaDoc('');
       const inserted = applyFormulaCommand(doc, createSelection(doc.root.id, 0), {
         type: 'insertLatex',

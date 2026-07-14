@@ -148,7 +148,7 @@ class RuntimeLatexParser {
       } satisfies FormulaSqrtNode;
     }
 
-    if (this.peek('\\left')) {
+    if (this.isFenceCommand('\\left')) {
       return this.parseFence();
     }
 
@@ -536,6 +536,15 @@ class RuntimeLatexParser {
 
   private peek(value: string): boolean {
     return this.input.startsWith(value, this.index);
+  }
+
+  private isFenceCommand(command: '\\left'): boolean {
+    if (!this.peek(command)) {
+      return false;
+    }
+
+    const next = this.input[this.index + command.length];
+    return next !== undefined && !/[a-zA-Z]/.test(next);
   }
 
   private consume(char: string): boolean {

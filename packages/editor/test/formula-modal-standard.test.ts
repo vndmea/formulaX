@@ -483,6 +483,79 @@ describe('mountFormulaXEditor runtime=standard', () => {
     mounted.destroy();
   });
 
+  it('uses supported preview glyphs for legacy kity left-prefixed arrows in the standard toolbar', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'standard',
+      initialLatex: 'x',
+      autofocus: false,
+      locale: 'en_US',
+    });
+
+    await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
+
+    host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
+
+    const previews = [
+      '[data-formulax-toolbar-latex="\\\\leftrightarrow"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\leftharpoonup"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\leftleftarrows"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\leftarrowtail"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\leftrightsquigarrow"] .fx-runtime-toolbar__item-preview--symbol',
+    ].map((selector) => host.querySelector<HTMLElement>(selector));
+
+    for (const preview of previews) {
+      if (!preview) {
+        throw new Error('Expected left-prefixed arrow preview to exist');
+      }
+      await expect.poll(() => preview.querySelector('svg')).not.toBeNull();
+      await expect.poll(() => preview.querySelector('[data-formulax-box-kind="unsupported"]')).toBeNull();
+      expect(preview.textContent).not.toContain('\\left');
+    }
+
+    mounted.destroy();
+  });
+
+  it('matches the legacy kity script-style symbol coverage', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const host = document.getElementById('host') as HTMLElement;
+    const mounted = mountFormulaXEditor(host, {
+      runtime: 'standard',
+      initialLatex: 'x',
+      autofocus: false,
+      locale: 'en_US',
+    });
+
+    await mounted.getLatex();
+    ensureFormulaXModalStyles(document);
+
+    host.querySelector<HTMLButtonElement>('.fx-runtime-toolbar__area-open')?.click();
+
+    expect(host.querySelectorAll('[data-formulax-toolbar-latex^="\\\\mathcal{"]').length).toBe(26);
+    expect(host.querySelectorAll('[data-formulax-toolbar-latex^="\\\\mathfrak{"]').length).toBe(52);
+    expect(host.querySelectorAll('[data-formulax-toolbar-latex^="\\\\mathbb{"]').length).toBe(26);
+    expect(host.querySelectorAll('[data-formulax-toolbar-latex^="\\\\mathrm{"]').length).toBe(52);
+
+    const representativePreviews = [
+      '[data-formulax-toolbar-latex="\\\\mathcal{Z}"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\mathfrak{z}"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\mathbb{Z}"] .fx-runtime-toolbar__item-preview--symbol',
+      '[data-formulax-toolbar-latex="\\\\mathrm{z}"] .fx-runtime-toolbar__item-preview--symbol',
+    ].map((selector) => host.querySelector<HTMLElement>(selector));
+
+    for (const preview of representativePreviews) {
+      if (!preview) {
+        throw new Error('Expected script-style preview to exist');
+      }
+      await expect.poll(() => preview?.querySelector('svg')).not.toBeNull();
+      await expect.poll(() => preview?.querySelector('[data-formulax-box-kind="unsupported"]')).toBeNull();
+    }
+
+    mounted.destroy();
+  });
+
   it('preserves the kity toolbar line breaks for English labels', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;

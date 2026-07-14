@@ -3,6 +3,7 @@ import {
   normalizeFormulaXLocale,
   type FormulaXLocale,
 } from '@formulaxjs/core';
+import { resolveRuntimeSymbol } from './latex/symbols';
 
 export type RuntimeToolbarItemKind = 'symbol' | 'template';
 export type RuntimeToolbarPanelKind = 'dropdown' | 'area';
@@ -97,12 +98,102 @@ const template = (
   previewSize: options.previewSize,
 });
 
-const symbol = (latex: string, title?: string): RuntimeToolbarItemTemplate => ({
+const symbol = (
+  latex: string,
+  title?: string,
+  options: {
+    previewLatex?: string;
+  } = {},
+): RuntimeToolbarItemTemplate => ({
   id: createStableId(latex),
   kind: 'symbol',
   latex,
   title: text(title ?? latex, title ?? latex),
+  previewLatex: options.previewLatex,
 });
+
+const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');
+
+function toLatexSymbol(command: string): string {
+  return command.startsWith('\\') || command.length === 1 ? command : `\\${command}`;
+}
+
+function createSymbolItems(commands: string[]): RuntimeToolbarItemTemplate[] {
+  return commands.map((command) => {
+    const latex = toLatexSymbol(command);
+    const resolved = resolveRuntimeSymbol(latex);
+    return symbol(latex, resolved?.char);
+  });
+}
+
+function createStyledSymbolItems(
+  style: 'mathcal' | 'mathfrak' | 'mathbb' | 'mathrm',
+  letters: string[],
+): RuntimeToolbarItemTemplate[] {
+  return letters.map((letter) => {
+    const latex = `\\${style}{${letter}}`;
+    const resolved = resolveRuntimeSymbol(latex);
+    return symbol(latex, resolved?.char);
+  });
+}
+
+const BASIC_MATH_SYMBOLS = [
+  'pm', 'infty', '=', 'sim', 'times', 'div', '!', '<', 'll', '>',
+  'gg', 'leq', 'geq', 'mp', 'cong', 'equiv', 'propto', 'approx',
+  'forall', 'partial', 'surd', 'cup', 'cap', 'varnothing', '%',
+  'circ', 'exists', 'nexists', 'in', 'ni', 'gets', 'uparrow',
+  'to', 'downarrow', 'leftrightarrow', 'therefore', 'because',
+  '+', '-', 'neg', 'ast', 'cdot', 'vdots', 'aleph', 'beth', 'blacksquare',
+];
+
+const GREEK_LOWERCASE_SYMBOLS = [
+  'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'theta', 'iota', 'kappa',
+  'lambda', 'mu', 'nu', 'xi', 'omicron', 'pi', 'rho', 'sigma', 'tau', 'upsilon',
+  'phi', 'chi', 'psi', 'omega',
+];
+
+const GREEK_UPPERCASE_SYMBOLS = [
+  'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa',
+  'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon',
+  'Phi', 'Chi', 'Psi', 'Omega',
+];
+
+const GREEK_VARIANT_SYMBOLS = [
+  'digamma', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho', 'varsigma', 'vartheta',
+];
+
+const NEGATED_OPERATOR_SYMBOLS = [
+  'neq', 'nless', 'ngtr', 'nleq', 'ngeq', 'nsim', 'lneqq',
+  'gneqq', 'nprec', 'nsucc', 'notin', 'nsubseteq', 'nsupseteq',
+  'subsetneq', 'supsetneq', 'lnsim', 'gnsim', 'precnsim',
+  'succnsim', 'ntriangleleft', 'ntriangleright', 'ntrianglelefteq',
+  'ntrianglerighteq', 'nmid', 'nparallel', 'nvdash', 'nVdash',
+  'nvDash', 'nVDash', 'nexists',
+];
+
+const LETTER_LIKE_SYMBOLS = [
+  'aleph', 'beth', 'daleth', 'gimel', 'complement', 'ell', 'eth', 'hbar',
+  'hslash', 'mho', 'partial', 'wp', 'circledS', 'Bbbk', 'Finv', 'Game',
+  'Im', 'Re',
+];
+
+const ARROW_SYMBOLS = [
+  'gets', 'to', 'uparrow', 'downarrow', 'leftrightarrow', 'updownarrow',
+  'Leftarrow', 'Rightarrow', 'Uparrow', 'Downarrow', 'Leftrightarrow',
+  'Updownarrow', 'longleftarrow', 'longrightarrow', 'longleftrightarrow',
+  'Longleftarrow', 'Longrightarrow', 'Longleftrightarrow', 'nearrow',
+  'nwarrow', 'searrow', 'swarrow', 'nleftarrow', 'nrightarrow',
+  'nLeftarrow', 'nRightarrow', 'nLeftrightarrow', 'leftharpoonup',
+  'leftharpoondown', 'rightharpoonup', 'rightharpoondown', 'upharpoonleft',
+  'upharpoonright', 'downharpoonleft', 'downharpoonright', 'leftrightharpoons',
+  'rightleftharpoons', 'leftleftarrows', 'rightrightarrows', 'upuparrows',
+  'downdownarrows', 'leftrightarrows', 'rightleftarrows', 'looparrowleft',
+  'looparrowright', 'leftarrowtail', 'rightarrowtail', 'Lsh', 'Rsh',
+  'Lleftarrow', 'Rrightarrow', 'curvearrowleft', 'curvearrowright',
+  'circlearrowleft', 'circlearrowright', 'multimap', 'leftrightsquigarrow',
+  'twoheadleftarrow', 'twoheadrightarrow', 'rightsquigarrow',
+];
 
 const RUNTIME_TOOLBAR_PANEL_TEMPLATES: RuntimeToolbarPanelTemplate[] = [
   {
@@ -142,137 +233,57 @@ const RUNTIME_TOOLBAR_PANEL_TEMPLATES: RuntimeToolbarPanelTemplate[] = [
       {
         id: 'basic-math',
         title: text('Basic math', '基础数学'),
-        items: [
-          symbol('\\pm', '±'),
-          symbol('\\infty', '∞'),
-          symbol('='),
-          symbol('\\sim', '∼'),
-          symbol('\\times', '×'),
-          symbol('\\div', '÷'),
-          symbol('!'),
-          symbol('<'),
-          symbol('\\ll', '≪'),
-          symbol('>'),
-          symbol('\\gg', '≫'),
-          symbol('\\leq', '≤'),
-          symbol('\\geq', '≥'),
-          symbol('\\mp', '∓'),
-          symbol('\\cong', '≅'),
-          symbol('\\equiv', '≡'),
-          symbol('\\propto', '∝'),
-          symbol('\\approx', '≈'),
-          symbol('\\forall', '∀'),
-          symbol('\\partial', '∂'),
-          symbol('\\cup', '∪'),
-          symbol('\\cap', '∩'),
-          symbol('\\varnothing', '∅'),
-          symbol('\\in', '∈'),
-          symbol('\\ni', '∋'),
-          symbol('\\to', '→'),
-          symbol('\\leftarrow', '←'),
-          symbol('\\uparrow', '↑'),
-          symbol('\\downarrow', '↓'),
-          symbol('\\leftrightarrow', '↔'),
-          symbol('\\therefore', '∴'),
-          symbol('\\because', '∵'),
-          symbol('+'),
-          symbol('-'),
-          symbol('\\neg', '¬'),
-          symbol('\\cdot', '·'),
-          symbol('\\vdots', '⋮'),
-        ],
+        items: createSymbolItems(BASIC_MATH_SYMBOLS),
       },
       {
-        id: 'greek',
-        title: text('Greek letters', '希腊字母'),
-        items: [
-          symbol('\\alpha', 'α'),
-          symbol('\\beta', 'β'),
-          symbol('\\gamma', 'γ'),
-          symbol('\\delta', 'δ'),
-          symbol('\\epsilon', 'ε'),
-          symbol('\\theta', 'θ'),
-          symbol('\\lambda', 'λ'),
-          symbol('\\mu', 'μ'),
-          symbol('\\pi', 'π'),
-          symbol('\\sigma', 'σ'),
-          symbol('\\phi', 'φ'),
-          symbol('\\omega', 'ω'),
-          symbol('\\Gamma', 'Γ'),
-          symbol('\\Delta', 'Δ'),
-          symbol('\\Theta', 'Θ'),
-          symbol('\\Lambda', 'Λ'),
-          symbol('\\Pi', 'Π'),
-          symbol('\\Sigma', 'Σ'),
-          symbol('\\Phi', 'Φ'),
-          symbol('\\Omega', 'Ω'),
-        ],
+        id: 'greek-lowercase',
+        title: text('Lowercase', '小写'),
+        items: createSymbolItems(GREEK_LOWERCASE_SYMBOLS),
+      },
+      {
+        id: 'greek-uppercase',
+        title: text('Uppercase', '大写'),
+        items: createSymbolItems(GREEK_UPPERCASE_SYMBOLS),
+      },
+      {
+        id: 'greek-variants',
+        title: text('Variants', '变体'),
+        items: createSymbolItems(GREEK_VARIANT_SYMBOLS),
       },
       {
         id: 'negated-operators',
         title: text('Negated operators', '求反关系运算符'),
-        items: [
-          symbol('\\neq', '≠'),
-          symbol('\\nless', '≮'),
-          symbol('\\ngtr', '≯'),
-          symbol('\\nleq', '≰'),
-          symbol('\\ngeq', '≱'),
-          symbol('\\nsim', '≁'),
-          symbol('\\notin', '∉'),
-          symbol('\\nsubseteq', '⊈'),
-          symbol('\\nsupseteq', '⊉'),
-          symbol('\\nparallel', '∦'),
-        ],
+        items: createSymbolItems(NEGATED_OPERATOR_SYMBOLS),
       },
       {
         id: 'letter-like',
         title: text('Letter-like symbols', '字母类符号'),
-        items: [
-          symbol('\\aleph', 'ℵ'),
-          symbol('\\beth', 'ℶ'),
-          symbol('\\ell', 'ℓ'),
-          symbol('\\hbar', 'ℏ'),
-          symbol('\\wp', '℘'),
-          symbol('\\Im', 'ℑ'),
-          symbol('\\Re', 'ℜ'),
-        ],
+        items: createSymbolItems(LETTER_LIKE_SYMBOLS),
       },
       {
         id: 'arrows',
         title: text('Arrows', '箭头'),
-        items: [
-          symbol('\\gets', '←'),
-          symbol('\\to', '→'),
-          symbol('\\uparrow', '↑'),
-          symbol('\\downarrow', '↓'),
-          symbol('\\leftrightarrow', '↔'),
-          symbol('\\updownarrow', '↕'),
-          symbol('\\Leftarrow', '⇐'),
-          symbol('\\Rightarrow', '⇒'),
-          symbol('\\Leftrightarrow', '⇔'),
-          symbol('\\longleftarrow', '⟵'),
-          symbol('\\longrightarrow', '⟶'),
-          symbol('\\nearrow', '↗'),
-          symbol('\\nwarrow', '↖'),
-          symbol('\\searrow', '↘'),
-          symbol('\\swarrow', '↙'),
-        ],
+        items: createSymbolItems(ARROW_SYMBOLS),
       },
       {
-        id: 'script-styles',
-        title: text('Script styles', '手写体'),
-        items: [
-          symbol('\\mathcal{A}', '𝒜'),
-          symbol('\\mathcal{B}', 'ℬ'),
-          symbol('\\mathcal{C}', '𝒞'),
-          symbol('\\mathcal{D}', '𝒟'),
-          symbol('\\mathfrak{A}', '𝔄'),
-          symbol('\\mathfrak{B}', '𝔅'),
-          symbol('\\mathbb{A}', '𝔸'),
-          symbol('\\mathbb{B}', '𝔹'),
-          symbol('\\mathrm{A}', 'A'),
-          symbol('\\mathrm{B}', 'B'),
-        ],
+        id: 'script-styles-cal',
+        title: text('Script', '手写体'),
+        items: createStyledSymbolItems('mathcal', UPPERCASE_LETTERS),
+      },
+      {
+        id: 'script-styles-frak',
+        title: text('Fraktur', '花体'),
+        items: createStyledSymbolItems('mathfrak', [...UPPERCASE_LETTERS, ...LOWERCASE_LETTERS]),
+      },
+      {
+        id: 'script-styles-bb',
+        title: text('Double-struck', '双线'),
+        items: createStyledSymbolItems('mathbb', UPPERCASE_LETTERS),
+      },
+      {
+        id: 'script-styles-roman',
+        title: text('Roman', '罗马'),
+        items: createStyledSymbolItems('mathrm', [...UPPERCASE_LETTERS, ...LOWERCASE_LETTERS]),
       },
     ],
   },
