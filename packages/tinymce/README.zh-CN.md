@@ -21,7 +21,7 @@ FormulaX 的 TinyMCE 集成适配器。
 - 通过 `data-formulax-latex` 持久化 LaTeX 源内容
 - 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片
 - 提供创建、解析、序列化、查找和替换公式元素的 markup 工具函数
-- 默认通过 `@formulaxjs/renderer/kity` 完成只读渲染
+- 默认通过 `@formulaxjs/renderer/standard` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
 
 ## 兼容性
@@ -238,7 +238,7 @@ if (isFormulaElement(element)) {
 
 ## 自定义 renderer
 
-该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/kity` 的 `createKityFormulaRenderer()`。
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/standard` 的 `createStandardFormulaRenderer()`。
 
 ```ts
 import tinymce from 'tinymce';
@@ -290,7 +290,7 @@ interface FormulaXTinyMceOptions {
 | `formulaAttributeName` | `data-formulax-latex` | 用于保存 LaTeX 源内容的属性。 |
 | `output` | `svg` | 公式持久化为 inline SVG，或上传后的 PNG 图片。 |
 | `image` | `undefined` | 当 `output` 为 `image` 时使用的 PNG 上传配置。 |
-| `renderer` | `createKityFormulaRenderer()` | 插件在需要运行时公式 HTML 时使用的 renderer。 |
+| `renderer` | `createStandardFormulaRenderer()` | 插件在需要运行时公式 HTML 时使用的 renderer。 |
 | `preload` | `idle` | 控制在浏览器空闲时、宿主 hover/focus 时，或完全不预加载 FormulaX runtime。 |
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
 | `modal` | 见下方 | 弹窗标题、按钮文本、尺寸和关闭行为。 |

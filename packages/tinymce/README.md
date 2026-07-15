@@ -21,7 +21,7 @@ TinyMCE integration adapter for FormulaX.
 - LaTeX persistence through `data-formulax-latex`
 - Optional `output: 'image'` PNG persistence with user-provided upload
 - Markup helpers for creating, parsing, serializing, finding, and replacing formula elements
-- Default read-only rendering through `@formulaxjs/renderer/kity`
+- Default read-only rendering through `@formulaxjs/renderer/standard`
 - Optional runtime preload before the first modal open
 
 ## Compatibility
@@ -235,7 +235,7 @@ The exact generated markup is internal and may evolve. Consumers should rely on 
 
 ## Custom renderer
 
-The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer/kity`.
+The adapter accepts a `renderer` option. By default it uses `createStandardFormulaRenderer()` from `@formulaxjs/renderer/standard`.
 
 ```ts
 import tinymce from 'tinymce';
@@ -287,7 +287,7 @@ interface FormulaXTinyMceOptions {
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `output` | `svg` | Persists formulas as inline SVG or uploaded PNG image markup. |
 | `image` | `undefined` | PNG upload settings used when `output` is `image`. |
-| `renderer` | `createKityFormulaRenderer()` | Renderer used when the plugin needs runtime formula HTML. |
+| `renderer` | `createStandardFormulaRenderer()` | Renderer used when the plugin needs runtime formula HTML. |
 | `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
 | `modal` | see below | Modal labels, dimensions, and closing behavior. |

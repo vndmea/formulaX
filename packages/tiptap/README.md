@@ -18,7 +18,7 @@ Tiptap integration adapter for FormulaX.
 - Default SVG persistence in node attrs
 - Optional `output: 'image'` PNG persistence with user-provided upload
 - Runtime SVG rendering in the node view
-- Default read-only rendering through `@formulaxjs/renderer/kity`
+- Default read-only rendering through `@formulaxjs/renderer/standard`
 - Optional runtime preload before the first modal open
 - Modal helper export through `openFormulaXTiptapModal`
 - Compatible peer dependency range for Tiptap 2 and 3
@@ -162,7 +162,7 @@ const formulaXNode = createFormulaXNode(undefined, {
 
 ## Custom renderer
 
-The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer/kity`.
+The adapter accepts a `renderer` option. By default it uses `createStandardFormulaRenderer()` from `@formulaxjs/renderer/standard`.
 
 ```ts
 import { createFormulaXNode } from '@formulaxjs/tiptap';
@@ -216,7 +216,7 @@ interface FormulaXTiptapOptions {
 | `initialLatex` | empty string | Initial LaTeX when inserting a new formula. |
 | `output` | `svg` | Persists formulas as runtime SVG metadata or uploaded PNG metadata. |
 | `image` | `undefined` | PNG upload settings used when `output` is `image`. |
-| `renderer` | `createKityFormulaRenderer()` | Renderer used for read-only formula output in the node view. |
+| `renderer` | `createStandardFormulaRenderer()` | Renderer used for read-only formula output in the node view. |
 | `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `modal` | see below | Modal labels and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |

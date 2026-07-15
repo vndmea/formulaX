@@ -18,7 +18,7 @@ FormulaX 的 Tiptap 集成适配器。
 - 默认在节点 attrs 中持久化 LaTeX
 - 可选 `output: 'image'`，通过自定义上传函数持久化 PNG 图片元数据
 - 在 node view 中运行时渲染 SVG
-- 默认通过 `@formulaxjs/renderer/kity` 完成只读渲染
+- 默认通过 `@formulaxjs/renderer/standard` 完成只读渲染
 - 支持在首次打开弹窗前预加载 runtime
 - 直接导出弹窗工具函数 `openFormulaXTiptapModal`
 - 兼容 Tiptap 2 和 3 的 peer dependency 范围
@@ -165,7 +165,7 @@ const formulaXNode = createFormulaXNode(undefined, {
 
 ## 自定义 renderer
 
-该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/kity` 的 `createKityFormulaRenderer()`。
+该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/standard` 的 `createStandardFormulaRenderer()`。
 
 ```ts
 import { createFormulaXNode } from '@formulaxjs/tiptap';
@@ -219,7 +219,7 @@ interface FormulaXTiptapOptions {
 | `initialLatex` | 空字符串 | 插入新公式时的初始 LaTeX。 |
 | `output` | `svg` | 公式持久化为运行时 SVG 元数据，或上传后的 PNG 元数据。 |
 | `image` | `undefined` | 当 `output` 为 `image` 时使用的 PNG 上传配置。 |
-| `renderer` | `createKityFormulaRenderer()` | node view 中用于只读公式输出的 renderer。 |
+| `renderer` | `createStandardFormulaRenderer()` | node view 中用于只读公式输出的 renderer。 |
 | `preload` | `idle` | 控制在浏览器空闲时、宿主 hover/focus 时，或完全不预加载 FormulaX runtime。 |
 | `modal` | 见下方 | 弹窗文案和关闭行为。 |
 | `editor` | 见下方 | 内嵌 FormulaX 编辑器配置。 |

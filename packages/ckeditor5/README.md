@@ -19,7 +19,7 @@ CKEditor 5 integration adapter for FormulaX.
 - Default SVG persistence in the CKEditor 5 model
 - Optional `output: 'image'` PNG persistence with user-provided upload
 - Runtime SVG rendering in the editing view
-- Default read-only rendering through `@formulaxjs/renderer/kity`
+- Default read-only rendering through `@formulaxjs/renderer/standard`
 - Optional runtime preload before the first modal open
 - Upcast and downcast support for formula markup in editor data
 - Direct modal helper export through `openFormulaXModal`
@@ -212,7 +212,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 
 ## Custom renderer
 
-The adapter accepts a `renderer` option. By default it uses `createKityFormulaRenderer()` from `@formulaxjs/renderer/kity`.
+The adapter accepts a `renderer` option. By default it uses `createStandardFormulaRenderer()` from `@formulaxjs/renderer/standard`.
 
 ## Options
 
@@ -263,7 +263,7 @@ interface FormulaXCKEditor5Options {
 | `formulaAttributeName` | `data-formulax-latex` | Attribute used to persist source LaTeX. |
 | `output` | `svg` | Persists formulas as runtime SVG metadata or uploaded PNG metadata. |
 | `image` | `undefined` | PNG upload settings used when `output` is `image`. |
-| `renderer` | `createKityFormulaRenderer()` | Renderer used for runtime SVG output in the editing view. |
+| `renderer` | `createStandardFormulaRenderer()` | Renderer used for runtime SVG output in the editing view. |
 | `preload` | `idle` | Preloads the FormulaX runtime on browser idle, on host hover/focus, or never. |
 | `modal` | see below | Modal labels and closing behavior. |
 | `editor` | see below | Embedded FormulaX editor options. |
