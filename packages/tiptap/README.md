@@ -163,6 +163,7 @@ const formulaXNode = createFormulaXNode(undefined, {
 ## Custom renderer
 
 The adapter accepts a `renderer` option. By default it uses `createStandardFormulaRenderer()` from `@formulaxjs/renderer/standard`.
+The example below opts into the Kity-backed renderer explicitly.
 
 ```ts
 import { createFormulaXNode } from '@formulaxjs/tiptap';

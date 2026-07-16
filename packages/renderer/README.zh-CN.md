@@ -21,6 +21,7 @@ npm install @formulaxjs/renderer
 - `ensureFormulaXBaseStyles`
 - `createFormulaRenderCacheKey`
 - `createFormulaRenderer`
+- 来自 `@formulaxjs/renderer/standard` 的 `createStandardFormulaRenderer`
 - `readRenderedFormulaSvgBox` 与 `serializeSvgForInsertion`
 
 ## 示例
@@ -50,7 +51,7 @@ if (svg instanceof SVGSVGElement) {
 当你需要面向 renderer 的共享基础能力时，请使用这个包：
 
 - 需要稳定 LaTeX wrapper 与公式 markup helper 的宿主编辑器 adapter
-- `@formulaxjs/renderer/kity` 这类具体 renderer 包
+- `@formulaxjs/renderer/standard` 和 `@formulaxjs/renderer/kity` 这类具体 renderer 入口
 - 处理渲染后 SVG 的导出或后处理流程
 
-如果你需要一个基于 Kity 的具体 renderer，请使用 `@formulaxjs/renderer/kity`。
+宿主编辑器适配器默认使用 `@formulaxjs/renderer/standard`。只有明确需要 Kity 兼容渲染时，才使用 `@formulaxjs/renderer/kity`。

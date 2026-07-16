@@ -239,6 +239,7 @@ if (isFormulaElement(element)) {
 ## 自定义 renderer
 
 该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/standard` 的 `createStandardFormulaRenderer()`。
+下面的示例会显式切换到 Kity-backed renderer。
 
 ```ts
 import tinymce from 'tinymce';

@@ -21,6 +21,7 @@ npm install @formulaxjs/renderer
 - `ensureFormulaXBaseStyles`
 - `createFormulaRenderCacheKey`
 - `createFormulaRenderer`
+- `createStandardFormulaRenderer` from `@formulaxjs/renderer/standard`
 - `readRenderedFormulaSvgBox` and `serializeSvgForInsertion`
 
 ## Example
@@ -50,7 +51,7 @@ if (svg instanceof SVGSVGElement) {
 Use this package when you need shared renderer-facing primitives:
 
 - host-editor adapters that need stable latex wrapper and formula markup helpers
-- concrete renderer packages such as `@formulaxjs/renderer/kity`
+- concrete renderer entries such as `@formulaxjs/renderer/standard` and `@formulaxjs/renderer/kity`
 - export or post-processing flows that work with rendered SVG
 
-If you need a concrete Kity-backed renderer, use `@formulaxjs/renderer/kity`.
+Use `@formulaxjs/renderer/standard` for the default read-only renderer used by host-editor adapters. Use `@formulaxjs/renderer/kity` when you specifically need Kity-backed compatibility.

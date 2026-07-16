@@ -14,7 +14,7 @@ It is **not** an official KityFormula project. KityFormula-related code is treat
 
 - Formula editing backed by a legacy KityFormula-compatible runtime
 - Shared renderer protocol for future engine swapping
-- Kity-based read-only SVG rendering through a dedicated renderer package
+- Standard read-only SVG rendering, with optional Kity-backed renderer compatibility
 - Modular package structure with lazy-loaded runtime chunks
 - Optional idle or hover preloading to reduce the first editor-open delay
 - PNG/JPG export support loaded on demand
@@ -29,6 +29,7 @@ Some packages are experimental and not yet published to npm.
 | --- | --- |
 | `@formulaxjs/core` | Core data model, LaTeX parsing, and shared pure logic |
 | `@formulaxjs/renderer` | Shared renderer contracts, formula markup helpers, base styles, cache helpers, and SVG utilities |
+| `@formulaxjs/renderer/standard` | Default read-only renderer used by host-editor adapters |
 | `@formulaxjs/renderer/kity` | Kity-based read-only renderer that turns LaTeX into inline SVG markup |
 | `@formulaxjs/renderer/image` | SVG-to-PNG upload helpers for image-based formula persistence |
 | `@formulaxjs/editor` | Modal-oriented FormulaX editor UI helpers built on top of the runtime |
@@ -50,12 +51,13 @@ Some packages are experimental and not yet published to npm.
 
 ## Architecture
 
-FormulaX now separates shared rendering concerns from the Kity-specific read-only renderer and from the modal editing UI:
+FormulaX now separates shared rendering concerns from concrete read-only renderers and from the modal editing UI:
 
 ```txt
 FormulaX workspace
 ├── @formulaxjs/core (document model, LaTeX parser/serializer)
 ├── @formulaxjs/renderer (renderer protocol, markup, styles, svg helpers)
+├── @formulaxjs/renderer/standard (default LaTeX -> inline SVG renderer)
 ├── @formulaxjs/renderer/kity (Kity-based LaTeX -> inline SVG renderer)
 ├── @formulaxjs/renderer/image (SVG -> PNG upload helpers for persisted image output)
 ├── @formulaxjs/editor (modal UI and embedded editor orchestration)
@@ -72,6 +74,7 @@ FormulaX workspace
 This architecture allows:
 
 - Reusing one renderer contract across adapters
+- Using `@formulaxjs/renderer/standard` as the default read-only renderer in host-editor adapters
 - Keeping Kity-specific rendering isolated behind `@formulaxjs/renderer/kity`
 - Keeping modal editing behavior isolated from read-only rendering
 - Preparing for future engines such as `renderer-katex` without reworking adapters
@@ -142,16 +145,17 @@ The examples below intentionally show more optional fields than a minimal setup 
 ### Shared Renderer Usage
 
 ```ts
-import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 
-const renderer = createKityFormulaRenderer({
-  fontSize: 40, // default font size used by the Kity-backed renderer
+const renderer = createStandardFormulaRenderer({
+  fontSize: 40, // default font size used by the standard renderer
   height: 320, // optional runtime workspace height when rendering
-  assetCacheKey: 'formulax-cdn-v1', // optional cache namespace when asset URLs change
-  assets: {
+  runtime: {
     // optional partial overrides when fonts / toolbar sprites / CSS live on your CDN
-    styles: {
-      editor: '/static/formulax/editor.css',
+    assets: {
+      styles: {
+        editor: '/static/formulax/editor.css',
+      },
     },
   },
 });
@@ -264,7 +268,7 @@ const latex = serializeLatex(doc);
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
 import { createFormulaXNode } from '@formulaxjs/tiptap';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 
 const formulaNode = createFormulaXNode(undefined, {
   name: 'formulaX', // custom node name when avoiding schema collisions
@@ -273,7 +277,7 @@ const formulaNode = createFormulaXNode(undefined, {
   cursorStyle: 'pointer', // cursor for inline formula widgets
   initialLatex: '\\placeholder ', // default content for newly inserted formulas
   preload: 'idle', // 'idle' | 'hover' | false
-  renderer: createKityFormulaRenderer({
+  renderer: createStandardFormulaRenderer({
     fontSize: 40,
   }), // optional custom renderer
   modal: {

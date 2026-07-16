@@ -14,7 +14,7 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 
 - 基于 KityFormula 兼容运行时的公式编辑
 - 面向未来渲染引擎切换的共享 renderer 协议
-- 通过独立包提供的 Kity 只读 SVG 渲染
+- 默认 standard 只读 SVG 渲染，并保留可选的 Kity renderer 兼容路径
 - 模块化包结构和懒加载运行时 chunk
 - 支持空闲时或悬停时预加载，减少首次打开编辑器的等待
 - PNG/JPG 导出按需加载
@@ -29,6 +29,7 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 | --- | --- |
 | `@formulaxjs/core` | 核心数据模型、LaTeX 解析和纯逻辑 |
 | `@formulaxjs/renderer` | 共享 renderer 协议、公式 markup、基础样式、cache helper 和 SVG 工具 |
+| `@formulaxjs/renderer/standard` | 宿主编辑器适配器默认使用的只读渲染器 |
 | `@formulaxjs/renderer/kity` | 基于 Kity 的只读渲染器，将 LaTeX 转成可内联的 SVG markup |
 | `@formulaxjs/renderer/image` | 用于 image output 持久化的 SVG 转 PNG 与上传辅助层 |
 | `@formulaxjs/editor` | 基于 runtime 的弹窗编辑 UI 辅助层 |
@@ -50,12 +51,13 @@ FormulaX **不是** KityFormula 官方项目。KityFormula 相关代码被视为
 
 ## 架构设计
 
-现在的 FormulaX 已经把共享渲染能力、Kity 只读渲染和弹窗编辑 UI 分开：
+现在的 FormulaX 已经把共享渲染能力、具体只读渲染器和弹窗编辑 UI 分开：
 
 ```txt
 FormulaX workspace
 ├── @formulaxjs/core（文档模型、LaTeX 解析器/序列化器）
 ├── @formulaxjs/renderer（renderer 协议、markup、styles、svg helpers）
+├── @formulaxjs/renderer/standard（默认 LaTeX -> inline SVG 渲染器）
 ├── @formulaxjs/renderer/kity（基于 Kity 的 LaTeX -> inline SVG 渲染器）
 ├── @formulaxjs/renderer/image（SVG -> PNG 上传辅助层，用于图片持久化）
 ├── @formulaxjs/editor（弹窗 UI 和内嵌编辑器编排）
@@ -72,6 +74,7 @@ FormulaX workspace
 这种划分带来的好处：
 
 - 各适配器可以共用一套 renderer 接口
+- 宿主编辑器适配器默认使用 `@formulaxjs/renderer/standard` 做只读渲染
 - Kity 特有的只读渲染被隔离在 `@formulaxjs/renderer/kity`
 - 弹窗编辑 UI 不再混入只读渲染职责
 - 未来引入 `renderer-katex` 时，无需整体重写适配器
@@ -142,16 +145,17 @@ pnpm build
 ### 共享渲染器
 
 ```ts
-import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 
-const renderer = createKityFormulaRenderer({
+const renderer = createStandardFormulaRenderer({
   fontSize: 40, // 渲染器默认字号
   height: 320, // 渲染时挂载 runtime 使用的工作区高度
-  assetCacheKey: 'formulax-cdn-v1', // 资源 URL 变更时可切换缓存命名空间
-  assets: {
+  runtime: {
     // 可选，局部覆盖字体 / 工具栏图片 / CSS 资源地址
-    styles: {
-      editor: '/static/formulax/editor.css',
+    assets: {
+      styles: {
+        editor: '/static/formulax/editor.css',
+      },
     },
   },
 });
@@ -264,7 +268,7 @@ const latex = serializeLatex(doc);
 import StarterKit from '@tiptap/starter-kit';
 import { Editor } from '@tiptap/core';
 import { createFormulaXNode } from '@formulaxjs/tiptap';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
+import { createStandardFormulaRenderer } from '@formulaxjs/renderer/standard';
 
 const formulaNode = createFormulaXNode(undefined, {
   name: 'formulaX', // 自定义节点名，避免 schema 冲突
@@ -273,7 +277,7 @@ const formulaNode = createFormulaXNode(undefined, {
   cursorStyle: 'pointer', // 行内公式的鼠标样式
   initialLatex: '\\placeholder ', // 插入新公式时的默认内容
   preload: 'idle', // 'idle' | 'hover' | false
-  renderer: createKityFormulaRenderer({
+  renderer: createStandardFormulaRenderer({
     fontSize: 40,
   }), // 可选，自定义渲染器
   modal: {

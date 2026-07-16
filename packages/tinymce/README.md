@@ -236,6 +236,7 @@ The exact generated markup is internal and may evolve. Consumers should rely on 
 ## Custom renderer
 
 The adapter accepts a `renderer` option. By default it uses `createStandardFormulaRenderer()` from `@formulaxjs/renderer/standard`.
+The example below opts into the Kity-backed renderer explicitly.
 
 ```ts
 import tinymce from 'tinymce';

@@ -67,7 +67,6 @@ import {
   FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
 } from '@formulaxjs/ckeditor5';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -84,9 +83,6 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
     modal: {
       title: 'FormulaX Editor',
     },
-    renderer: createKityFormulaRenderer({
-      fontSize: 40,
-    }),
     editor: {
       locale: 'zh_CN', // optional, defaults to en_US
       render: {
@@ -213,6 +209,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 ## Custom renderer
 
 The adapter accepts a `renderer` option. By default it uses `createStandardFormulaRenderer()` from `@formulaxjs/renderer/standard`.
+Pass a custom renderer here only when you need to override that default.
 
 ## Options
 

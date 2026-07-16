@@ -67,7 +67,6 @@ import {
   FORMULAX_DEFAULT_ICON_SVG,
   FormulaX,
 } from '@formulaxjs/ckeditor5';
-import { createKityFormulaRenderer } from '@formulaxjs/renderer/kity';
 
 await ClassicEditor.create(document.querySelector('#editor')!, {
   licenseKey: 'GPL',
@@ -84,9 +83,6 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
     modal: {
       title: 'FormulaX 公式编辑器',
     },
-    renderer: createKityFormulaRenderer({
-      fontSize: 40,
-    }),
     editor: {
       locale: 'zh_CN', // 可选，默认 en_US
       render: {
@@ -216,6 +212,7 @@ await ClassicEditor.create(document.querySelector('#editor')!, {
 ## 自定义 renderer
 
 该适配器支持 `renderer` 配置项。默认值是来自 `@formulaxjs/renderer/standard` 的 `createStandardFormulaRenderer()`。
+只有需要覆盖默认 renderer 时，才需要传入自定义 renderer。
 
 ## 配置项
 
