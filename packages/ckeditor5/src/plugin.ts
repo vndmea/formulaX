@@ -150,6 +150,16 @@ export class FormulaX extends Plugin {
     this.preloadCleanup = scheduleFormulaXEditorPreload(
       options.preload,
       getEditorPreloadTarget(editor),
+      {
+        doc: document,
+        runtimeAssets: options.editor.runtimeAssets,
+        renderFontSize: options.editor.render.fontsize,
+        height: options.editor.height,
+        wrap: options.editor.wrap,
+        maxWidth: options.editor.maxWidth,
+        lineGap: options.editor.lineGap,
+        continuationIndent: options.editor.continuationIndent,
+      },
     );
     defineFormulaSchema(editor, options.name);
     defineFormulaConverters(editor, options);

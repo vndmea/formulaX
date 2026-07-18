@@ -5,6 +5,7 @@ import {
 } from '@formulaxjs/core';
 import {
   createRuntimeToolbarPanels,
+  runtimeFontAssets,
   resolveRuntimeToolbarPanels,
   type RuntimeEditorAssets,
   type RuntimeEditorHandle,
@@ -14,6 +15,15 @@ import {
   type RuntimeToolbarPanel,
 } from '@formulaxjs/runtime';
 import { FORMULAX_DEFAULT_ICON_SVG } from './icons';
+import {
+  clearFormulaXPerfMarks,
+  markFormulaXPerf,
+  measureFormulaXPerf,
+} from './perf';
+import {
+  ensureRuntimeFontStyles,
+  loadRuntimeFonts,
+} from './runtime-fonts';
 
 type RuntimeToolbarMountOptions = {
   locale?: FormulaXLocale;
@@ -22,9 +32,23 @@ type RuntimeToolbarMountOptions = {
 };
 
 type ToolbarPreviewRenderer = {
-  render(host: HTMLElement, latex: string, fontSize?: number, priority?: boolean): void;
-  preload(latex: string, fontSize?: number): void;
+  render(
+    host: HTMLElement,
+    latex: string,
+    fontSize?: number,
+    priority?: ToolbarPreviewPriority | boolean,
+  ): void;
+  preload(latex: string, fontSize?: number, priority?: ToolbarPreviewPriority): void;
   destroy(): void;
+};
+
+type ToolbarPreviewPriority = 'critical' | 'interaction' | 'idle';
+
+type ToolbarPreviewTask = {
+  host?: HTMLElement;
+  latex: string;
+  fontSize: number;
+  priority: ToolbarPreviewPriority;
 };
 
 const TOOLBAR_SYMBOL_PREVIOUS_LABELS: Record<FormulaXLocale, string> = {
@@ -65,13 +89,28 @@ function createToolbarPreviewRenderer(
   doc: Document,
   runtimeAssets?: Partial<RuntimeEditorAssets>,
 ): ToolbarPreviewRenderer {
-  const queue: Array<{ host: HTMLElement; latex: string; fontSize: number }> = [];
+  const queue: ToolbarPreviewTask[] = [];
   const markupCache = new Map<string, string>();
   const pendingCache = new Map<string, Promise<string>>();
   let activeCount = 0;
+  let pumpScheduled = false;
   let destroyed = false;
+  ensureRuntimeFontStyles(doc, runtimeFontAssets);
+  const runtimeFontsReady = loadRuntimeFonts(doc).catch(() => undefined);
 
   const cacheKey = (latex: string, fontSize: number): string => `${fontSize}\u0000${latex}`;
+
+  const normalizePriority = (
+    priority: ToolbarPreviewPriority | boolean | undefined,
+  ): ToolbarPreviewPriority => {
+    if (priority === true) {
+      return 'critical';
+    }
+    if (priority === false || priority === undefined) {
+      return 'idle';
+    }
+    return priority;
+  };
 
   const resolveSvgTextCenterX = (svg: SVGSVGElement): number | null => {
     const viewBox = svg.getAttribute('viewBox');
@@ -139,22 +178,93 @@ function createToolbarPreviewRenderer(
     return promise;
   };
 
+  const priorityRank = (priority: ToolbarPreviewPriority): number => {
+    switch (priority) {
+      case 'critical':
+        return 0;
+      case 'interaction':
+        return 1;
+      case 'idle':
+        return 2;
+    }
+  };
+
+  const enqueue = (task: ToolbarPreviewTask): void => {
+    const key = cacheKey(task.latex, task.fontSize);
+    if (!task.host && (
+      markupCache.has(key)
+      || pendingCache.has(key)
+    )) {
+      return;
+    }
+
+    if (!task.host) {
+      const queued = queue.find((item) => (
+        !item.host && cacheKey(item.latex, item.fontSize) === key
+      ));
+      if (queued) {
+        if (priorityRank(task.priority) < priorityRank(queued.priority)) {
+          queued.priority = task.priority;
+          queue.sort((left, right) => priorityRank(left.priority) - priorityRank(right.priority));
+        }
+        return;
+      }
+    }
+
+    const index = queue.findIndex((item) => (
+      priorityRank(item.priority) > priorityRank(task.priority)
+    ));
+    if (index === -1) {
+      queue.push(task);
+    } else {
+      queue.splice(index, 0, task);
+    }
+  };
+
+  const schedulePump = (priority: ToolbarPreviewPriority): void => {
+    if (destroyed) {
+      return;
+    }
+    if (pumpScheduled && priority === 'idle') {
+      return;
+    }
+    if (pumpScheduled) {
+      queueMicrotask(pump);
+      return;
+    }
+
+    pumpScheduled = true;
+    const win = doc.defaultView as (Window & {
+      requestIdleCallback?: (callback: () => void) => number;
+    }) | null;
+    if (priority === 'idle' && typeof win?.requestIdleCallback === 'function') {
+      win.requestIdleCallback(() => pump());
+      return;
+    }
+
+    queueMicrotask(pump);
+  };
+
   const pump = (): void => {
+    pumpScheduled = false;
     while (!destroyed && activeCount < 4 && queue.length > 0) {
       const task = queue.shift();
       if (!task) {
         return;
       }
-      if (!task.host.isConnected) {
+      if (task.host && !task.host.isConnected) {
         continue;
       }
 
       activeCount += 1;
-      const fontsReady = task.host.ownerDocument.fonts?.ready ?? Promise.resolve();
-      void fontsReady
+      const taskStart = markFormulaXPerf(`fx:toolbar-preview:${task.priority}:start`);
+      void runtimeFontsReady
         .then(() => renderCached(task.latex, task.fontSize))
         .then((html) => {
-          if (destroyed || !task.host.isConnected) {
+          if (destroyed || !task.host) {
+            return;
+          }
+          if (!task.host.isConnected) {
             return;
           }
           task.host.innerHTML = html;
@@ -162,12 +272,14 @@ function createToolbarPreviewRenderer(
           task.host.removeAttribute('aria-busy');
         })
         .catch(() => {
-          if (!destroyed && task.host.isConnected) {
+          if (!destroyed && task.host?.isConnected) {
             task.host.dataset.formulaxToolbarPreviewError = 'true';
             task.host.removeAttribute('aria-busy');
           }
         })
         .finally(() => {
+          measureFormulaXPerf(`fx:toolbar-preview:${task.priority}`, taskStart);
+          clearFormulaXPerfMarks(taskStart);
           activeCount -= 1;
           pump();
         });
@@ -185,17 +297,22 @@ function createToolbarPreviewRenderer(
       }
 
       host.setAttribute('aria-busy', 'true');
-      const task = { host, latex, fontSize };
-      if (priority) {
-        queue.unshift(task);
-      } else {
-        queue.push(task);
-      }
-      queueMicrotask(pump);
+      const resolvedPriority = normalizePriority(priority);
+      enqueue({
+        host,
+        latex,
+        fontSize,
+        priority: resolvedPriority,
+      });
+      schedulePump(resolvedPriority);
     },
-    preload(latex, fontSize = 28) {
-      const fontsReady = doc.fonts?.ready ?? Promise.resolve();
-      void fontsReady.then(() => renderCached(latex, fontSize)).catch(() => undefined);
+    preload(latex, fontSize = 28, priority = 'idle') {
+      enqueue({
+        latex,
+        fontSize,
+        priority,
+      });
+      schedulePump(priority);
     },
     destroy() {
       destroyed = true;
@@ -246,6 +363,7 @@ export function mountStandardRuntimeToolbar(
     updateHistoryButtons();
   });
   const panelButtons = new Map<string, HTMLButtonElement>();
+  const panelContentCache = new Map<string, HTMLElement[]>();
   let activePanelId: string | null = null;
 
   // TODO: Restore toolbar-level undo/redo after the standard history UX is redesigned
@@ -263,11 +381,14 @@ export function mountStandardRuntimeToolbar(
           updateHistoryButtons();
         },
         open(button) {
+          warmPanel(panel.id, 'interaction');
           activePanelId = activePanelId === panel.id ? null : panel.id;
           renderPopover(button);
         },
       });
       panelButtons.set(panel.id, area.button);
+      area.button.addEventListener('pointerenter', () => warmPanel(panel.id, 'interaction'), { passive: true });
+      area.button.addEventListener('focusin', () => warmPanel(panel.id, 'interaction'));
       buttonRow.appendChild(area.root);
       buttonRow.appendChild(createDelimiter(doc));
       // TODO: Re-enable once standard history controls are redesigned.
@@ -278,9 +399,12 @@ export function mountStandardRuntimeToolbar(
     const button = createPanelButton(doc, panel, previewRenderer);
     button.dataset.formulaxToolbarButton = panel.id;
     button.addEventListener('click', () => {
+      warmPanel(panel.id, 'interaction');
       activePanelId = activePanelId === panel.id ? null : panel.id;
       renderPopover(button);
     });
+    button.addEventListener('pointerenter', () => warmPanel(panel.id, 'interaction'), { passive: true });
+    button.addEventListener('focusin', () => warmPanel(panel.id, 'interaction'));
     panelButtons.set(panel.id, button);
     buttonRow.appendChild(button);
     if (panel.layout === 'presets') {
@@ -349,7 +473,7 @@ export function mountStandardRuntimeToolbar(
     if (!activePanelId) {
       popover.classList.add('is-hidden');
       popover.removeAttribute('data-formulax-toolbar-layout');
-      popoverBody.innerHTML = '';
+      popoverBody.replaceChildren();
       resetPopoverOverflow();
       return;
     }
@@ -363,15 +487,9 @@ export function mountStandardRuntimeToolbar(
 
     popover.classList.remove('is-hidden');
     popover.dataset.formulaxToolbarLayout = panel.layout;
-    popoverBody.innerHTML = '';
+    popoverBody.replaceChildren(...getPanelContent(panel));
 
-    appendToolbarSections(popoverBody, panel.groups, panel.layout, (item) => {
-        applyToolbarItem(runtimeHandle, item.latex);
-        runtimeHandle.focus();
-        updateHistoryButtons();
-        activePanelId = null;
-        renderPopover();
-    });
+    warmPanel(panel.id, 'interaction');
 
     if (anchor) {
       positionPopover(anchor);
@@ -415,7 +533,7 @@ export function mountStandardRuntimeToolbar(
           content.appendChild(label);
         }
 
-        const preview = createPreviewElement(doc, item, previewRenderer, layout, true);
+        const preview = createPreviewElement(doc, item, previewRenderer, layout, 'interaction');
         applyToolbarPreviewSize(preview, item, layout);
         content.appendChild(preview);
         itemButton.appendChild(content);
@@ -427,6 +545,34 @@ export function mountStandardRuntimeToolbar(
       section.append(sectionTitle, grid);
       sectionHost.appendChild(section);
     }
+  }
+
+  function getPanelContent(panel: RuntimeToolbarPanel): HTMLElement[] {
+    const cached = panelContentCache.get(panel.id);
+    if (cached) {
+      return cached;
+    }
+
+    const sectionHost = doc.createElement('div');
+    appendToolbarSections(sectionHost, panel.groups, panel.layout, (item) => {
+      applyToolbarItem(runtimeHandle, item.latex);
+      runtimeHandle.focus();
+      updateHistoryButtons();
+      activePanelId = null;
+      renderPopover();
+    });
+    const nodes = Array.from(sectionHost.children) as HTMLElement[];
+    panelContentCache.set(panel.id, nodes);
+    return nodes;
+  }
+
+  function warmPanel(panelId: string, priority: ToolbarPreviewPriority): void {
+    const panel = panels.find((item) => item.id === panelId);
+    if (!panel) {
+      return;
+    }
+
+    preloadPanelPreviews(panel, previewRenderer, priority);
   }
 
   function positionPopover(anchor: HTMLButtonElement): void {
@@ -484,6 +630,7 @@ export function mountStandardRuntimeToolbar(
       doc.removeEventListener('keydown', closeOnEscape, true);
       doc.defaultView?.removeEventListener('resize', reposition);
       previewRenderer.destroy();
+      panelContentCache.clear();
       host.innerHTML = '';
     },
   };
@@ -518,7 +665,7 @@ function createPanelButton(
     const iconPreview = resolveToolbarButtonIconPreview(panel.id, previewItem.previewLatex);
     const iconLatex = iconPreview.latex;
     iconHost.dataset.formulaxToolbarPreview = iconLatex;
-    previewRenderer.render(iconHost, iconLatex, iconPreview.fontSize ?? 22, true);
+    previewRenderer.render(iconHost, iconLatex, iconPreview.fontSize ?? 22, 'critical');
   }
   return button;
 }
@@ -564,7 +711,7 @@ function createPreviewElement(
   item: RuntimeToolbarItem,
   previewRenderer: ToolbarPreviewRenderer,
   layout: RuntimeToolbarPanel['layout'],
-  priority = false,
+  priority: ToolbarPreviewPriority = 'idle',
 ): HTMLElement {
   const preview = doc.createElement('span');
 
@@ -601,11 +748,42 @@ function preloadToolbarPreviews(
   panels: RuntimeToolbarPanel[],
   previewRenderer: ToolbarPreviewRenderer,
 ): void {
+  let criticalPanelPreloaded = false;
   for (const panel of panels) {
-    for (const group of panel.groups) {
-      for (const item of group.items) {
-        previewRenderer.preload(item.previewLatex, resolveToolbarPreviewFontSize(item, panel.layout));
+    if (panel.kind === 'area') {
+      preloadPanelPreviews(panel, previewRenderer, 'idle');
+      continue;
+    }
+
+    if (!criticalPanelPreloaded) {
+      preloadPanelPreviews(panel, previewRenderer, 'critical', 12);
+      preloadPanelPreviews(panel, previewRenderer, 'idle', undefined, 12);
+      criticalPanelPreloaded = true;
+      continue;
+    }
+
+    preloadPanelPreviews(panel, previewRenderer, 'idle');
+  }
+}
+
+function preloadPanelPreviews(
+  panel: RuntimeToolbarPanel,
+  previewRenderer: ToolbarPreviewRenderer,
+  priority: ToolbarPreviewPriority,
+  limit = Number.POSITIVE_INFINITY,
+  skip = 0,
+): void {
+  let seen = 0;
+  for (const group of panel.groups) {
+    for (const item of group.items) {
+      if (seen >= skip && seen < skip + limit) {
+        previewRenderer.preload(
+          item.previewLatex,
+          resolveToolbarPreviewFontSize(item, panel.layout),
+          priority,
+        );
       }
+      seen += 1;
     }
   }
 }
@@ -762,7 +940,7 @@ function createSymbolArea(
       button.title = item.title;
       const inner = doc.createElement('span');
       inner.className = 'fx-runtime-toolbar__area-item-inner';
-      inner.appendChild(createPreviewElement(doc, item, previewRenderer, 'symbols'));
+      inner.appendChild(createPreviewElement(doc, item, previewRenderer, 'symbols', 'critical'));
       button.appendChild(inner);
       button.addEventListener('click', () => handlers.insert(item));
       viewport.appendChild(button);

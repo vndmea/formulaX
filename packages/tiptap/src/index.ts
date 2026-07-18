@@ -132,6 +132,17 @@ function createFormulaXNodeConfig(options: RequiredFormulaXTiptapOptions): any {
       const preloadCleanup = scheduleFormulaXEditorPreload(
         options.preload,
         this.editor?.view?.dom ?? null,
+        {
+          doc: this.editor?.view?.dom?.ownerDocument ?? document,
+          runtimeAssets: options.editor.runtimeAssets,
+          initialLatex: options.initialLatex,
+          renderFontSize: options.editor.render.fontsize,
+          height: options.editor.height,
+          wrap: options.editor.wrap,
+          maxWidth: options.editor.maxWidth,
+          lineGap: options.editor.lineGap,
+          continuationIndent: options.editor.continuationIndent,
+        },
       );
 
       if (this.storage) {

@@ -172,6 +172,17 @@ export function registerFormulaXTinyMcePlugin(
         preloadCleanup = scheduleFormulaXEditorPreload(
           resolved.preload,
           editor.getBody?.() ?? null,
+          {
+            doc: editorDoc ?? document,
+            runtimeAssets: resolved.editor.runtimeAssets,
+            initialLatex: resolved.initialLatex,
+            renderFontSize: resolved.editor.render.fontsize,
+            height: resolved.editor.height,
+            wrap: resolved.editor.wrap,
+            maxWidth: resolved.editor.maxWidth,
+            lineGap: resolved.editor.lineGap,
+            continuationIndent: resolved.editor.continuationIndent,
+          },
         );
       });
 

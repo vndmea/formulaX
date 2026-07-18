@@ -15,13 +15,14 @@ import {
   clearFormulaXPerfMarks,
   markFormulaXPerf,
   measureFormulaXPerf,
+  preloadFormulaXEditor,
   recordFormulaXPerfPoint,
 } from './perf';
+import { ensureRuntimeFontStyles } from './runtime-fonts';
 import { mountStandardRuntimeToolbar } from './standard-runtime-toolbar';
 
 const EMPTY_FORMULA_PLACEHOLDER = '\\placeholder ';
 const STYLE_ID = 'fx-formula-modal-styles';
-const RUNTIME_FONT_STYLE_ID = 'fx-runtime-font-styles';
 
 export type FormulaXEditorRuntime = 'standard';
 export type FormulaXEditorRuntimePreference = FormulaXEditorRuntime | 'auto';
@@ -931,32 +932,13 @@ export const formulaXModalStyles = `
 
 export function ensureFormulaXModalStyles(doc: Document = document): void {
   ensureFormulaXBaseStyles(doc);
-  ensureRuntimeFontStyles(doc);
+  ensureRuntimeFontStyles(doc, runtimeFontAssets);
 
   if (doc.getElementById(STYLE_ID)) return;
 
   const style = doc.createElement('style');
   style.id = STYLE_ID;
   style.textContent = formulaXModalStyles;
-  doc.head.appendChild(style);
-}
-
-function ensureRuntimeFontStyles(doc: Document): void {
-  if (doc.getElementById(RUNTIME_FONT_STYLE_ID)) {
-    return;
-  }
-
-  const style = doc.createElement('style');
-  style.id = RUNTIME_FONT_STYLE_ID;
-  style.textContent = [
-    ['KF AMS MAIN', runtimeFontAssets.KF_AMS_MAIN],
-    ['KF AMS CAL', runtimeFontAssets.KF_AMS_CAL],
-    ['KF AMS FRAK', runtimeFontAssets.KF_AMS_FRAK],
-    ['KF AMS BB', runtimeFontAssets.KF_AMS_BB],
-    ['KF AMS ROMAN', runtimeFontAssets.KF_AMS_ROMAN],
-  ].map(([family, source]) => (
-    `@font-face{font-family:"${family}";font-style:normal;font-weight:400;src:url("${source}") format("woff");}`
-  )).join('\n');
   doc.head.appendChild(style);
 }
 
@@ -985,6 +967,18 @@ export function mountFormulaXEditor(
   const loadingVisibleMark = markFormulaXPerf('fx:formula-editor:loading-visible');
   measureFormulaXPerf('fx:formula-editor:loading-visible', mountStart, loadingVisibleMark);
   clearFormulaXPerfMarks(loadingVisibleMark);
+
+  void preloadFormulaXEditor({
+    doc: root.ownerDocument ?? document,
+    runtimeAssets: options.runtimeAssets,
+    initialLatex,
+    renderFontSize: options.render?.fontSize ?? options.render?.fontsize ?? 36,
+    height: options.height ?? '100%',
+    wrap: options.wrap,
+    maxWidth: options.maxWidth,
+    lineGap: options.lineGap,
+    continuationIndent: options.continuationIndent,
+  });
 
   const readyPromise = mountFormulaEditorHandle(root, {
     ...options,
@@ -1099,7 +1093,7 @@ async function mountStandardRuntimeHandle(
   options: FormulaXEditorOptions & { initialLatex: string },
 ): Promise<MountedFormulaXHandle> {
   const doc = root.ownerDocument ?? document;
-  ensureRuntimeFontStyles(root.ownerDocument ?? document);
+  ensureRuntimeFontStyles(root.ownerDocument ?? document, runtimeFontAssets);
   root.classList.remove('fx-formula-kity-host');
   root.classList.add('fx-formula-runtime-host');
   root.innerHTML = '';
