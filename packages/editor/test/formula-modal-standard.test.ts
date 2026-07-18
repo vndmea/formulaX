@@ -6,8 +6,48 @@ import {
   ensureFormulaXModalStyles,
   mountFormulaXEditor,
 } from '../src/formula-modal';
+import { preloadFormulaXEditor } from '../src/perf';
 
 describe('mountFormulaXEditor runtime=standard', () => {
+  it('preloads FormulaX runtime fonts without waiting for all document fonts', async () => {
+    document.body.innerHTML = '';
+    const loadedFonts: string[] = [];
+    const previousFonts = document.fonts;
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: {
+        load(query: string) {
+          loadedFonts.push(query);
+          return Promise.resolve([]);
+        },
+        get ready() {
+          throw new Error('FormulaX preload should not await document.fonts.ready');
+        },
+      },
+    });
+
+    try {
+      await preloadFormulaXEditor({
+        doc: document,
+        initialLatex: 'x',
+        renderFontSize: 20,
+      });
+    } finally {
+      Object.defineProperty(document, 'fonts', {
+        configurable: true,
+        value: previousFonts,
+      });
+    }
+
+    expect(loadedFonts).toEqual([
+      '20px "KF AMS MAIN"',
+      '20px "KF AMS CAL"',
+      '20px "KF AMS FRAK"',
+      '20px "KF AMS BB"',
+      '20px "KF AMS ROMAN"',
+    ]);
+  });
+
   it('allows runtime standard to be selected as the editor default', async () => {
     document.body.innerHTML = '<div id="host"></div>';
     const host = document.getElementById('host') as HTMLElement;
@@ -352,6 +392,18 @@ describe('mountFormulaXEditor runtime=standard', () => {
     expect(getComputedStyle(itemContent as HTMLElement).height).toBe('87px');
     expect(getComputedStyle(fractionPreview as HTMLElement).width).toBe('56px');
     expect(getComputedStyle(fractionPreview as HTMLElement).height).toBe('75px');
+
+    const popover = host.querySelector<HTMLElement>('.fx-runtime-toolbar__popover');
+    const firstFractionPreview = fractionPreview;
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    expect(popover?.classList.contains('is-hidden')).toBe(true);
+    fractionButton?.click();
+    const reopenedFractionPreview = host.querySelector<HTMLElement>(
+      '[data-formulax-toolbar-latex="\\\\frac \\\\placeholder\\\\placeholder"] '
+      + '.fx-runtime-toolbar__item-preview',
+    );
+    expect(reopenedFractionPreview).toBe(firstFractionPreview);
+    expect(reopenedFractionPreview?.querySelector('svg')).not.toBeNull();
 
     mounted.destroy();
   });
